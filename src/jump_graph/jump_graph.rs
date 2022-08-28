@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use std::collections::HashMap;
 use std::fmt::Debug;
 
@@ -120,10 +119,6 @@ pub struct BlockSet<'a> {
 impl<'a> BlockSet<'a> {
     pub fn contains_block_at(&self, pc: usize) -> bool {
         return self.blocks.contains_key(&pc);
-    }
-
-    pub fn get_n_blocks(&self) -> usize {
-        return self.blocks.len();
     }
 
     pub fn get_pc_end_of_block(&self, pc_start: usize) -> usize {

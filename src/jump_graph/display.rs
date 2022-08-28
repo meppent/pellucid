@@ -60,9 +60,6 @@ pub struct Grid {
 }
 
 impl Grid {
-    pub fn new() -> Self {
-        return Grid { content: vec![] };
-    }
     pub fn new_with_size(n_lines: usize, n_columns: usize) -> Self {
         let mut grid: Grid = Grid { content: vec![] };
         grid.ensure_size(n_lines - 1, n_columns - 1);
@@ -160,35 +157,6 @@ impl Grid {
             current_line = (current_line as isize + direction.to_index().0) as usize;
             current_column = (current_column as isize + direction.to_index().1) as usize;
         }
-    }
-
-    pub fn draw_line_with_coords(
-        &mut self,
-        initial_line: usize,
-        initial_column: usize,
-        final_line: usize,
-        final_column: usize,
-    ) {
-        let direction: LineDirection;
-        let length: usize;
-        if initial_line == final_line {
-            if initial_column < final_column {
-                direction = LineDirection::RIGHT;
-            } else {
-                direction = LineDirection::LEFT;
-            }
-            length = (initial_column as isize - final_column as isize).abs() as usize + 1;
-        } else {
-            assert!(initial_column == final_column);
-            if initial_line < final_line {
-                direction = LineDirection::DOWN;
-            } else {
-                direction = LineDirection::UP;
-            }
-            length = (initial_line as isize - final_line as isize).abs() as usize + 1;
-        }
-
-        self.draw_line(initial_line, initial_column, direction, length);
     }
 
     pub fn draw_outside_box(&mut self) {
