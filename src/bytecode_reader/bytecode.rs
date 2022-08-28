@@ -73,7 +73,7 @@ pub struct Bytecode {
 
 impl fmt::Display for Bytecode {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        let res: String = self.stringify_range(0, self.get_last_pc());
+        let res: String = stringify_vopcodes(&self.vopcodes);
         formatter.write_str(&res)?;
         Ok(())
     }
@@ -119,10 +119,6 @@ impl Bytecode {
         return loader;
     }
 
-    pub fn pc_exists(&self, pc: usize) -> bool {
-        return self.pc_to_index.contains_key(&pc);
-    }
-
     pub fn get_vopcode_at(&self, pc: usize) -> &Vopcode {
         return &self.vopcodes[self.pc_to_index[&pc]];
     }
@@ -152,16 +148,12 @@ impl Bytecode {
     pub fn iter<'a>(&'a self, pc_start: usize, pc_end: usize) -> std::slice::Iter<Vopcode> {
         return self.vopcodes[self.pc_to_index[&pc_start]..self.pc_to_index[&pc_end] + 1].iter();
     }
-
-    pub fn stringify_range(&self, pc_start: usize, pc_end: usize) -> String {
-        // both range pc_start and pc_end are included
-
-        let mut res: String = String::from("");
-
-        for vopcode in self.iter(pc_start, pc_end) {
-            res.push_str(&vopcode.to_string());
-            res.push_str("\n");
-        }
-        return res;
+}
+pub fn stringify_vopcodes(vopcodes: &[Vopcode]) -> String {
+    let mut res: String = String::from("");
+    for vopcode in vopcodes {
+        res.push_str(&vopcode.to_string());
+        res.push_str("\n");
     }
+    return res;
 }

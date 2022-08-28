@@ -121,6 +121,10 @@ impl<'a> BlockSet<'a> {
         return self.blocks.contains_key(&pc);
     }
 
+    pub fn get_blocks(&self) -> std::collections::hash_map::Values<'_, usize, Block<'_>> {
+        return self.blocks.values();
+    }
+
     pub fn get_pc_end_of_block(&self, pc_start: usize) -> usize {
         return self.blocks[&pc_start].get_pc_end();
     }
@@ -134,7 +138,7 @@ impl<'a> BlockSet<'a> {
         self.blocks.insert(block.get_pc_start(), block);
     }
     pub fn get_edges(&self) -> Vec<(usize, usize)> {
-        let mut edges: Vec<(usize, usize)> = vec![]; // pc_start origin => pc_start dest
+        let mut edges: Vec<(usize, usize)> = vec![]; // (pc_start origin, pc_start dest)
         for (pc_start_origin, children) in &self.children {
             for pc_start_dest in children {
                 edges.push((*pc_start_origin, *pc_start_dest));
