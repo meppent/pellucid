@@ -1,4 +1,4 @@
-use super::jump_graph::BlockSet;
+use super::graph::BlockSet;
 use crate::{
     bytecode_reader::bytecode::Bytecode,
     utils::{get_max_key, get_sorted_keys, iter_int, map_values_to_index, max_mapped_value},

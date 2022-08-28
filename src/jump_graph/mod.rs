@@ -1,2 +1,2 @@
-pub mod jump_graph;
+pub mod graph;
 pub mod display;
