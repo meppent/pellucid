@@ -180,6 +180,7 @@ impl<'a> BlockSet<'a> {
             }
             if pc_start != None
                 && (STOP_OPCODES.contains(&opcode) || next_opcode == Some(Opcode::JUMPDEST))
+                || vopcode.is_last
             {
                 // end block
                 self.insert_new_block(Block::new(bytecode.slice_code(pc_start.unwrap(), pc)));
