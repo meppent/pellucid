@@ -176,6 +176,13 @@ impl Opcode {
         }
     }
 
+    pub fn from_u8(from: u8) -> Self {
+        match HEX_TO_OPCODE.lock().unwrap().get(&from) {
+            Some(opcode) => *opcode,
+            None => Opcode::INVALID,
+        }
+    }
+
     pub fn n_stack_input(&self) -> usize {
         return OPCODE_INFO.lock().unwrap()[self].n_stack_input as usize;
     }

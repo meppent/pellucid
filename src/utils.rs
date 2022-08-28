@@ -16,8 +16,8 @@ pub fn u256_to_hex(value: U256) -> String {
     return hex_value;
 }
 
-fn remove_0x(s: &str) -> &str {
-    if s.len() >= 2 && s[0..2] == String::from("0x") {
+pub fn remove_0x(s: &str) -> &str {
+    if s.len() >= 2 && &s[0..2] == "0x" {
         return &s[2..];
     } else {
         return s;
