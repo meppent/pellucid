@@ -76,7 +76,16 @@ impl Vopcode {
         return res;
     }
 }
-
+impl fmt::Display for Vopcode {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        let mut res: String = String::from("Vopcode: ");
+        res.push_str(&self.to_string());
+        res.push_str(" is_last_line: ");
+        res.push_str(&self.is_last.to_string());
+        formatter.write_str(&res)?;
+        Ok(())
+    }
+}
 pub struct Bytecode {
     vopcodes: Vec<Vopcode>,
     pc_to_index: HashMap<usize, usize>, // line => index of corresponding VOpcode in `vopcodes`
@@ -96,7 +105,7 @@ impl Bytecode {
         assert!(string_bytecode.len() % 2 == 0);
         let length: usize = string_bytecode.len() / 2;
 
-        let mut loader: Bytecode = Bytecode {
+        let mut bytecode: Bytecode = Bytecode {
             vopcodes: Vec::new(),
             pc_to_index: HashMap::new(),
         };
@@ -110,7 +119,7 @@ impl Bytecode {
 
             if let Some(n_bytes) = opcode.as_push() {
                 if line + 1 + n_bytes >= length {
-                    // we are at the end, it's probably the hash of the solidity
+                    // we are at the end, it's probably the metadata
                     break;
                 }
                 let hex: &str = &string_bytecode[2 * (line + 1)..2 * (line + 1 + n_bytes)];
@@ -119,15 +128,17 @@ impl Bytecode {
                 line += n_bytes;
             }
 
-            loader
+            bytecode
                 .vopcodes
-                .push(Vopcode::new(opcode, param, origin_line, line + 1 >= length));
-            loader
+                .push(Vopcode::new(opcode, param, origin_line, false));
+            bytecode
                 .pc_to_index
-                .insert(origin_line, loader.vopcodes.len() - 1);
+                .insert(origin_line, bytecode.vopcodes.len() - 1);
             line += 1;
         }
-        return loader;
+        let n_vopcodes: usize = bytecode.vopcodes.len();
+        bytecode.vopcodes.get_mut(n_vopcodes - 1).unwrap().is_last = true;
+        return bytecode;
     }
 
     pub fn get_vopcode_at(&self, pc: usize) -> &Vopcode {

@@ -166,16 +166,22 @@ impl<'a> BlockSet<'a> {
         for vopcode in bytecode.iter(0, bytecode.get_last_pc()) {
             let opcode: Opcode = vopcode.opcode;
             let pc: usize = vopcode.pc;
+            println!("{}", vopcode);
             let next_opcode: Option<Opcode> = if let Some(next_pc) = vopcode.get_next_pc() {
                 Some(bytecode.get_vopcode_at(next_pc).opcode)
             } else {
                 None
             };
-            if pc_start == None {
-                if opcode == Opcode::JUMPDEST || previous_opcode == Some(Opcode::JUMPI) {
-                    pc_start = Some(pc);
-                }
-            } else if STOP_OPCODES.contains(&opcode) || next_opcode == Some(Opcode::JUMPDEST) {
+            if pc_start == None
+                && (opcode == Opcode::JUMPDEST || previous_opcode == Some(Opcode::JUMPI))
+            {
+                // start a new block
+                pc_start = Some(pc);
+            }
+            if pc_start != None
+                && (STOP_OPCODES.contains(&opcode) || next_opcode == Some(Opcode::JUMPDEST))
+            {
+                // end block
                 self.insert_new_block(Block::new(bytecode.slice_code(pc_start.unwrap(), pc)));
                 pc_start = None;
             }
