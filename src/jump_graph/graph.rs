@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 use std::collections::HashMap;
 use std::fmt::Debug;
 
@@ -62,7 +61,7 @@ impl<'a> Block<'a> {
             _ => {
                 assert!(!STOP_OPCODES.contains(&vopcode.opcode));
                 self.get_first_vopcode().opcode == Opcode::JUMPDEST
-                    && vopcode.get_next_pc() == self.get_first_vopcode().pc
+                    && vopcode.get_next_pc() == Some(self.get_first_vopcode().pc)
             }
         }
     }
@@ -80,7 +79,9 @@ impl<'a> Block<'a> {
                 next_jump_dests.push(self.get_pc_end() + 1); // TODO handle when JUMPI is the last opcode of the whole bytecode
             }
 
-            ExecutionState::RUNNING => next_jump_dests.push(self.get_last_vopcode().get_next_pc()), // we are before a jump dest
+            ExecutionState::RUNNING => {
+                next_jump_dests.push(self.get_last_vopcode().get_next_pc().unwrap())
+            } // we are before a jump dest
             _ => (),
         }
 
@@ -122,8 +123,8 @@ impl<'a> BlockSet<'a> {
         return self.blocks.contains_key(&pc);
     }
 
-    pub fn get_n_blocks(&self) -> usize {
-        return self.blocks.len();
+    pub fn get_blocks(&self) -> std::collections::hash_map::Values<'_, usize, Block<'_>> {
+        return self.blocks.values();
     }
 
     pub fn get_pc_end_of_block(&self, pc_start: usize) -> usize {
@@ -139,7 +140,7 @@ impl<'a> BlockSet<'a> {
         self.blocks.insert(block.get_pc_start(), block);
     }
     pub fn get_edges(&self) -> Vec<(usize, usize)> {
-        let mut edges: Vec<(usize, usize)> = vec![]; // pc_start origin => pc_start dest
+        let mut edges: Vec<(usize, usize)> = vec![]; // (pc_start origin, pc_start dest)
         for (pc_start_origin, children) in &self.children {
             for pc_start_dest in children {
                 edges.push((*pc_start_origin, *pc_start_dest));
@@ -165,17 +166,22 @@ impl<'a> BlockSet<'a> {
         for vopcode in bytecode.iter(0, bytecode.get_last_pc()) {
             let opcode: Opcode = vopcode.opcode;
             let pc: usize = vopcode.pc;
-            let next_pc: usize = vopcode.get_next_pc();
-            let next_opcode: Option<Opcode> = if next_pc <= bytecode.get_last_pc() {
+            println!("{}", vopcode);
+            let next_opcode: Option<Opcode> = if let Some(next_pc) = vopcode.get_next_pc() {
                 Some(bytecode.get_vopcode_at(next_pc).opcode)
             } else {
                 None
             };
-            if pc_start == None {
-                if opcode == Opcode::JUMPDEST || previous_opcode == Some(Opcode::JUMPI) {
-                    pc_start = Some(pc);
-                }
-            } else if STOP_OPCODES.contains(&opcode) || next_opcode == Some(Opcode::JUMPDEST) {
+            if pc_start == None
+                && (opcode == Opcode::JUMPDEST || previous_opcode == Some(Opcode::JUMPI))
+            {
+                // start a new block
+                pc_start = Some(pc);
+            }
+            if pc_start != None
+                && (STOP_OPCODES.contains(&opcode) || next_opcode == Some(Opcode::JUMPDEST))
+            {
+                // end block
                 self.insert_new_block(Block::new(bytecode.slice_code(pc_start.unwrap(), pc)));
                 pc_start = None;
             }

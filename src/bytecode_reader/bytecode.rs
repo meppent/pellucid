@@ -13,23 +13,34 @@ pub struct Vopcode {
     pub opcode: Opcode,
     pub value: Option<U256>,
     pub pc: usize,
+    pub is_last: bool, // is it the last opcode of the bytecode ?
 }
 
 impl Vopcode {
-    pub fn new(opcode: Opcode, value: Option<U256>, pc: usize) -> Self {
+    pub fn new(opcode: Opcode, value: Option<U256>, pc: usize, is_last: bool) -> Self {
         Vopcode::sanity_check(opcode, value);
-        return Self { opcode, value, pc };
+        return Self {
+            opcode,
+            value,
+            pc,
+            is_last,
+        };
     }
 
-    pub fn get_next_pc(&self) -> usize {
-        return self.pc
-            + 1
-            + match self.opcode.as_push() {
-                Some(n_bytes) => n_bytes,
-                None => 0,
-            };
+    pub fn get_next_pc(&self) -> Option<usize> {
+        if self.is_last {
+            None
+        } else {
+            Some(
+                self.pc
+                    + 1
+                    + match self.opcode.as_push() {
+                        Some(n_bytes) => n_bytes,
+                        None => 0,
+                    },
+            )
+        }
     }
-
     fn sanity_check(opcode: Opcode, value: Option<U256>) {
         if let Some(v) = value {
             if let Some(n) = opcode.as_push() {
@@ -66,7 +77,16 @@ impl Vopcode {
         return res;
     }
 }
-
+impl fmt::Display for Vopcode {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        let mut res: String = String::from("Vopcode: ");
+        res.push_str(&self.to_string());
+        res.push_str(" is_last_line: ");
+        res.push_str(&self.is_last.to_string());
+        formatter.write_str(&res)?;
+        Ok(())
+    }
+}
 pub struct Bytecode {
     vopcodes: Vec<Vopcode>,
     pc_to_index: HashMap<usize, usize>, // line => index of corresponding VOpcode in `vopcodes`
@@ -74,7 +94,7 @@ pub struct Bytecode {
 
 impl fmt::Display for Bytecode {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        let res: String = self.stringify_range(0, self.get_last_pc());
+        let res: String = stringify_vopcodes(&self.vopcodes);
         formatter.write_str(&res)?;
         Ok(())
     }
@@ -82,13 +102,12 @@ impl fmt::Display for Bytecode {
 
 impl Bytecode {
     pub fn from(raw_bytecode: &str) -> Bytecode {
-        let vec_bytecode =
-            match hex::decode(remove_0x(&raw_bytecode)) {
-                Ok(res) => res,
-                Err(err) => panic!("Failed to decode bytecode: {}", err),
-            };
+        let vec_bytecode = match hex::decode(remove_0x(&raw_bytecode)) {
+            Ok(res) => res,
+            Err(err) => panic!("Failed to decode bytecode: {}", err),
+        };
 
-        let mut loader: Bytecode = Bytecode {
+        let mut bytecode: Bytecode = Bytecode {
             vopcodes: Vec::new(),
             pc_to_index: HashMap::new(),
         };
@@ -112,18 +131,17 @@ impl Bytecode {
                 pc += n_bytes;
             }
 
-            loader
+            bytecode
                 .pc_to_index
-                .insert(origin_line, loader.vopcodes.len());
-            loader
+                .insert(origin_line, bytecode.vopcodes.len());
+            bytecode
                 .vopcodes
-                .push(Vopcode::new(opcode, param, origin_line));
+                .push(Vopcode::new(opcode, param, origin_line, false));
         }
-        return loader;
-    }
-
-    pub fn pc_exists(&self, pc: usize) -> bool {
-        return self.pc_to_index.contains_key(&pc);
+        
+        let n_vopcodes: usize = bytecode.vopcodes.len();
+        bytecode.vopcodes.get_mut(n_vopcodes - 1).unwrap().is_last = true;
+        return bytecode;
     }
 
     pub fn get_vopcode_at(&self, pc: usize) -> &Vopcode {
@@ -141,16 +159,12 @@ impl Bytecode {
     pub fn iter<'a>(&'a self, pc_start: usize, pc_end: usize) -> std::slice::Iter<Vopcode> {
         return self.vopcodes[self.pc_to_index[&pc_start]..self.pc_to_index[&pc_end] + 1].iter();
     }
-
-    pub fn stringify_range(&self, pc_start: usize, pc_end: usize) -> String {
-        // both range pc_start and pc_end are included
-
-        let mut res: String = String::from("");
-
-        for vopcode in self.iter(pc_start, pc_end) {
-            res.push_str(&vopcode.to_string());
-            res.push_str("\n");
-        }
-        return res;
+}
+pub fn stringify_vopcodes(vopcodes: &[Vopcode]) -> String {
+    let mut res: String = String::from("");
+    for vopcode in vopcodes {
+        res.push_str(&vopcode.to_string());
+        res.push_str("\n");
     }
+    return res;
 }
