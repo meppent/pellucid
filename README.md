@@ -6,11 +6,11 @@ A rusty EVM decompiler.
 
 export RUST_BACKTRACE=1 && clear && cargo run
 
-# Authors
+## Authors
 
-@makcandrov
-@ewile
-@AtomicAzzaz
+- @makcandrov
+- @ewile
+- @AtomicAzzaz
 
 ## Usefull links
 
