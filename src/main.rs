@@ -2,7 +2,6 @@ use crate::bytecode_reader::opcode::init_opcodes;
 use std::env;
 mod bytecode_reader;
 mod evm;
-mod gui;
 mod jump_graph;
 mod tests;
 mod utils;
