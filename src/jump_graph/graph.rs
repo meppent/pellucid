@@ -61,7 +61,7 @@ impl<'a> Block<'a> {
             _ => {
                 assert!(!STOP_OPCODES.contains(&vopcode.opcode));
                 self.get_first_vopcode().opcode == Opcode::JUMPDEST
-                    && vopcode.get_next_pc() == self.get_first_vopcode().pc
+                    && vopcode.get_next_pc() == Some(self.get_first_vopcode().pc)
             }
         }
     }
@@ -79,7 +79,9 @@ impl<'a> Block<'a> {
                 next_jump_dests.push(self.get_pc_end() + 1); // TODO handle when JUMPI is the last opcode of the whole bytecode
             }
 
-            ExecutionState::RUNNING => next_jump_dests.push(self.get_last_vopcode().get_next_pc()), // we are before a jump dest
+            ExecutionState::RUNNING => {
+                next_jump_dests.push(self.get_last_vopcode().get_next_pc().unwrap())
+            } // we are before a jump dest
             _ => (),
         }
 
@@ -164,8 +166,7 @@ impl<'a> BlockSet<'a> {
         for vopcode in bytecode.iter(0, bytecode.get_last_pc()) {
             let opcode: Opcode = vopcode.opcode;
             let pc: usize = vopcode.pc;
-            let next_pc: usize = vopcode.get_next_pc();
-            let next_opcode: Option<Opcode> = if next_pc <= bytecode.get_last_pc() {
+            let next_opcode: Option<Opcode> = if let Some(next_pc) = vopcode.get_next_pc() {
                 Some(bytecode.get_vopcode_at(next_pc).opcode)
             } else {
                 None

@@ -12,23 +12,34 @@ pub struct Vopcode {
     pub opcode: Opcode,
     pub value: Option<U256>,
     pub pc: usize,
+    pub is_last: bool, // is it the last opcode of the bytecode ?
 }
 
 impl Vopcode {
-    pub fn new(opcode: Opcode, value: Option<U256>, pc: usize) -> Self {
+    pub fn new(opcode: Opcode, value: Option<U256>, pc: usize, is_last: bool) -> Self {
         Vopcode::sanity_check(opcode, value);
-        return Self { opcode, value, pc };
+        return Self {
+            opcode,
+            value,
+            pc,
+            is_last,
+        };
     }
 
-    pub fn get_next_pc(&self) -> usize {
-        return self.pc
-            + 1
-            + match self.opcode.as_push() {
-                Some(n_bytes) => n_bytes,
-                None => 0,
-            };
+    pub fn get_next_pc(&self) -> Option<usize> {
+        if self.is_last {
+            None
+        } else {
+            Some(
+                self.pc
+                    + 1
+                    + match self.opcode.as_push() {
+                        Some(n_bytes) => n_bytes,
+                        None => 0,
+                    },
+            )
+        }
     }
-
     fn sanity_check(opcode: Opcode, value: Option<U256>) {
         if let Some(v) = value {
             if let Some(n) = opcode.as_push() {
@@ -110,7 +121,7 @@ impl Bytecode {
 
             loader
                 .vopcodes
-                .push(Vopcode::new(opcode, param, origin_line));
+                .push(Vopcode::new(opcode, param, origin_line, line + 1 >= length));
             loader
                 .pc_to_index
                 .insert(origin_line, loader.vopcodes.len() - 1);
