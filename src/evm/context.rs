@@ -51,7 +51,12 @@ impl Context {
         }
 
         if let Some(_) = opcode.as_push() {
-            self.stack.push(Expression::VALUE(vopcode.value.unwrap()));
+            if let Some(pushed) = vopcode.value {
+                self.stack.push(Expression::VALUE(pushed));
+            } else {
+                self.state = ExecutionState::REVERT;
+                return;
+            }
         } else if let Some(index) = opcode.as_dup() {
             self.stack.dup(index);
         } else if let Some(index) = opcode.as_swap() {
