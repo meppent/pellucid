@@ -44,7 +44,7 @@ impl Bytecode {
             let mut param: Option<U256> = None;
 
             if let Some(n_bytes) = opcode.as_push() {
-                if pc + n_bytes < bytecode_length {
+                if pc + n_bytes <= bytecode_length {
                     param = Some(U256::from_big_endian(&vec_bytecode[pc..pc + n_bytes]));
                 }
 
