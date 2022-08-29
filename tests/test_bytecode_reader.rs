@@ -1,7 +1,6 @@
 use hex;
-use pellucid::bytecode_reader::bytecode;
-use pellucid::bytecode_reader::opcode;
-use pellucid::bytecode_reader::vopcode;
+use pellucid::bytecode_reader::bytecode::Bytecode;
+use pellucid::bytecode_reader::opcode::Opcode;
 use primitive_types::U256;
 use rand;
 mod utils;
@@ -9,19 +8,19 @@ mod utils;
 #[test]
 fn test_invalid_bytecode() {
     assert!(
-        std::panic::catch_unwind(|| bytecode::Bytecode::from("abc")).is_err(),
+        std::panic::catch_unwind(|| Bytecode::from("abc")).is_err(),
         "Odd size bytecode without 0x did not panic"
     );
     assert!(
-        std::panic::catch_unwind(|| bytecode::Bytecode::from("0xabc")).is_err(),
+        std::panic::catch_unwind(|| Bytecode::from("0xabc")).is_err(),
         "Odd size bytecode with 0x did not panic"
     );
     assert!(
-        std::panic::catch_unwind(|| bytecode::Bytecode::from("abcg")).is_err(),
+        std::panic::catch_unwind(|| Bytecode::from("abcg")).is_err(),
         "Bytecode with invalid character without 0x did not panic"
     );
     assert!(
-        std::panic::catch_unwind(|| bytecode::Bytecode::from("0xabcg")).is_err(),
+        std::panic::catch_unwind(|| Bytecode::from("0xabcg")).is_err(),
         "Bytecode with invalid character with 0x did not panic"
     );
 }
@@ -36,42 +35,42 @@ fn test_0x_support() {
     let mut bytecode2 = "0x".to_owned();
     bytecode2.push_str(&bytecode1);
     assert_eq!(
-        bytecode::Bytecode::from(&bytecode1),
-        bytecode::Bytecode::from(&bytecode2)
+        Bytecode::from(&bytecode1),
+        Bytecode::from(&bytecode2)
     );
 }
 
 #[test]
 fn test_last_push() {
-    let bytecode = bytecode::Bytecode::from("6001");
+    let bytecode = Bytecode::from("6001");
     let last_vopcode = bytecode.get_vopcode_at(bytecode.get_last_pc());
     assert!(
         last_vopcode.is_last &&
-        last_vopcode.opcode == opcode::Opcode::PUSH1 &&
+        last_vopcode.opcode == Opcode::PUSH1 &&
         last_vopcode.value == Some(U256::from(1))
     );
 
-    let bytecode = bytecode::Bytecode::from("60");
+    let bytecode = Bytecode::from("60");
     let last_vopcode = bytecode.get_vopcode_at(bytecode.get_last_pc());
     assert!(
         last_vopcode.is_last &&
-        last_vopcode.opcode == opcode::Opcode::PUSH1 &&
+        last_vopcode.opcode == Opcode::PUSH1 &&
         last_vopcode.value == None
     );
 
-    let bytecode = bytecode::Bytecode::from("000065000000000002");
+    let bytecode = Bytecode::from("000065000000000002");
     let last_vopcode = bytecode.get_vopcode_at(bytecode.get_last_pc());
     assert!(
         last_vopcode.is_last &&
-        last_vopcode.opcode == opcode::Opcode::PUSH6 &&
+        last_vopcode.opcode == Opcode::PUSH6 &&
         last_vopcode.value == Some(U256::from(2))
     );
 
-    let bytecode = bytecode::Bytecode::from("0000650000000002");
+    let bytecode = Bytecode::from("0000650000000002");
     let last_vopcode = bytecode.get_vopcode_at(bytecode.get_last_pc());
     assert!(
         last_vopcode.is_last &&
-        last_vopcode.opcode == opcode::Opcode::PUSH6 &&
+        last_vopcode.opcode == Opcode::PUSH6 &&
         last_vopcode.value == None
     );
 }
