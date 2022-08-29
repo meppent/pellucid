@@ -1,7 +1,7 @@
 use super::expression::Expression;
 use super::stack::Stack;
 use super::state::ExecutionState;
-use crate::bytecode_reader::{bytecode::Vopcode, opcode::Opcode};
+use crate::bytecode_reader::{vopcode::Vopcode, opcode::Opcode};
 use core::fmt::Debug;
 use std::vec;
 
@@ -51,7 +51,12 @@ impl Context {
         }
 
         if let Some(_) = opcode.as_push() {
-            self.stack.push(Expression::VALUE(vopcode.value.unwrap()));
+            if let Some(pushed) = vopcode.value {
+                self.stack.push(Expression::VALUE(pushed));
+            } else {
+                self.state = ExecutionState::REVERT;
+                return;
+            }
         } else if let Some(index) = opcode.as_dup() {
             self.stack.dup(index);
         } else if let Some(index) = opcode.as_swap() {
@@ -62,8 +67,9 @@ impl Context {
                 consumed_expressions.push(Box::new(self.stack.pop()));
             }
             if opcode.has_stack_output() {
-                self.stack
-                    .push(Expression::COMPOSE(opcode, consumed_expressions));
+                self.stack.push(
+                    Expression::COMPOSE(opcode, consumed_expressions)
+                );
             }
         }
     }

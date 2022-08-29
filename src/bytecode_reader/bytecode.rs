@@ -3,90 +3,12 @@ use primitive_types::U256;
 use std::fmt;
 use std::{collections::HashMap, usize};
 
-use crate::utils::{remove_0x, u256_to_hex, usize_to_hex};
+use crate::utils::remove_0x;
 
 use super::opcode::Opcode;
+use super::vopcode::Vopcode;
 
-#[derive(Default, Debug, PartialEq, Clone, Copy)]
-pub struct Vopcode {
-    // an opcode with a value, used when it's a PUSH
-    pub opcode: Opcode,
-    pub value: Option<U256>,
-    pub pc: usize,
-    pub is_last: bool, // is it the last opcode of the bytecode ?
-}
-
-impl Vopcode {
-    pub fn new(opcode: Opcode, value: Option<U256>, pc: usize, is_last: bool) -> Self {
-        Vopcode::sanity_check(opcode, value);
-        return Self {
-            opcode,
-            value,
-            pc,
-            is_last,
-        };
-    }
-
-    pub fn get_next_pc(&self) -> Option<usize> {
-        if self.is_last {
-            None
-        } else {
-            Some(
-                self.pc
-                    + 1
-                    + match self.opcode.as_push() {
-                        Some(n_bytes) => n_bytes,
-                        None => 0,
-                    },
-            )
-        }
-    }
-    fn sanity_check(opcode: Opcode, value: Option<U256>) {
-        if let Some(v) = value {
-            if let Some(n) = opcode.as_push() {
-                assert!(1 <= n, "PUSH(n) must verify 1 <= n");
-                assert!(n <= 32, "PUSH(n) must verify n <= 32");
-                assert!(
-                    v <= U256::from(256)
-                        .overflowing_pow(U256::from(n))
-                        .0
-                        .overflowing_sub(U256::from(1))
-                        .0,
-                    "The value after PUSH(n) should be less than (2^8)^n"
-                );
-            } else {
-                panic!("Vopcode with non empty value should be a push opcode.")
-            }
-        } else {
-            assert!(
-                opcode.as_push() == None,
-                "Vopcode with an empty value should not be a push"
-            );
-        }
-    }
-
-    pub fn to_string(&self) -> String {
-        let mut res: String = String::from(&usize_to_hex(self.pc));
-        res.push_str(": ");
-        res.push_str(&self.opcode.to_string());
-
-        if let Some(bytes) = self.value {
-            res.push_str(" ");
-            res.push_str(&u256_to_hex(bytes));
-        }
-        return res;
-    }
-}
-impl fmt::Display for Vopcode {
-    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        let mut res: String = String::from("Vopcode: ");
-        res.push_str(&self.to_string());
-        res.push_str(" is_last_line: ");
-        res.push_str(&self.is_last.to_string());
-        formatter.write_str(&res)?;
-        Ok(())
-    }
-}
+#[derive(Default, Debug, PartialEq)]
 pub struct Bytecode {
     vopcodes: Vec<Vopcode>,
     pc_to_index: HashMap<usize, usize>, // line => index of corresponding VOpcode in `vopcodes`
@@ -102,7 +24,7 @@ impl fmt::Display for Bytecode {
 
 impl Bytecode {
     pub fn from(raw_bytecode: &str) -> Bytecode {
-        let vec_bytecode = match hex::decode(remove_0x(&raw_bytecode)) {
+        let vec_bytecode: Vec<u8> = match hex::decode(remove_0x(&raw_bytecode)) {
             Ok(res) => res,
             Err(err) => panic!("Failed to decode bytecode: {}", err),
         };
@@ -113,7 +35,7 @@ impl Bytecode {
         };
 
         let bytecode_length = vec_bytecode.len();
-        let mut pc = 0;
+        let mut pc: usize = 0;
         while pc < bytecode_length {
             let origin_line = pc;
             let opcode: Opcode = Opcode::from_u8(vec_bytecode[pc]);
@@ -122,12 +44,10 @@ impl Bytecode {
             let mut param: Option<U256> = None;
 
             if let Some(n_bytes) = opcode.as_push() {
-                if pc + n_bytes >= bytecode_length {
-                    // we are at the end, it's probably part of the metadata
-                    break;
+                if pc + n_bytes < bytecode_length {
+                    param = Some(U256::from_big_endian(&vec_bytecode[pc..pc + n_bytes]));
                 }
 
-                param = Some(U256::from_big_endian(&vec_bytecode[pc..pc + n_bytes]));
                 pc += n_bytes;
             }
 
@@ -136,11 +56,9 @@ impl Bytecode {
                 .insert(origin_line, bytecode.vopcodes.len());
             bytecode
                 .vopcodes
-                .push(Vopcode::new(opcode, param, origin_line, false));
+                .push(Vopcode::new(opcode, param, origin_line, pc >= bytecode_length));
         }
-        
-        let n_vopcodes: usize = bytecode.vopcodes.len();
-        bytecode.vopcodes.get_mut(n_vopcodes - 1).unwrap().is_last = true;
+
         return bytecode;
     }
 
@@ -160,6 +78,7 @@ impl Bytecode {
         return self.vopcodes[self.pc_to_index[&pc_start]..self.pc_to_index[&pc_end] + 1].iter();
     }
 }
+
 pub fn stringify_vopcodes(vopcodes: &[Vopcode]) -> String {
     let mut res: String = String::from("");
     for vopcode in vopcodes {
