@@ -29,15 +29,13 @@ fn test_invalid_character_in_bytecode2() {
 
 #[test]
 fn test_0x_support() {
-    let mut random_vec1: Vec<u8> = Vec::new();
-    let mut random_vec2: Vec<u8> = Vec::new();
+    let mut random_vec: Vec<u8> = Vec::new();
     for _ in 0..200 {
-        random_vec1.push(rand::random::<u8>());
-        random_vec2.push(rand::random::<u8>());
+        random_vec.push(rand::random::<u8>());
     }
-    let bytecode1 = hex::encode(random_vec1);
+    let bytecode1 = hex::encode(random_vec);
     let mut bytecode2 = "0x".to_owned();
-    bytecode2.push_str(&hex::encode(random_vec2));
+    bytecode2.push_str(&bytecode1);
     assert_eq!(
         bytecode::Bytecode::from(&bytecode1),
         bytecode::Bytecode::from(&bytecode2)
