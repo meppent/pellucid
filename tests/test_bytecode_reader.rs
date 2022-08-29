@@ -4,6 +4,15 @@ use rand;
 mod utils;
 
 #[test]
+pub fn test_simple_contract_bytecode() {
+    let contract: utils::Contract = utils::Contract::SIMPLE_CONTRACT;
+    let bytecode: bytecode::Bytecode = bytecode::Bytecode::from(&contract.get_bytecode());
+    dbg!(contract.get_opcodes().len());
+    dbg!(bytecode.to_string().len());
+    assert!(bytecode.to_string() == contract.get_opcodes());
+}
+
+#[test]
 #[should_panic]
 fn test_odd_size_bytecode1() {
     bytecode::Bytecode::from("abc");
