@@ -3,6 +3,7 @@ use itertools::sorted;
 use primitive_types::U256;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{HashMap, HashSet};
+use std::fs;
 use std::hash::{Hash, Hasher};
 
 const HEX_CHARS: [char; 22] = [
@@ -156,4 +157,11 @@ pub fn get_max_key<A: PartialEq + PartialOrd + Copy, B>(hash_map: &HashMap<A, B>
         }
     }
     return res;
+}
+pub fn write_file(file: &str, data: &str) {
+    fs::write(file, data).expect("Unable to write file.");
+}
+
+pub fn read_file(file: &str) -> String {
+    return fs::read_to_string(file).expect("Unable to read file.");
 }
