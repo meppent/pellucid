@@ -163,20 +163,16 @@ pub enum Opcode {
     #[default]
     INVALID = Trait::from(b"fe", 0, false).encode(),
 }
+static mut OPCODE_INITIALZED: bool = false;
 
 impl Opcode {
-    pub fn from(hex_symbol: &str) -> Self {
-        match HEX_TO_OPCODE
-            .lock()
-            .unwrap()
-            .get(&u8::from_str_radix(hex_symbol, 16).unwrap())
-        {
-            Some(opcode) => *opcode,
-            None => Opcode::INVALID,
-        }
-    }
-
     pub fn from_u8(from: u8) -> Self {
+        unsafe {
+            if !OPCODE_INITIALZED {
+                init_opcodes();
+                OPCODE_INITIALZED = true;
+            }
+        }
         match HEX_TO_OPCODE.lock().unwrap().get(&from) {
             Some(opcode) => *opcode,
             None => Opcode::INVALID,
