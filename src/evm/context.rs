@@ -55,7 +55,7 @@ impl Context {
         }
 
         match opcode {
-            Opcode::PUSH {item_size} => {
+            Opcode::PUSH { item_size: _ } => {
                 if let Some(pushed) = vopcode.value {
                     self.stack.push(Expression::VALUE(pushed));
                 } else {
@@ -75,9 +75,8 @@ impl Context {
                     consumed_expressions.push(Box::new(self.stack.pop()));
                 }
                 if opcode.stack_output() > 0 {
-                    self.stack.push(
-                        Expression::COMPOSE(opcode, consumed_expressions)
-                    );
+                    self.stack
+                        .push(Expression::COMPOSE(opcode, consumed_expressions));
                 }
             }
         }
