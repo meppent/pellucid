@@ -1,274 +1,756 @@
-use const_decoder::Decoder;
-use lazy_static::lazy_static;
-use std::{collections::HashMap, sync::Mutex};
-use strum::IntoEnumIterator;
-use strum_macros::{EnumIter, IntoStaticStr};
+use std::fmt;
 
-#[derive(Default, Copy, Clone, Debug, EnumIter, PartialEq, Eq, Hash, IntoStaticStr)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Opcode {
-    STOP = Trait::from(b"00", 0, true).encode(),
-    ADD = Trait::from(b"01", 2, true).encode(),
-    MUL = Trait::from(b"02", 2, true).encode(),
-    SUB = Trait::from(b"03", 2, true).encode(),
-    DIV = Trait::from(b"04", 2, true).encode(),
-    SDIV = Trait::from(b"05", 2, true).encode(),
-    MOD = Trait::from(b"06", 2, true).encode(),
-    SMOD = Trait::from(b"07", 2, true).encode(),
-    ADDMOD = Trait::from(b"08", 3, true).encode(),
-    MULMOD = Trait::from(b"09", 3, true).encode(),
-    EXP = Trait::from(b"0A", 2, true).encode(),
-    SIGNEXTEND = Trait::from(b"0B", 2, true).encode(),
+    // 0x0 range - arithmetic ops.
+    STOP,
+    ADD,
+    MUL,
+    SUB,
+    DIV,
+    SDIV,
+    MOD,
+    SMOD,
+    ADDMOD,
+    MULMOD,
+    EXP,
+    SIGNEXTEND,
 
-    LT = Trait::from(b"10", 2, true).encode(),
-    GT = Trait::from(b"11", 2, true).encode(),
-    SLT = Trait::from(b"12", 2, true).encode(),
-    SGT = Trait::from(b"13", 2, true).encode(),
-    EQ = Trait::from(b"14", 2, true).encode(),
-    ISZERO = Trait::from(b"15", 1, true).encode(),
-    AND = Trait::from(b"16", 2, true).encode(),
-    OR = Trait::from(b"17", 2, true).encode(),
-    XOR = Trait::from(b"18", 2, true).encode(),
-    NOT = Trait::from(b"19", 1, true).encode(),
-    BYTE = Trait::from(b"1a", 2, true).encode(),
-    SHL = Trait::from(b"1b", 2, true).encode(),
-    SHR = Trait::from(b"1c", 2, true).encode(),
-    SAR = Trait::from(b"1d", 2, true).encode(),
+    // 0x10 range - comparison ops.
+    LT,
+    GT,
+    SLT,
+    SGT,
+    EQ,
+    ISZERO,
+    AND,
+    OR,
+    XOR,
+    NOT,
+    BYTE,
+    SHL,
+    SHR,
+    SAR,
 
-    SHA3 = Trait::from(b"20", 2, true).encode(),
+    // 0x20 range - crypto.
+    SHA3,
 
-    ADDRESS = Trait::from(b"30", 0, true).encode(),
-    BALANCE = Trait::from(b"31", 1, true).encode(),
-    ORIGIN = Trait::from(b"32", 0, true).encode(),
-    CALLER = Trait::from(b"33", 0, true).encode(),
-    CALLVALUE = Trait::from(b"34", 0, true).encode(),
-    CALLDATALOAD = Trait::from(b"35", 1, true).encode(),
-    CALLDATASIZE = Trait::from(b"36", 0, true).encode(),
-    CALLDATACOPY = Trait::from(b"37", 3, false).encode(),
-    CODESIZE = Trait::from(b"38", 0, true).encode(),
-    CODECOPY = Trait::from(b"39", 3, false).encode(),
-    GASPRICE = Trait::from(b"3a", 0, true).encode(),
-    EXTCODESIZE = Trait::from(b"3b", 1, true).encode(),
-    EXTCODECOPY = Trait::from(b"3c", 4, false).encode(),
-    RETURNDATASIZE = Trait::from(b"3d", 0, true).encode(),
-    RETURNDATACOPY = Trait::from(b"3e", 3, false).encode(),
-    EXTCODEHASH = Trait::from(b"3f", 1, true).encode(),
-    BLOCKHASH = Trait::from(b"40", 1, true).encode(),
-    COINBASE = Trait::from(b"41", 0, true).encode(),
-    TIMESTAMP = Trait::from(b"42", 0, true).encode(),
-    NUMBER = Trait::from(b"43", 0, true).encode(),
-    DIFFICULTY = Trait::from(b"44", 0, true).encode(),
-    GASLIMIT = Trait::from(b"45", 0, true).encode(),
-    CHAINID = Trait::from(b"46", 0, true).encode(),
-    SELFBALANCE = Trait::from(b"47", 0, true).encode(),
-    BASEFEE = Trait::from(b"48", 0, true).encode(),
+    // 0x30 range - closure state.
+    ADDRESS,
+    BALANCE,
+    ORIGIN,
+    CALLER,
+    CALLVALUE,
+    CALLDATALOAD,
+    CALLDATASIZE,
+    CALLDATACOPY,
+    CODESIZE,
+    CODECOPY,
+    GASPRICE,
+    EXTCODESIZE,
+    EXTCODECOPY,
+    RETURNDATASIZE,
+    RETURNDATACOPY,
+    EXTCODEHASH,
 
-    POP = Trait::from(b"50", 1, false).encode(),
-    MLOAD = Trait::from(b"51", 1, true).encode(),
-    MSTORE = Trait::from(b"52", 2, false).encode(),
-    MSTORE8 = Trait::from(b"53", 2, false).encode(),
-    SLOAD = Trait::from(b"54", 1, true).encode(),
-    SSTORE = Trait::from(b"55", 2, false).encode(),
-    JUMP = Trait::from(b"56", 1, false).encode(),
-    JUMPI = Trait::from(b"57", 2, false).encode(),
-    PC = Trait::from(b"58", 0, true).encode(),
-    MSIZE = Trait::from(b"59", 0, true).encode(),
-    GAS = Trait::from(b"5a", 0, true).encode(),
-    JUMPDEST = Trait::from(b"5b", 0, false).encode(),
+    // 0x40 range - block operations.
+    BLOCKHASH,
+    COINBASE,
+    TIMESTAMP,
+    NUMBER,
+    DIFFICULTY,
+    GASLIMIT,
+    CHAINID,
+    SELFBALANCE,
+    BASEFEE,
 
-    PUSH1 = Trait::from(b"60", 0, true).encode(),
-    PUSH2 = Trait::from(b"61", 0, true).encode(),
-    PUSH3 = Trait::from(b"62", 0, true).encode(),
-    PUSH4 = Trait::from(b"63", 0, true).encode(),
-    PUSH5 = Trait::from(b"64", 0, true).encode(),
-    PUSH6 = Trait::from(b"65", 0, true).encode(),
-    PUSH7 = Trait::from(b"66", 0, true).encode(),
-    PUSH8 = Trait::from(b"67", 0, true).encode(),
-    PUSH9 = Trait::from(b"68", 0, true).encode(),
-    PUSH10 = Trait::from(b"69", 0, true).encode(),
-    PUSH11 = Trait::from(b"6a", 0, true).encode(),
-    PUSH12 = Trait::from(b"6b", 0, true).encode(),
-    PUSH13 = Trait::from(b"6c", 0, true).encode(),
-    PUSH14 = Trait::from(b"6d", 0, true).encode(),
-    PUSH15 = Trait::from(b"6e", 0, true).encode(),
-    PUSH16 = Trait::from(b"6f", 0, true).encode(),
-    PUSH17 = Trait::from(b"70", 0, true).encode(),
-    PUSH18 = Trait::from(b"71", 0, true).encode(),
-    PUSH19 = Trait::from(b"72", 0, true).encode(),
-    PUSH20 = Trait::from(b"73", 0, true).encode(),
-    PUSH21 = Trait::from(b"74", 0, true).encode(),
-    PUSH22 = Trait::from(b"75", 0, true).encode(),
-    PUSH23 = Trait::from(b"76", 0, true).encode(),
-    PUSH24 = Trait::from(b"77", 0, true).encode(),
-    PUSH25 = Trait::from(b"78", 0, true).encode(),
-    PUSH26 = Trait::from(b"79", 0, true).encode(),
-    PUSH27 = Trait::from(b"7a", 0, true).encode(),
-    PUSH28 = Trait::from(b"7b", 0, true).encode(),
-    PUSH29 = Trait::from(b"7c", 0, true).encode(),
-    PUSH30 = Trait::from(b"7d", 0, true).encode(),
-    PUSH31 = Trait::from(b"7e", 0, true).encode(),
-    PUSH32 = Trait::from(b"7f", 0, true).encode(),
+    // 0x50 range - 'storage' and execution.
+    POP,
+    MLOAD,
+    MSTORE,
+    MSTORE8,
+    SLOAD,
+    SSTORE,
+    JUMP,
+    JUMPI,
+    PC,
+    MSIZE,
+    GAS,
+    JUMPDEST,
 
-    DUP1 = Trait::from(b"80", 1, false).encode(),
-    DUP2 = Trait::from(b"81", 2, false).encode(),
-    DUP3 = Trait::from(b"82", 3, false).encode(),
-    DUP4 = Trait::from(b"83", 4, false).encode(),
-    DUP5 = Trait::from(b"84", 5, false).encode(),
-    DUP6 = Trait::from(b"85", 6, false).encode(),
-    DUP7 = Trait::from(b"86", 7, false).encode(),
-    DUP8 = Trait::from(b"87", 8, false).encode(),
-    DUP9 = Trait::from(b"88", 9, false).encode(),
-    DUP10 = Trait::from(b"89", 10, false).encode(),
-    DUP11 = Trait::from(b"8a", 11, false).encode(),
-    DUP12 = Trait::from(b"8b", 12, false).encode(),
-    DUP13 = Trait::from(b"8c", 13, false).encode(),
-    DUP14 = Trait::from(b"8d", 14, false).encode(),
-    DUP15 = Trait::from(b"8e", 15, false).encode(),
-    DUP18 = Trait::from(b"8f", 16, false).encode(),
+    // 0x60 range - pushes.
+    PUSH { item_size: usize },
 
-    SWAP1 = Trait::from(b"90", 2, false).encode(),
-    SWAP2 = Trait::from(b"91", 3, false).encode(),
-    SWAP3 = Trait::from(b"92", 4, false).encode(),
-    SWAP4 = Trait::from(b"93", 5, false).encode(),
-    SWAP5 = Trait::from(b"94", 6, false).encode(),
-    SWAP6 = Trait::from(b"95", 7, false).encode(),
-    SWAP7 = Trait::from(b"96", 8, false).encode(),
-    SWAP8 = Trait::from(b"97", 9, false).encode(),
-    SWAP9 = Trait::from(b"98", 10, false).encode(),
-    SWAP10 = Trait::from(b"99", 11, false).encode(),
-    SWAP11 = Trait::from(b"9a", 12, false).encode(),
-    SWAP12 = Trait::from(b"9b", 13, false).encode(),
-    SWAP13 = Trait::from(b"9c", 14, false).encode(),
-    SWAP14 = Trait::from(b"9d", 15, false).encode(),
-    SWAP15 = Trait::from(b"9e", 16, false).encode(),
-    SWAP19 = Trait::from(b"9f", 17, false).encode(),
+    // 0x80 range - dups.
+    DUP { depth: usize },
 
-    LOG0 = Trait::from(b"a0", 2, false).encode(),
-    LOG1 = Trait::from(b"a1", 3, false).encode(),
-    LOG2 = Trait::from(b"a2", 4, false).encode(),
-    LOG3 = Trait::from(b"a3", 5, false).encode(),
-    LOG4 = Trait::from(b"a4", 6, false).encode(),
+    // 0x90 range - swaps.
+    SWAP { depth: usize },
 
-    CREATE = Trait::from(b"f0", 3, true).encode(),
-    CALL = Trait::from(b"f1", 7, true).encode(),
-    CALLCODE = Trait::from(b"f2", 7, true).encode(),
-    RETURN = Trait::from(b"f3", 2, false).encode(),
-    DELEGATECALL = Trait::from(b"f4", 6, true).encode(),
-    CREATE2 = Trait::from(b"f5", 4, true).encode(),
+    // 0xa0 range - logging ops.
+    LOG { topic_count: usize },
 
-    STATICCALL = Trait::from(b"fa", 6, true).encode(),
+    // 0xf0 range - closures.
+    CREATE,
+    CALL,
+    CALLCODE,
+    RETURN,
+    DELEGATECALL,
+    CREATE2,
+    STATICCALL,
+    REVERT,
+    SELFDESTRUCT,
 
-    REVERT = Trait::from(b"fd", 2, false).encode(),
-    SELFDESTRUCT = Trait::from(b"ff", 1, false).encode(),
-
-    #[default]
-    INVALID = Trait::from(b"fe", 0, false).encode(),
+    INVALID { code: u8 },
 }
-static mut OPCODE_INITIALZED: bool = false;
+
+struct OpcodeInfo {
+    code: u8,
+    stack_input: usize,
+    stack_output: usize,
+}
 
 impl Opcode {
-    pub fn from_u8(from: u8) -> Self {
-        unsafe {
-            if !OPCODE_INITIALZED {
-                init_opcodes();
-                OPCODE_INITIALZED = true;
-            }
+    fn opcode_info(&self) -> OpcodeInfo {
+        match self {
+            // 0x0 range - arithmetic ops.
+            Opcode::STOP => OpcodeInfo {
+                code: 0x00,
+                stack_input: 0,
+                stack_output: 0,
+            },
+            Opcode::ADD => OpcodeInfo {
+                code: 0x01,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::MUL => OpcodeInfo {
+                code: 0x02,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::SUB => OpcodeInfo {
+                code: 0x03,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::DIV => OpcodeInfo {
+                code: 0x04,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::SDIV => OpcodeInfo {
+                code: 0x05,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::MOD => OpcodeInfo {
+                code: 0x06,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::SMOD => OpcodeInfo {
+                code: 0x07,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::ADDMOD => OpcodeInfo {
+                code: 0x08,
+                stack_input: 3,
+                stack_output: 1,
+            },
+            Opcode::MULMOD => OpcodeInfo {
+                code: 0x09,
+                stack_input: 3,
+                stack_output: 1,
+            },
+            Opcode::EXP => OpcodeInfo {
+                code: 0x0a,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::SIGNEXTEND => OpcodeInfo {
+                code: 0x0b,
+                stack_input: 2,
+                stack_output: 1,
+            },
+
+            // 0x10 range - comparison ops.
+            Opcode::LT => OpcodeInfo {
+                code: 0x10,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::GT => OpcodeInfo {
+                code: 0x11,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::SLT => OpcodeInfo {
+                code: 0x12,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::SGT => OpcodeInfo {
+                code: 0x13,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::EQ => OpcodeInfo {
+                code: 0x14,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::ISZERO => OpcodeInfo {
+                code: 0x15,
+                stack_input: 1,
+                stack_output: 1,
+            },
+            Opcode::AND => OpcodeInfo {
+                code: 0x16,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::OR => OpcodeInfo {
+                code: 0x17,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::XOR => OpcodeInfo {
+                code: 0x17,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::NOT => OpcodeInfo {
+                code: 0x19,
+                stack_input: 1,
+                stack_output: 1,
+            },
+            Opcode::BYTE => OpcodeInfo {
+                code: 0x1a,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::SHL => OpcodeInfo {
+                code: 0x1b,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::SHR => OpcodeInfo {
+                code: 0x1c,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::SAR => OpcodeInfo {
+                code: 0x1d,
+                stack_input: 2,
+                stack_output: 1,
+            },
+
+            // 0x20 range - crypto.
+            Opcode::SHA3 => OpcodeInfo {
+                code: 0x20,
+                stack_input: 2,
+                stack_output: 1,
+            },
+
+            // 0x30 range - closure state.
+            Opcode::ADDRESS => OpcodeInfo {
+                code: 0x20,
+                stack_input: 2,
+                stack_output: 1,
+            },
+            Opcode::BALANCE => OpcodeInfo {
+                code: 0x31,
+                stack_input: 1,
+                stack_output: 1,
+            },
+            Opcode::ORIGIN => OpcodeInfo {
+                code: 0x32,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::CALLER => OpcodeInfo {
+                code: 0x33,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::CALLVALUE => OpcodeInfo {
+                code: 0x34,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::CALLDATALOAD => OpcodeInfo {
+                code: 0x35,
+                stack_input: 1,
+                stack_output: 1,
+            },
+            Opcode::CALLDATASIZE => OpcodeInfo {
+                code: 0x36,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::CALLDATACOPY => OpcodeInfo {
+                code: 0x37,
+                stack_input: 3,
+                stack_output: 0,
+            },
+            Opcode::CODESIZE => OpcodeInfo {
+                code: 0x38,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::CODECOPY => OpcodeInfo {
+                code: 0x39,
+                stack_input: 3,
+                stack_output: 0,
+            },
+            Opcode::GASPRICE => OpcodeInfo {
+                code: 0x3a,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::EXTCODESIZE => OpcodeInfo {
+                code: 0x3b,
+                stack_input: 1,
+                stack_output: 1,
+            },
+            Opcode::EXTCODECOPY => OpcodeInfo {
+                code: 0x3c,
+                stack_input: 4,
+                stack_output: 0,
+            },
+            Opcode::RETURNDATASIZE => OpcodeInfo {
+                code: 0x3d,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::RETURNDATACOPY => OpcodeInfo {
+                code: 0x3e,
+                stack_input: 3,
+                stack_output: 0,
+            },
+            Opcode::EXTCODEHASH => OpcodeInfo {
+                code: 0x3f,
+                stack_input: 1,
+                stack_output: 1,
+            },
+
+            // 0x40 range - block operations.
+            Opcode::BLOCKHASH => OpcodeInfo {
+                code: 0x40,
+                stack_input: 1,
+                stack_output: 1,
+            },
+            Opcode::COINBASE => OpcodeInfo {
+                code: 0x41,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::TIMESTAMP => OpcodeInfo {
+                code: 0x42,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::NUMBER => OpcodeInfo {
+                code: 0x43,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::DIFFICULTY => OpcodeInfo {
+                code: 0x44,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::GASLIMIT => OpcodeInfo {
+                code: 0x45,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::CHAINID => OpcodeInfo {
+                code: 0x46,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::SELFBALANCE => OpcodeInfo {
+                code: 0x47,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::BASEFEE => OpcodeInfo {
+                code: 0x48,
+                stack_input: 0,
+                stack_output: 1,
+            },
+
+            // 0x50 range - 'storage' and execution.
+            Opcode::POP => OpcodeInfo {
+                code: 0x50,
+                stack_input: 1,
+                stack_output: 0,
+            },
+            Opcode::MLOAD => OpcodeInfo {
+                code: 0x51,
+                stack_input: 1,
+                stack_output: 1,
+            },
+            Opcode::MSTORE => OpcodeInfo {
+                code: 0x52,
+                stack_input: 2,
+                stack_output: 0,
+            },
+            Opcode::MSTORE8 => OpcodeInfo {
+                code: 0x53,
+                stack_input: 2,
+                stack_output: 0,
+            },
+            Opcode::SLOAD => OpcodeInfo {
+                code: 0x54,
+                stack_input: 1,
+                stack_output: 1,
+            },
+            Opcode::SSTORE => OpcodeInfo {
+                code: 0x55,
+                stack_input: 2,
+                stack_output: 0,
+            },
+            Opcode::JUMP => OpcodeInfo {
+                code: 0x56,
+                stack_input: 1,
+                stack_output: 0,
+            },
+            Opcode::JUMPI => OpcodeInfo {
+                code: 0x57,
+                stack_input: 2,
+                stack_output: 0,
+            },
+            Opcode::PC => OpcodeInfo {
+                code: 0x58,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::MSIZE => OpcodeInfo {
+                code: 0x59,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::GAS => OpcodeInfo {
+                code: 0x5a,
+                stack_input: 0,
+                stack_output: 1,
+            },
+            Opcode::JUMPDEST => OpcodeInfo {
+                code: 0x5b,
+                stack_input: 0,
+                stack_output: 0,
+            },
+
+            // 0x60 range - pushes.
+            Opcode::PUSH { item_size: n_bytes } => OpcodeInfo {
+                code: 0x5f + *n_bytes as u8,
+                stack_input: 0,
+                stack_output: 1,
+            },
+
+            // 0x80 range - dups.
+            Opcode::DUP { depth } => OpcodeInfo {
+                code: 0x7f + *depth as u8,
+                stack_input: *depth,
+                stack_output: 0,
+            },
+
+            // 0x90 range - swaps.
+            Opcode::SWAP { depth } => OpcodeInfo {
+                code: 0x8f + *depth as u8,
+                stack_input: *depth,
+                stack_output: 0,
+            },
+
+            // 0xa0 range - logging ops.
+            Opcode::LOG { topic_count } => OpcodeInfo {
+                code: 0xa0 + *topic_count as u8,
+                stack_input: topic_count + 2,
+                stack_output: 0,
+            },
+
+            // 0xf0 range - closures.
+            Opcode::CREATE => OpcodeInfo {
+                code: 0xf0,
+                stack_input: 3,
+                stack_output: 1,
+            },
+
+            Opcode::CALL => OpcodeInfo {
+                code: 0xf1,
+                stack_input: 7,
+                stack_output: 1,
+            },
+            Opcode::CALLCODE => OpcodeInfo {
+                code: 0xf2,
+                stack_input: 7,
+                stack_output: 1,
+            },
+            Opcode::RETURN => OpcodeInfo {
+                code: 0xf3,
+                stack_input: 2,
+                stack_output: 0,
+            },
+            Opcode::DELEGATECALL => OpcodeInfo {
+                code: 0xf4,
+                stack_input: 6,
+                stack_output: 0,
+            },
+            Opcode::CREATE2 => OpcodeInfo {
+                code: 0xf5,
+                stack_input: 4,
+                stack_output: 1,
+            },
+            Opcode::STATICCALL => OpcodeInfo {
+                code: 0xfa,
+                stack_input: 6,
+                stack_output: 1,
+            },
+            Opcode::REVERT => OpcodeInfo {
+                code: 0xfd,
+                stack_input: 2,
+                stack_output: 0,
+            },
+            Opcode::SELFDESTRUCT => OpcodeInfo {
+                code: 0xff,
+                stack_input: 1,
+                stack_output: 0,
+            },
+            Opcode::INVALID { code } => OpcodeInfo {
+                code: *code,
+                stack_input: 0,
+                stack_output: 0,
+            },
         }
-        match HEX_TO_OPCODE.lock().unwrap().get(&from) {
-            Some(opcode) => *opcode,
-            None => Opcode::INVALID,
-        }
     }
 
-    pub fn n_stack_input(&self) -> usize {
-        return OPCODE_INFO.lock().unwrap()[self].n_stack_input as usize;
+    pub fn code(&self) -> u8 {
+        return self.opcode_info().code;
     }
 
-    pub fn has_stack_output(&self) -> bool {
-        return OPCODE_INFO.lock().unwrap()[self].stack_output;
+    pub fn stack_input(&self) -> usize {
+        return self.opcode_info().stack_input;
     }
 
-    pub fn hex_code(&self) -> String {
-        let res: String = format!("{:x}", OPCODE_INFO.lock().unwrap()[self].hex_symbol);
-        if res.len() == 2 {
-            res
+    pub fn stack_output(&self) -> usize {
+        return self.opcode_info().stack_output;
+    }
+
+    pub fn get_name(&self) -> String {
+        let mut res = String::from("0x");
+        res.push_str(&hex::encode([self.code()]));
+        return res;
+    }
+
+    pub fn is_push(&self) -> bool {
+        if let Self::PUSH { item_size: n_bytes } = self {
+            true
         } else {
-            "0".to_owned() + &res
+            false
         }
     }
 
-    pub fn to_string(&self) -> String {
-        let res: &'static str = self.into();
-        return res.to_string();
-    }
-
-    fn as_repetitive_opcode(&self, base_name: &str) -> Option<usize> {
-        let name: String = self.to_string();
-        if name.len() >= base_name.len() + 1 && &name[0..base_name.len()] == base_name {
-            return Some(name[base_name.len()..].parse().unwrap());
+    pub fn is_swap(&self) -> bool {
+        if let Self::SWAP { depth } = self {
+            true
         } else {
-            return None;
+            false
+        }
+    }
+    pub fn is_dup(&self) -> bool {
+        if let Self::DUP { depth } = self {
+            true
+        } else {
+            false
         }
     }
 
-    pub fn as_push(&self) -> Option<usize> {
-        return self.as_repetitive_opcode("PUSH");
+    pub fn is_log(&self) -> bool {
+        if let Self::LOG { topic_count } = self {
+            true
+        } else {
+            false
+        }
     }
-    pub fn as_swap(&self) -> Option<usize> {
-        return self.as_repetitive_opcode("SWAP");
-    }
-    pub fn as_dup(&self) -> Option<usize> {
-        return self.as_repetitive_opcode("DUP");
-    }
-    pub fn as_log(&self) -> Option<usize> {
-        return self.as_repetitive_opcode("LOG");
-    }
-}
 
-lazy_static! {
-    static ref HEX_TO_OPCODE: Mutex<HashMap<u8, Opcode>> = Mutex::new(HashMap::new());
-    static ref OPCODE_INFO: Mutex<HashMap<Opcode, Trait>> = Mutex::new(HashMap::new());
-}
-struct Trait {
-    hex_symbol: u8,     // the hex code of the opcode
-    n_stack_input: u8,  // number of elements consumed on the stack
-    stack_output: bool, // does it produce an element on the stack
-}
+    pub fn from(code: u8) -> Opcode {
+        return match code {
+            // 0x0 range - arithmetic ops.
+            0x00 => Opcode::STOP,
+            0x01 => Opcode::ADD,
+            0x02 => Opcode::MUL,
+            0x03 => Opcode::SUB,
+            0x04 => Opcode::DIV,
+            0x05 => Opcode::SDIV,
+            0x06 => Opcode::MOD,
+            0x07 => Opcode::SMOD,
+            0x08 => Opcode::ADDMOD,
+            0x09 => Opcode::MULMOD,
+            0x0A => Opcode::EXP,
+            0x0B => Opcode::SIGNEXTEND,
 
-impl Trait {
-    const fn from(hex_symbol: &[u8], n_stack_input: u8, stack_output: bool) -> Self {
-        return Trait {
-            hex_symbol: hex_to_u8(hex_symbol),
-            n_stack_input,
-            stack_output,
+            // 0x10 range - comparison ops.
+            0x10 => Opcode::LT,
+            0x11 => Opcode::GT,
+            0x12 => Opcode::SLT,
+            0x13 => Opcode::SGT,
+            0x14 => Opcode::EQ,
+            0x15 => Opcode::ISZERO,
+            0x16 => Opcode::AND,
+            0x17 => Opcode::OR,
+            0x18 => Opcode::XOR,
+            0x19 => Opcode::NOT,
+            0x1A => Opcode::BYTE,
+            0x1B => Opcode::SHL,
+            0x1C => Opcode::SHR,
+            0x1d => Opcode::SAR,
+
+            // 0x20 range - crypto.
+            0x20 => Opcode::SHA3,
+
+            // 0x40 range - block operations.
+            0x30 => Opcode::ADDRESS,
+            0x31 => Opcode::BALANCE,
+            0x32 => Opcode::ORIGIN,
+            0x33 => Opcode::CALLER,
+            0x34 => Opcode::CALLVALUE,
+            0x35 => Opcode::CALLDATALOAD,
+            0x36 => Opcode::CALLDATASIZE,
+            0x37 => Opcode::CALLDATACOPY,
+            0x38 => Opcode::CODESIZE,
+            0x39 => Opcode::CODECOPY,
+            0x3a => Opcode::GASPRICE,
+            0x3b => Opcode::EXTCODESIZE,
+            0x3c => Opcode::EXTCODECOPY,
+            0x3d => Opcode::RETURNDATASIZE,
+            0x3e => Opcode::RETURNDATACOPY,
+            0x3f => Opcode::EXTCODEHASH,
+
+            // 0x50 range - 'storage' and execution.
+            0x40 => Opcode::BLOCKHASH,
+            0x41 => Opcode::COINBASE,
+            0x42 => Opcode::TIMESTAMP,
+            0x43 => Opcode::NUMBER,
+            0x44 => Opcode::DIFFICULTY,
+            0x45 => Opcode::GASLIMIT,
+            0x46 => Opcode::CHAINID,
+            0x47 => Opcode::SELFBALANCE,
+            0x48 => Opcode::BASEFEE,
+
+            // 0x50 range - 'storage' and execution.
+            0x50 => Opcode::POP,
+            0x51 => Opcode::MLOAD,
+            0x52 => Opcode::MSTORE,
+            0x53 => Opcode::MSTORE8,
+            0x54 => Opcode::SLOAD,
+            0x55 => Opcode::SSTORE,
+            0x56 => Opcode::JUMP,
+            0x57 => Opcode::JUMPI,
+            0x58 => Opcode::PC,
+            0x59 => Opcode::MSIZE,
+            0x5A => Opcode::GAS,
+            0x5B => Opcode::JUMPDEST,
+
+            // 0x60 range - pushes.
+            0x60 => Opcode::PUSH { item_size: 1 },
+            0x61 => Opcode::PUSH { item_size: 2 },
+            0x62 => Opcode::PUSH { item_size: 3 },
+            0x63 => Opcode::PUSH { item_size: 4 },
+            0x64 => Opcode::PUSH { item_size: 5 },
+            0x65 => Opcode::PUSH { item_size: 6 },
+            0x66 => Opcode::PUSH { item_size: 7 },
+            0x67 => Opcode::PUSH { item_size: 8 },
+            0x68 => Opcode::PUSH { item_size: 9 },
+            0x69 => Opcode::PUSH { item_size: 10 },
+            0x6a => Opcode::PUSH { item_size: 11 },
+            0x6b => Opcode::PUSH { item_size: 12 },
+            0x6c => Opcode::PUSH { item_size: 13 },
+            0x6d => Opcode::PUSH { item_size: 14 },
+            0x6e => Opcode::PUSH { item_size: 15 },
+            0x6f => Opcode::PUSH { item_size: 16 },
+            0x70 => Opcode::PUSH { item_size: 17 },
+            0x71 => Opcode::PUSH { item_size: 18 },
+            0x72 => Opcode::PUSH { item_size: 19 },
+            0x73 => Opcode::PUSH { item_size: 20 },
+            0x74 => Opcode::PUSH { item_size: 21 },
+            0x75 => Opcode::PUSH { item_size: 22 },
+            0x76 => Opcode::PUSH { item_size: 23 },
+            0x77 => Opcode::PUSH { item_size: 24 },
+            0x78 => Opcode::PUSH { item_size: 25 },
+            0x79 => Opcode::PUSH { item_size: 26 },
+            0x7A => Opcode::PUSH { item_size: 27 },
+            0x7B => Opcode::PUSH { item_size: 28 },
+            0x7C => Opcode::PUSH { item_size: 29 },
+            0x7D => Opcode::PUSH { item_size: 30 },
+            0x7E => Opcode::PUSH { item_size: 31 },
+            0x7F => Opcode::PUSH { item_size: 32 },
+
+            // 0x80 range - dups.
+            0x80 => Opcode::DUP { depth: 1 },
+            0x81 => Opcode::DUP { depth: 2 },
+            0x82 => Opcode::DUP { depth: 3 },
+            0x83 => Opcode::DUP { depth: 4 },
+            0x84 => Opcode::DUP { depth: 5 },
+            0x85 => Opcode::DUP { depth: 6 },
+            0x86 => Opcode::DUP { depth: 7 },
+            0x87 => Opcode::DUP { depth: 8 },
+            0x88 => Opcode::DUP { depth: 9 },
+            0x89 => Opcode::DUP { depth: 10 },
+            0x8a => Opcode::DUP { depth: 11 },
+            0x8b => Opcode::DUP { depth: 12 },
+            0x8c => Opcode::DUP { depth: 13 },
+            0x8d => Opcode::DUP { depth: 14 },
+            0x8e => Opcode::DUP { depth: 15 },
+            0x8f => Opcode::DUP { depth: 16 },
+
+            // 0x90 range - swaps.
+            0x90 => Opcode::SWAP { depth: 1 },
+            0x91 => Opcode::SWAP { depth: 2 },
+            0x92 => Opcode::SWAP { depth: 3 },
+            0x93 => Opcode::SWAP { depth: 4 },
+            0x94 => Opcode::SWAP { depth: 5 },
+            0x95 => Opcode::SWAP { depth: 6 },
+            0x96 => Opcode::SWAP { depth: 7 },
+            0x97 => Opcode::SWAP { depth: 8 },
+            0x98 => Opcode::SWAP { depth: 9 },
+            0x99 => Opcode::SWAP { depth: 10 },
+            0x9a => Opcode::SWAP { depth: 11 },
+            0x9b => Opcode::SWAP { depth: 12 },
+            0x9c => Opcode::SWAP { depth: 13 },
+            0x9d => Opcode::SWAP { depth: 14 },
+            0x9e => Opcode::SWAP { depth: 15 },
+            0x9f => Opcode::SWAP { depth: 16 },
+
+            // 0xa0 range - logging ops.
+            0xa0 => Opcode::LOG { topic_count: 0 },
+            0xa1 => Opcode::LOG { topic_count: 1 },
+            0xa2 => Opcode::LOG { topic_count: 2 },
+            0xa3 => Opcode::LOG { topic_count: 3 },
+            0xa4 => Opcode::LOG { topic_count: 4 },
+
+            // 0xf0 range - closures.
+            0xf0 => Opcode::CREATE,
+            0xf1 => Opcode::CALL,
+            0xf2 => Opcode::CALLCODE,
+            0xf3 => Opcode::RETURN,
+            0xf4 => Opcode::DELEGATECALL,
+            0xf5 => Opcode::CREATE2,
+
+            0xfA => Opcode::STATICCALL,
+
+            0xfD => Opcode::REVERT,
+            0xfF => Opcode::SELFDESTRUCT,
+            other => Opcode::INVALID { code: other },
         };
     }
-    const fn encode(&self) -> isize {
-        return (self.hex_symbol as isize) * 2isize.pow(9)
-            + (self.n_stack_input as isize) * 2isize.pow(1)
-            + (self.stack_output as isize);
-    }
-    const fn decode(encoded: isize) -> Self {
-        return Trait {
-            hex_symbol: (encoded / 2isize.pow(9)) as u8,
-            n_stack_input: ((encoded / 2) % 2isize.pow(8)) as u8,
-            stack_output: (encoded % 2) != 0,
-        };
-    }
 }
 
-pub fn init_opcodes() {
-    for opcode in Opcode::iter() {
-        let encoded: isize = opcode as isize;
-        let traits: Trait = Trait::decode(encoded);
-        HEX_TO_OPCODE
-            .lock()
-            .unwrap()
-            .insert(traits.hex_symbol, opcode);
-        OPCODE_INFO.lock().unwrap().insert(opcode, traits);
+impl fmt::Display for Opcode {
+    fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        write!(formatter, "{:?}", self)
     }
-}
-
-const fn hex_to_u8(hex_str: &[u8]) -> u8 {
-    // hex_str: 2 characters in {0, 1 ... 9, a, b ... f}
-    return (Decoder::Hex.decode(hex_str) as [u8; 1])[0];
 }

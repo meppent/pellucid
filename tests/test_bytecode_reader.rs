@@ -1,6 +1,6 @@
 use hex;
 use pellucid::bytecode_reader::bytecode::Bytecode;
-use pellucid::bytecode_reader::opcode::Opcode;
+use pellucid::bytecode_reader::opcode;
 use primitive_types::U256;
 use rand;
 mod utils;
@@ -55,7 +55,7 @@ fn test_last_push() {
     let last_vopcode = bytecode.get_vopcode_at(bytecode.get_last_pc());
     assert!(
         last_vopcode.is_last &&
-        last_vopcode.opcode == Opcode::PUSH1 &&
+        last_vopcode.opcode == opcode::PUSH1 &&
         last_vopcode.value == Some(U256::from(1))
     );
 
@@ -63,7 +63,7 @@ fn test_last_push() {
     let last_vopcode = bytecode.get_vopcode_at(bytecode.get_last_pc());
     assert!(
         last_vopcode.is_last &&
-        last_vopcode.opcode == Opcode::PUSH1 &&
+        last_vopcode.opcode == opcode::PUSH1 &&
         last_vopcode.value == None
     );
 
@@ -71,7 +71,7 @@ fn test_last_push() {
     let last_vopcode = bytecode.get_vopcode_at(bytecode.get_last_pc());
     assert!(
         last_vopcode.is_last &&
-        last_vopcode.opcode == Opcode::PUSH6 &&
+        last_vopcode.opcode == opcode::PUSH6 &&
         last_vopcode.value == Some(U256::from(2))
     );
 
@@ -79,7 +79,7 @@ fn test_last_push() {
     let last_vopcode = bytecode.get_vopcode_at(bytecode.get_last_pc());
     assert!(
         last_vopcode.is_last &&
-        last_vopcode.opcode == Opcode::PUSH6 &&
+        last_vopcode.opcode == opcode::PUSH6 &&
         last_vopcode.value == None
     );
 }

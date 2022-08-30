@@ -1,7 +1,7 @@
 use super::expression::Expression;
 use super::stack::Stack;
 use super::state::ExecutionState;
-use crate::bytecode_reader::{vopcode::Vopcode, opcode::Opcode};
+use crate::bytecode_reader::{opcode, opcode::Opcode, vopcode::Vopcode};
 use core::fmt::Debug;
 use std::vec;
 
@@ -32,41 +32,45 @@ impl Context {
         }
         let opcode: Opcode = vopcode.opcode;
 
-        if opcode.n_stack_input() > self.stack.len() {
+        if opcode.stack_input > self.stack.len() {
             self.state = ExecutionState::REVERT;
             return;
         }
 
-        self.state = match opcode {
-            Opcode::STOP | Opcode::RETURN => ExecutionState::RETURN,
-            Opcode::REVERT | Opcode::INVALID => ExecutionState::REVERT,
-            Opcode::SELFDESTRUCT => ExecutionState::SELFDESTRUCT,
-            Opcode::JUMP => ExecutionState::JUMP(self.stack.pop()),
-            Opcode::JUMPI => ExecutionState::JUMPI(self.stack.pop(), self.stack.pop()),
-            _ => ExecutionState::RUNNING,
-        };
+        if opcode.is_invalid() {
+            self.state = ExecutionState::REVERT
+        } else {
+            self.state = match opcode {
+                opcode::STOP | opcode::RETURN => ExecutionState::RETURN,
+                opcode::REVERT => ExecutionState::REVERT,
+                opcode::SELFDESTRUCT => ExecutionState::SELFDESTRUCT,
+                opcode::JUMP => ExecutionState::JUMP(self.stack.pop()),
+                opcode::JUMPI => ExecutionState::JUMPI(self.stack.pop(), self.stack.pop()),
+                _ => ExecutionState::RUNNING,
+            };
+        }
 
         if self.state != ExecutionState::RUNNING {
             return;
         }
 
-        if let Some(_) = opcode.as_push() {
+        if opcode.is_push() {
             if let Some(pushed) = vopcode.value {
                 self.stack.push(Expression::VALUE(pushed));
             } else {
                 self.state = ExecutionState::REVERT;
                 return;
             }
-        } else if let Some(index) = opcode.as_dup() {
-            self.stack.dup(index);
-        } else if let Some(index) = opcode.as_swap() {
-            self.stack.swap(index);
+        } else if opcode.is_dup() {
+            self.stack.dup(opcode.n);
+        } else if opcode.is_swap() {
+            self.stack.swap(opcode.n);
         } else {
             let mut consumed_expressions: Vec<Box<Expression>> = vec![];
-            for _ in 0..opcode.n_stack_input() {
+            for _ in 0..opcode.stack_input {
                 consumed_expressions.push(Box::new(self.stack.pop()));
             }
-            if opcode.has_stack_output() {
+            if opcode.stack_output > 0 {
                 self.stack.push(
                     Expression::COMPOSE(opcode, consumed_expressions)
                 );

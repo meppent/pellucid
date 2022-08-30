@@ -3,8 +3,8 @@ use std::fmt::Debug;
 
 use itertools::Itertools;
 
+use crate::bytecode_reader::opcode::{self, Opcode};
 use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
-use crate::bytecode_reader::opcode::Opcode;
 use crate::evm::context::Context;
 use crate::evm::expression::Expression;
 use crate::evm::state::ExecutionState;

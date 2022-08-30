@@ -5,7 +5,7 @@ use crate::utils::{u256_to_hex, usize_to_hex};
 
 use super::opcode::Opcode;
 
-#[derive(Default, Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Vopcode {
     // an opcode with a value, used when it's a PUSH
     pub opcode: Opcode,
@@ -32,21 +32,22 @@ impl Vopcode {
             Some(
                 self.pc
                     + 1
-                    + match self.opcode.as_push() {
-                        Some(n_bytes) => n_bytes,
-                        None => 0,
+                    + if let Opcode::PUSH { item_size: n_bytes } = self.opcode {
+                        n_bytes
+                    } else {
+                        0
                     },
             )
         }
     }
     fn sanity_check(opcode: Opcode, value: Option<U256>, is_last: bool) {
         if let Some(v) = value {
-            if let Some(n) = opcode.as_push() {
-                assert!(1 <= n, "PUSH(n) must verify 1 <= n");
-                assert!(n <= 32, "PUSH(n) must verify n <= 32");
+            if let Opcode::PUSH { item_size: n_bytes } = opcode {
+                assert!(1 <= n_bytes, "PUSH(n) must verify 1 <= n");
+                assert!(n_bytes <= 32, "PUSH(n) must verify n <= 32");
                 assert!(
                     v <= U256::from(256)
-                        .overflowing_pow(U256::from(n))
+                        .overflowing_pow(U256::from(n_bytes))
                         .0
                         .overflowing_sub(U256::from(1))
                         .0,
@@ -57,7 +58,7 @@ impl Vopcode {
             }
         } else {
             assert!(
-                is_last || opcode.as_push() == None,
+                is_last || !opcode.is_push(),
                 "Vopcode with an empty value should not be a push"
             );
         }
@@ -66,9 +67,9 @@ impl Vopcode {
     pub fn to_string(&self) -> String {
         let mut res: String = String::from(&usize_to_hex(self.pc));
         res.push_str(": ");
-        res.push_str(&self.opcode.to_string());
+        res.push_str(&self.opcode.get_name());
 
-        if let Some(_) = self.opcode.as_push() {
+        if self.opcode.is_push() {
             res.push_str(" ");
             if let Some(bytes) = self.value {
                 res.push_str(&u256_to_hex(bytes));
