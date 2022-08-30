@@ -24,4 +24,16 @@ impl Contract {
         opcodes_path.push_str("opcodes.txt");
         return read_file(&opcodes_path);
     }
+
+    pub fn get_graph_drawing(&self) -> String {
+        let mut opcodes_path: String = self.get_path();
+        opcodes_path.push_str("graph_drawing.txt");
+        return read_file(&opcodes_path);
+    }
+
+    pub fn get_gml(&self) -> String {
+        let mut opcodes_path: String = self.get_path();
+        opcodes_path.push_str("graph.gml");
+        return read_file(&opcodes_path);
+    }
 }
