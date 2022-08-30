@@ -19,35 +19,47 @@ const STOP_OPCODES: [Opcode; 6] = [
     Opcode::JUMP,
     Opcode::JUMPI,
 ];
+
+#[derive(Clone, Copy, Hash, Eq, PartialEq)]
+pub enum Position {
+    UP,
+    DOWN,
+}
 // ... or when the next opcode is JUMPDEST
+#[derive(Clone, Copy)]
+pub struct Location {
+    pub pc_start: usize,
+    pub context_index: usize,
+    pub position: Position,
+}
 
 #[derive(Clone)]
 pub struct Block<'a> {
     pub code: &'a [Vopcode],
-    pub initial_contexts: Vec<Context>,
+    pub contexts: Vec<HashMap<Position, Context>>,
 }
 
 impl<'a> Block<'a> {
     pub fn new(code: &'a [Vopcode]) -> Self {
         return Block {
             code,
-            initial_contexts: vec![],
+            contexts: vec![],
         };
     }
-
     pub fn get_pc_start(&self) -> usize {
         return self.code[0].pc;
     }
-
     pub fn get_pc_end(&self) -> usize {
         return self.code[self.code.len() - 1].pc;
     }
-
     pub fn get_last_vopcode(&self) -> Vopcode {
         return self.code[self.code.len() - 1];
     }
     pub fn get_first_vopcode(&self) -> Vopcode {
         return self.code[0];
+    }
+    pub fn get_n_initial_contexts(&self) -> usize {
+        return self.contexts.len();
     }
 
     pub fn is_jumpable_from(&self, vopcode: Vopcode) -> bool {
@@ -57,7 +69,6 @@ impl<'a> Block<'a> {
                 self.code[0].opcode == Opcode::JUMPDEST
                     || vopcode.pc + 1 == self.get_first_vopcode().pc
             }
-
             _ => {
                 assert!(!STOP_OPCODES.contains(&vopcode.opcode));
                 self.get_first_vopcode().opcode == Opcode::JUMPDEST
@@ -66,7 +77,7 @@ impl<'a> Block<'a> {
         }
     }
 
-    pub fn get_next_jump_dests(&self, final_state: &ExecutionState) -> Vec<usize> {
+    pub fn get_next_dests(&self, final_state: &ExecutionState) -> Vec<usize> {
         let mut next_jump_dests: Vec<usize> = vec![];
         match final_state {
             ExecutionState::JUMP(Expression::VALUE(jump_dest)) => {
@@ -78,29 +89,58 @@ impl<'a> Block<'a> {
                 }
                 next_jump_dests.push(self.get_pc_end() + 1); // TODO handle when JUMPI is the last opcode of the whole bytecode
             }
-
             ExecutionState::RUNNING => {
                 next_jump_dests.push(self.get_last_vopcode().get_next_pc().unwrap())
             } // we are before a jump dest
             _ => (),
         }
-
         return next_jump_dests;
     }
 
     pub fn contains_initial_context(&self, initial_context: &Context) -> bool {
-        return self
-            .initial_contexts
-            .iter()
-            .any(|context: &Context| context.stack.equals_on_bytes(&initial_context.stack));
+        return self.get_index_of_initial_context(initial_context) != None;
     }
 
-    pub fn add_initial_context(&mut self, initial_context: Context) -> (Context, Vec<usize>) {
+    fn get_initial_contexts(&self) -> Vec<Context> {
+        return self
+            .contexts
+            .iter()
+            .map(|tip_pair: &HashMap<Position, Context>| tip_pair[&Position::UP].clone())
+            .collect::<Vec<Context>>();
+    }
+
+    fn get_index_of_initial_context(&self, initial_context: &Context) -> Option<usize> {
+        for (index, my_initial_context) in self.get_initial_contexts().iter().enumerate() {
+            if initial_context
+                .stack
+                .equals_on_bytes(&my_initial_context.stack)
+            {
+                return Some(index);
+            }
+        }
+        return None;
+    }
+
+    pub fn get_index_of_incomming_initial_context(&self, initial_context: &Context) -> usize {
+        match self.get_index_of_initial_context(initial_context) {
+            Some(initial_context_index) => initial_context_index,
+            None => self.get_n_initial_contexts(),
+        }
+    }
+
+    pub fn add_initial_context(
+        &mut self,
+        initial_context: Context,
+    ) -> (usize, Context, Vec<usize>) {
+        // return (index at which the context was inserted, final context, next destinations)
         assert!(!self.contains_initial_context(&initial_context));
         let final_context: Context = initial_context.run(self.code);
-        self.initial_contexts.push(initial_context);
-        let next_jump_dests: Vec<usize> = self.get_next_jump_dests(&final_context.state);
-        return (final_context, next_jump_dests);
+        self.contexts.push(HashMap::from([
+            (Position::UP, initial_context),
+            (Position::DOWN, final_context.clone()),
+        ]));
+        let next_dests: Vec<usize> = self.get_next_dests(&final_context.state);
+        return (self.contexts.len() - 1, final_context, next_dests);
     }
 }
 
@@ -113,37 +153,62 @@ impl<'a> Debug for Block<'a> {
     }
 }
 
+pub struct ConnectedBlock<'a> {
+    pub block: Block<'a>,
+    pub links: HashMap<usize, HashMap<Position, Vec<Location>>>, // context index => {UP => list of its parents locations, DOWN => list of its children locations}
+}
+
+impl<'a> ConnectedBlock<'a> {
+    pub fn new(block: Block<'a>) -> Self {
+        return ConnectedBlock {
+            block,
+            links: HashMap::new(),
+        };
+    }
+}
+
 pub struct BlockSet<'a> {
-    blocks: HashMap<usize, Block<'a>>,    // pc_start => block
-    children: HashMap<usize, Vec<usize>>, // pc_start => {all the children's pc_start}
+    connected_blocks: HashMap<usize, ConnectedBlock<'a>>, // pc_start => connected block
 }
 
 impl<'a> BlockSet<'a> {
     pub fn contains_block_at(&self, pc: usize) -> bool {
-        return self.blocks.contains_key(&pc);
+        return self.connected_blocks.contains_key(&pc);
     }
 
-    pub fn get_blocks(&self) -> std::collections::hash_map::Values<'_, usize, Block<'_>> {
-        return self.blocks.values();
+    pub fn get_connected_block_mut(&mut self, pc_start: usize) -> &mut ConnectedBlock<'a> {
+        return self.connected_blocks.get_mut(&pc_start).unwrap();
+    }
+
+    pub fn get_block_mut(&mut self, pc_start: usize) -> &mut Block<'a> {
+        return &mut self.get_connected_block_mut(pc_start).block;
+    }
+
+    pub fn get_blocks(&self) -> Vec<Block<'a>> {
+        return self
+            .connected_blocks
+            .values()
+            .map(|connected_block: &ConnectedBlock| connected_block.block.clone())
+            .collect::<Vec<Block<'a>>>();
     }
 
     pub fn get_pc_end_of_block(&self, pc_start: usize) -> usize {
-        return self.blocks[&pc_start].get_pc_end();
+        return self.connected_blocks[&pc_start].block.get_pc_end();
     }
 
     pub fn get_all_pc_starts(&self) -> Vec<usize> {
-        return self.blocks.keys().cloned().collect_vec();
+        return self.connected_blocks.keys().cloned().collect_vec();
     }
 
-    pub fn insert_new_block(&mut self, block: Block<'a>) {
-        self.children.insert(block.get_pc_start(), Vec::new());
-        self.blocks.insert(block.get_pc_start(), block);
-    }
     pub fn get_edges(&self) -> Vec<(usize, usize)> {
         let mut edges: Vec<(usize, usize)> = vec![]; // (pc_start origin, pc_start dest)
-        for (pc_start_origin, children) in &self.children {
-            for pc_start_dest in children {
-                edges.push((*pc_start_origin, *pc_start_dest));
+        for (_, connected_block) in &self.connected_blocks {
+            let origin_pc_start: usize = connected_block.block.get_pc_start();
+            for (_, sub_links) in &connected_block.links {
+                for dest_location in &sub_links[&Position::DOWN] {
+                    let dest_pc_start: usize = dest_location.pc_start;
+                    edges.push((origin_pc_start, dest_pc_start));
+                }
             }
         }
         return edges;
@@ -151,11 +216,10 @@ impl<'a> BlockSet<'a> {
 
     pub fn new(bytecode: &'a Bytecode) -> Self {
         let mut block_set: BlockSet = BlockSet {
-            blocks: HashMap::new(),
-            children: HashMap::new(),
+            connected_blocks: HashMap::new(),
         };
         block_set.find_blocks(bytecode);
-        block_set.connect_from(Context::new(), 0);
+        block_set.extend(Context::new(), 0);
         return block_set;
     }
 
@@ -166,7 +230,6 @@ impl<'a> BlockSet<'a> {
         for vopcode in bytecode.iter(0, bytecode.get_last_pc()) {
             let opcode: Opcode = vopcode.opcode;
             let pc: usize = vopcode.pc;
-            println!("{}", vopcode);
             let next_opcode: Option<Opcode> = if let Some(next_pc) = vopcode.get_next_pc() {
                 Some(bytecode.get_vopcode_at(next_pc).opcode)
             } else {
@@ -183,27 +246,71 @@ impl<'a> BlockSet<'a> {
                 || vopcode.is_last
             {
                 // end block
-                self.insert_new_block(Block::new(bytecode.slice_code(pc_start.unwrap(), pc)));
+                self.connected_blocks.insert(
+                    pc_start.unwrap(),
+                    ConnectedBlock::new(Block::new(bytecode.slice_code(pc_start.unwrap(), pc))),
+                );
                 pc_start = None;
             }
             previous_opcode = Some(opcode);
         }
     }
 
-    fn connect_from(&mut self, initial_context: Context, pc_start: usize) {
-        let block: &mut Block = self.blocks.get_mut(&pc_start).unwrap();
-        if !block.contains_initial_context(&initial_context) {
-            let (final_stack, mut next_jump_dests): (Context, Vec<usize>) =
-                block.add_initial_context(initial_context);
-            let last_vopcode: Vopcode = block.get_last_vopcode();
-            remove_values_where(&mut next_jump_dests, |jump_dest: &usize| {
-                !self.contains_block_at(*jump_dest)
-                    || !self.blocks[jump_dest].is_jumpable_from(last_vopcode)
-            }); // remove potential invalid jumps
-            for jump_dest in next_jump_dests {
-                self.children.get_mut(&pc_start).unwrap().push(jump_dest);
-                self.connect_from(final_stack.clean_state(), jump_dest);
-            }
+    fn connect(&mut self, location_to_connect: Location, dest_location: Location) {
+        let links: &mut HashMap<usize, HashMap<Position, Vec<Location>>> = &mut self
+            .get_connected_block_mut(location_to_connect.pc_start)
+            .links;
+
+        if !links.contains_key(&location_to_connect.context_index) {
+            links.insert(
+                location_to_connect.context_index,
+                HashMap::from([(Position::UP, vec![]), (Position::DOWN, vec![])]),
+            );
+        }
+        links
+            .get_mut(&location_to_connect.context_index)
+            .unwrap()
+            .get_mut(&location_to_connect.position)
+            .unwrap()
+            .push(dest_location);
+    }
+
+    fn connect_both(&mut self, location_0: Location, location_1: Location) {
+        self.connect(location_0, location_1);
+        self.connect(location_1, location_0);
+    }
+
+    fn extend(&mut self, initial_context: Context, pc_start: usize) {
+        let block: &mut Block = self.get_block_mut(pc_start);
+        if block.contains_initial_context(&initial_context) {
+            return;
+        }
+        let (origin_context_index, final_context, mut next_dests): (usize, Context, Vec<usize>) =
+            block.add_initial_context(initial_context);
+        let last_vopcode: Vopcode = block.get_last_vopcode();
+        remove_values_where(&mut next_dests, |jump_dest: &usize| {
+            !self.contains_block_at(*jump_dest)
+                || !self.connected_blocks[jump_dest]
+                    .block
+                    .is_jumpable_from(last_vopcode)
+        }); // remove potential invalid destinations
+        let dest_initial_context: Context = final_context.clean_state();
+        let origin_location: Location = Location {
+            pc_start,
+            context_index: origin_context_index,
+            position: Position::DOWN,
+        };
+        for next_dest in next_dests {
+            let dest_block: &mut Block = self.get_block_mut(next_dest);
+            let dest_context_index: usize =
+                dest_block.get_index_of_incomming_initial_context(&dest_initial_context);
+            let dest_location: Location = Location {
+                pc_start: next_dest,
+                context_index: dest_context_index,
+                position: Position::UP,
+            };
+            self.connect_both(origin_location, dest_location);
+            self.extend(dest_initial_context.clone(), next_dest);
         }
     }
 }
