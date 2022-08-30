@@ -5,7 +5,7 @@ use crate::utils::{u256_to_hex, usize_to_hex};
 
 use super::opcode::Opcode;
 
-#[derive(Default, Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Vopcode {
     // an opcode with a value, used when it's a PUSH
     pub opcode: Opcode,
@@ -32,18 +32,22 @@ impl Vopcode {
             Some(
                 self.pc
                     + 1
-                    + if self.opcode.is_push() {self.opcode.n} else {0}
+                    + if let Opcode::PUSH { item_size: n_bytes } = self.opcode {
+                        n_bytes
+                    } else {
+                        0
+                    },
             )
         }
     }
     fn sanity_check(opcode: Opcode, value: Option<U256>, is_last: bool) {
         if let Some(v) = value {
-            if opcode.is_push() {
-                assert!(1 <= opcode.n, "PUSH(n) must verify 1 <= n");
-                assert!(opcode.n <= 32, "PUSH(n) must verify n <= 32");
+            if let Opcode::PUSH { item_size: n_bytes } = opcode {
+                assert!(1 <= n_bytes, "PUSH(n) must verify 1 <= n");
+                assert!(n_bytes <= 32, "PUSH(n) must verify n <= 32");
                 assert!(
                     v <= U256::from(256)
-                        .overflowing_pow(U256::from(opcode.n))
+                        .overflowing_pow(U256::from(n_bytes))
                         .0
                         .overflowing_sub(U256::from(1))
                         .0,

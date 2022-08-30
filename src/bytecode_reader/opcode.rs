@@ -540,6 +540,12 @@ impl Opcode {
         return self.opcode_info().stack_output;
     }
 
+    pub fn get_name(&self) -> String {
+        let mut res = String::from("0x");
+        res.push_str(&hex::encode([self.code()]));
+        return res;
+    }
+
     pub fn is_push(&self) -> bool {
         if let Self::PUSH { item_size: n_bytes } = self {
             true
