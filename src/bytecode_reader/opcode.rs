@@ -649,35 +649,35 @@ impl Opcode {
 
     pub fn is_push(&self) -> bool {
         match self {
-            Self::PUSH { item_size } => true,
+            Self::PUSH { item_size: _ } => true,
             _ => false,
         }
     }
 
     pub fn is_swap(&self) -> bool {
         match self {
-            Self::SWAP { depth } => true,
+            Self::SWAP { depth: _ } => true,
             _ => false,
         }
     }
     
     pub fn is_dup(&self) -> bool {
         match self {
-            Self::DUP { depth } => true,
+            Self::DUP { depth: _ } => true,
             _ => false,
         }
     }
 
     pub fn is_log(&self) -> bool {
         match self {
-            Self::LOG { topic_count } => true,
+            Self::LOG { topic_count: _ } => true,
             _ => false,
         }
     }
     
     pub fn is_invalid(&self) -> bool {
         match self {
-            Self::INVALID { code } => true,
+            Self::INVALID { code: _ } => true,
             _ => false,
         }
     }
