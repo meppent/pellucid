@@ -1,7 +1,7 @@
 use super::expression::Expression;
 use super::stack::Stack;
 use super::state::ExecutionState;
-use crate::bytecode_reader::{opcode, opcode::Opcode, vopcode::Vopcode};
+use crate::bytecode_reader::{opcode::Opcode, vopcode::Vopcode};
 use core::fmt::Debug;
 use std::vec;
 
@@ -32,7 +32,7 @@ impl Context {
         }
         let opcode: Opcode = vopcode.opcode;
 
-        if opcode.stack_input > self.stack.len() {
+        if opcode.stack_input() > self.stack.len() {
             self.state = ExecutionState::REVERT;
             return;
         }
@@ -41,11 +41,11 @@ impl Context {
             self.state = ExecutionState::REVERT
         } else {
             self.state = match opcode {
-                opcode::STOP | opcode::RETURN => ExecutionState::RETURN,
-                opcode::REVERT => ExecutionState::REVERT,
-                opcode::SELFDESTRUCT => ExecutionState::SELFDESTRUCT,
-                opcode::JUMP => ExecutionState::JUMP(self.stack.pop()),
-                opcode::JUMPI => ExecutionState::JUMPI(self.stack.pop(), self.stack.pop()),
+                Opcode::STOP | Opcode::RETURN => ExecutionState::RETURN,
+                Opcode::REVERT => ExecutionState::REVERT,
+                Opcode::SELFDESTRUCT => ExecutionState::SELFDESTRUCT,
+                Opcode::JUMP => ExecutionState::JUMP(self.stack.pop()),
+                Opcode::JUMPI => ExecutionState::JUMPI(self.stack.pop(), self.stack.pop()),
                 _ => ExecutionState::RUNNING,
             };
         }
@@ -54,26 +54,31 @@ impl Context {
             return;
         }
 
-        if opcode.is_push() {
-            if let Some(pushed) = vopcode.value {
-                self.stack.push(Expression::VALUE(pushed));
-            } else {
-                self.state = ExecutionState::REVERT;
-                return;
+        match opcode {
+            Opcode::PUSH {item_size} => {
+                if let Some(pushed) = vopcode.value {
+                    self.stack.push(Expression::VALUE(pushed));
+                } else {
+                    self.state = ExecutionState::REVERT;
+                    return;
+                }
             }
-        } else if opcode.is_dup() {
-            self.stack.dup(opcode.n);
-        } else if opcode.is_swap() {
-            self.stack.swap(opcode.n);
-        } else {
-            let mut consumed_expressions: Vec<Box<Expression>> = vec![];
-            for _ in 0..opcode.stack_input {
-                consumed_expressions.push(Box::new(self.stack.pop()));
+            Opcode::DUP { depth } => {
+                self.stack.dup(depth);
             }
-            if opcode.stack_output > 0 {
-                self.stack.push(
-                    Expression::COMPOSE(opcode, consumed_expressions)
-                );
+            Opcode::SWAP { depth } => {
+                self.stack.swap(depth);
+            }
+            _ => {
+                let mut consumed_expressions: Vec<Box<Expression>> = vec![];
+                for _ in 0..opcode.stack_input() {
+                    consumed_expressions.push(Box::new(self.stack.pop()));
+                }
+                if opcode.stack_output() > 0 {
+                    self.stack.push(
+                        Expression::COMPOSE(opcode, consumed_expressions)
+                    );
+                }
             }
         }
     }

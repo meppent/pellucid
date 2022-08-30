@@ -38,17 +38,17 @@ impl Bytecode {
         let mut pc: usize = 0;
         while pc < bytecode_length {
             let origin_line = pc;
-            let opcode: Opcode = Opcode::from_code(vec_bytecode[pc]);
+            let opcode: Opcode = Opcode::from(vec_bytecode[pc]);
             pc += 1;
 
             let mut param: Option<U256> = None;
 
-            if opcode.is_push() {
-                if pc + opcode.n <= bytecode_length {
-                    param = Some(U256::from_big_endian(&vec_bytecode[pc..pc + opcode.n]));
+            if let Opcode::PUSH {item_size} = opcode {
+                if pc + item_size <= bytecode_length {
+                    param = Some(U256::from_big_endian(&vec_bytecode[pc..pc + item_size]));
                 }
 
-                pc += opcode.n;
+                pc += item_size;
             }
 
             bytecode

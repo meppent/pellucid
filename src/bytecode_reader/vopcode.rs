@@ -67,7 +67,7 @@ impl Vopcode {
     pub fn to_string(&self) -> String {
         let mut res: String = String::from(&usize_to_hex(self.pc));
         res.push_str(": ");
-        res.push_str(&self.opcode.get_name());
+        res.push_str(&self.opcode.name());
 
         if self.opcode.is_push() {
             res.push_str(" ");
