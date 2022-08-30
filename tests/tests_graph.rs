@@ -10,7 +10,7 @@ fn test_graph_drawing() {
     let block_set: BlockSet = BlockSet::new(&bytecode);
     let graph_drawing: String = draw(&block_set, &bytecode);
     println!("{}", graph_drawing);
-    //assert!(graph_drawing == contract.get_graph_drawing());
+    assert!(graph_drawing == contract.get_graph_drawing());
 }
 
 #[test]
