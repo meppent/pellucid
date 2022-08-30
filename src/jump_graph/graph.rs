@@ -259,16 +259,15 @@ impl<'a> BlockSet<'a> {
     fn connect(&mut self, origin_location: Location, dest_location: Location) {
         let links: &mut HashMap<usize, HashMap<Position, Vec<Location>>> =
             &mut self.get_connected_block_mut(origin_location.pc_start).links;
-        if links.contains_key(&origin_location.context_index) {
+
+        if !links.contains_key(&origin_location.context_index) {
             links.insert(
                 origin_location.context_index,
                 HashMap::from([(Position::UP, vec![]), (Position::DOWN, vec![])]),
             );
         }
-        links
-            .get_mut(&origin_location.context_index)
-            .unwrap()
-            .get_mut(&origin_location.position)
+        let r = links.get_mut(&origin_location.context_index).unwrap();
+        r.get_mut(&origin_location.position)
             .unwrap()
             .push(dest_location);
     }
