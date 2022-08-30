@@ -32,21 +32,18 @@ impl Vopcode {
             Some(
                 self.pc
                     + 1
-                    + match self.opcode.as_push() {
-                        Some(n_bytes) => n_bytes,
-                        None => 0,
-                    },
+                    + if self.opcode.is_push() {self.opcode.n} else {0}
             )
         }
     }
     fn sanity_check(opcode: Opcode, value: Option<U256>, is_last: bool) {
         if let Some(v) = value {
-            if let Some(n) = opcode.as_push() {
-                assert!(1 <= n, "PUSH(n) must verify 1 <= n");
-                assert!(n <= 32, "PUSH(n) must verify n <= 32");
+            if opcode.is_push() {
+                assert!(1 <= opcode.n, "PUSH(n) must verify 1 <= n");
+                assert!(opcode.n <= 32, "PUSH(n) must verify n <= 32");
                 assert!(
                     v <= U256::from(256)
-                        .overflowing_pow(U256::from(n))
+                        .overflowing_pow(U256::from(opcode.n))
                         .0
                         .overflowing_sub(U256::from(1))
                         .0,
@@ -57,7 +54,7 @@ impl Vopcode {
             }
         } else {
             assert!(
-                is_last || opcode.as_push() == None,
+                is_last || !opcode.is_push(),
                 "Vopcode with an empty value should not be a push"
             );
         }
@@ -66,9 +63,9 @@ impl Vopcode {
     pub fn to_string(&self) -> String {
         let mut res: String = String::from(&usize_to_hex(self.pc));
         res.push_str(": ");
-        res.push_str(&self.opcode.to_string());
+        res.push_str(&self.opcode.get_name());
 
-        if let Some(_) = self.opcode.as_push() {
+        if self.opcode.is_push() {
             res.push_str(" ");
             if let Some(bytes) = self.value {
                 res.push_str(&u256_to_hex(bytes));

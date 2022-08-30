@@ -5,7 +5,7 @@ use std::{collections::HashMap, usize};
 
 use crate::utils::remove_0x;
 
-use super::opcode::Opcode;
+use super::opcode::{Opcode, self};
 use super::vopcode::Vopcode;
 
 #[derive(Default, Debug, PartialEq)]
@@ -38,17 +38,17 @@ impl Bytecode {
         let mut pc: usize = 0;
         while pc < bytecode_length {
             let origin_line = pc;
-            let opcode: Opcode = Opcode::from_u8(vec_bytecode[pc]);
+            let opcode: Opcode = Opcode::from_code(vec_bytecode[pc]);
             pc += 1;
 
             let mut param: Option<U256> = None;
 
-            if let Some(n_bytes) = opcode.as_push() {
-                if pc + n_bytes <= bytecode_length {
-                    param = Some(U256::from_big_endian(&vec_bytecode[pc..pc + n_bytes]));
+            if opcode.is_push() {
+                if pc + opcode.n <= bytecode_length {
+                    param = Some(U256::from_big_endian(&vec_bytecode[pc..pc + opcode.n]));
                 }
 
-                pc += n_bytes;
+                pc += opcode.n;
             }
 
             bytecode

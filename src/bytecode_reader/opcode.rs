@@ -1,274 +1,696 @@
-use const_decoder::Decoder;
-use lazy_static::lazy_static;
-use std::{collections::HashMap, sync::Mutex};
-use strum::IntoEnumIterator;
-use strum_macros::{EnumIter, IntoStaticStr};
 
-#[derive(Default, Copy, Clone, Debug, EnumIter, PartialEq, Eq, Hash, IntoStaticStr)]
-pub enum Opcode {
-    STOP = Trait::from(b"00", 0, true).encode(),
-    ADD = Trait::from(b"01", 2, true).encode(),
-    MUL = Trait::from(b"02", 2, true).encode(),
-    SUB = Trait::from(b"03", 2, true).encode(),
-    DIV = Trait::from(b"04", 2, true).encode(),
-    SDIV = Trait::from(b"05", 2, true).encode(),
-    MOD = Trait::from(b"06", 2, true).encode(),
-    SMOD = Trait::from(b"07", 2, true).encode(),
-    ADDMOD = Trait::from(b"08", 3, true).encode(),
-    MULMOD = Trait::from(b"09", 3, true).encode(),
-    EXP = Trait::from(b"0A", 2, true).encode(),
-    SIGNEXTEND = Trait::from(b"0B", 2, true).encode(),
-
-    LT = Trait::from(b"10", 2, true).encode(),
-    GT = Trait::from(b"11", 2, true).encode(),
-    SLT = Trait::from(b"12", 2, true).encode(),
-    SGT = Trait::from(b"13", 2, true).encode(),
-    EQ = Trait::from(b"14", 2, true).encode(),
-    ISZERO = Trait::from(b"15", 1, true).encode(),
-    AND = Trait::from(b"16", 2, true).encode(),
-    OR = Trait::from(b"17", 2, true).encode(),
-    XOR = Trait::from(b"18", 2, true).encode(),
-    NOT = Trait::from(b"19", 1, true).encode(),
-    BYTE = Trait::from(b"1a", 2, true).encode(),
-    SHL = Trait::from(b"1b", 2, true).encode(),
-    SHR = Trait::from(b"1c", 2, true).encode(),
-    SAR = Trait::from(b"1d", 2, true).encode(),
-
-    SHA3 = Trait::from(b"20", 2, true).encode(),
-
-    ADDRESS = Trait::from(b"30", 0, true).encode(),
-    BALANCE = Trait::from(b"31", 1, true).encode(),
-    ORIGIN = Trait::from(b"32", 0, true).encode(),
-    CALLER = Trait::from(b"33", 0, true).encode(),
-    CALLVALUE = Trait::from(b"34", 0, true).encode(),
-    CALLDATALOAD = Trait::from(b"35", 1, true).encode(),
-    CALLDATASIZE = Trait::from(b"36", 0, true).encode(),
-    CALLDATACOPY = Trait::from(b"37", 3, false).encode(),
-    CODESIZE = Trait::from(b"38", 0, true).encode(),
-    CODECOPY = Trait::from(b"39", 3, false).encode(),
-    GASPRICE = Trait::from(b"3a", 0, true).encode(),
-    EXTCODESIZE = Trait::from(b"3b", 1, true).encode(),
-    EXTCODECOPY = Trait::from(b"3c", 4, false).encode(),
-    RETURNDATASIZE = Trait::from(b"3d", 0, true).encode(),
-    RETURNDATACOPY = Trait::from(b"3e", 3, false).encode(),
-    EXTCODEHASH = Trait::from(b"3f", 1, true).encode(),
-    BLOCKHASH = Trait::from(b"40", 1, true).encode(),
-    COINBASE = Trait::from(b"41", 0, true).encode(),
-    TIMESTAMP = Trait::from(b"42", 0, true).encode(),
-    NUMBER = Trait::from(b"43", 0, true).encode(),
-    DIFFICULTY = Trait::from(b"44", 0, true).encode(),
-    GASLIMIT = Trait::from(b"45", 0, true).encode(),
-    CHAINID = Trait::from(b"46", 0, true).encode(),
-    SELFBALANCE = Trait::from(b"47", 0, true).encode(),
-    BASEFEE = Trait::from(b"48", 0, true).encode(),
-
-    POP = Trait::from(b"50", 1, false).encode(),
-    MLOAD = Trait::from(b"51", 1, true).encode(),
-    MSTORE = Trait::from(b"52", 2, false).encode(),
-    MSTORE8 = Trait::from(b"53", 2, false).encode(),
-    SLOAD = Trait::from(b"54", 1, true).encode(),
-    SSTORE = Trait::from(b"55", 2, false).encode(),
-    JUMP = Trait::from(b"56", 1, false).encode(),
-    JUMPI = Trait::from(b"57", 2, false).encode(),
-    PC = Trait::from(b"58", 0, true).encode(),
-    MSIZE = Trait::from(b"59", 0, true).encode(),
-    GAS = Trait::from(b"5a", 0, true).encode(),
-    JUMPDEST = Trait::from(b"5b", 0, false).encode(),
-
-    PUSH1 = Trait::from(b"60", 0, true).encode(),
-    PUSH2 = Trait::from(b"61", 0, true).encode(),
-    PUSH3 = Trait::from(b"62", 0, true).encode(),
-    PUSH4 = Trait::from(b"63", 0, true).encode(),
-    PUSH5 = Trait::from(b"64", 0, true).encode(),
-    PUSH6 = Trait::from(b"65", 0, true).encode(),
-    PUSH7 = Trait::from(b"66", 0, true).encode(),
-    PUSH8 = Trait::from(b"67", 0, true).encode(),
-    PUSH9 = Trait::from(b"68", 0, true).encode(),
-    PUSH10 = Trait::from(b"69", 0, true).encode(),
-    PUSH11 = Trait::from(b"6a", 0, true).encode(),
-    PUSH12 = Trait::from(b"6b", 0, true).encode(),
-    PUSH13 = Trait::from(b"6c", 0, true).encode(),
-    PUSH14 = Trait::from(b"6d", 0, true).encode(),
-    PUSH15 = Trait::from(b"6e", 0, true).encode(),
-    PUSH16 = Trait::from(b"6f", 0, true).encode(),
-    PUSH17 = Trait::from(b"70", 0, true).encode(),
-    PUSH18 = Trait::from(b"71", 0, true).encode(),
-    PUSH19 = Trait::from(b"72", 0, true).encode(),
-    PUSH20 = Trait::from(b"73", 0, true).encode(),
-    PUSH21 = Trait::from(b"74", 0, true).encode(),
-    PUSH22 = Trait::from(b"75", 0, true).encode(),
-    PUSH23 = Trait::from(b"76", 0, true).encode(),
-    PUSH24 = Trait::from(b"77", 0, true).encode(),
-    PUSH25 = Trait::from(b"78", 0, true).encode(),
-    PUSH26 = Trait::from(b"79", 0, true).encode(),
-    PUSH27 = Trait::from(b"7a", 0, true).encode(),
-    PUSH28 = Trait::from(b"7b", 0, true).encode(),
-    PUSH29 = Trait::from(b"7c", 0, true).encode(),
-    PUSH30 = Trait::from(b"7d", 0, true).encode(),
-    PUSH31 = Trait::from(b"7e", 0, true).encode(),
-    PUSH32 = Trait::from(b"7f", 0, true).encode(),
-
-    DUP1 = Trait::from(b"80", 1, false).encode(),
-    DUP2 = Trait::from(b"81", 2, false).encode(),
-    DUP3 = Trait::from(b"82", 3, false).encode(),
-    DUP4 = Trait::from(b"83", 4, false).encode(),
-    DUP5 = Trait::from(b"84", 5, false).encode(),
-    DUP6 = Trait::from(b"85", 6, false).encode(),
-    DUP7 = Trait::from(b"86", 7, false).encode(),
-    DUP8 = Trait::from(b"87", 8, false).encode(),
-    DUP9 = Trait::from(b"88", 9, false).encode(),
-    DUP10 = Trait::from(b"89", 10, false).encode(),
-    DUP11 = Trait::from(b"8a", 11, false).encode(),
-    DUP12 = Trait::from(b"8b", 12, false).encode(),
-    DUP13 = Trait::from(b"8c", 13, false).encode(),
-    DUP14 = Trait::from(b"8d", 14, false).encode(),
-    DUP15 = Trait::from(b"8e", 15, false).encode(),
-    DUP18 = Trait::from(b"8f", 16, false).encode(),
-
-    SWAP1 = Trait::from(b"90", 2, false).encode(),
-    SWAP2 = Trait::from(b"91", 3, false).encode(),
-    SWAP3 = Trait::from(b"92", 4, false).encode(),
-    SWAP4 = Trait::from(b"93", 5, false).encode(),
-    SWAP5 = Trait::from(b"94", 6, false).encode(),
-    SWAP6 = Trait::from(b"95", 7, false).encode(),
-    SWAP7 = Trait::from(b"96", 8, false).encode(),
-    SWAP8 = Trait::from(b"97", 9, false).encode(),
-    SWAP9 = Trait::from(b"98", 10, false).encode(),
-    SWAP10 = Trait::from(b"99", 11, false).encode(),
-    SWAP11 = Trait::from(b"9a", 12, false).encode(),
-    SWAP12 = Trait::from(b"9b", 13, false).encode(),
-    SWAP13 = Trait::from(b"9c", 14, false).encode(),
-    SWAP14 = Trait::from(b"9d", 15, false).encode(),
-    SWAP15 = Trait::from(b"9e", 16, false).encode(),
-    SWAP19 = Trait::from(b"9f", 17, false).encode(),
-
-    LOG0 = Trait::from(b"a0", 2, false).encode(),
-    LOG1 = Trait::from(b"a1", 3, false).encode(),
-    LOG2 = Trait::from(b"a2", 4, false).encode(),
-    LOG3 = Trait::from(b"a3", 5, false).encode(),
-    LOG4 = Trait::from(b"a4", 6, false).encode(),
-
-    CREATE = Trait::from(b"f0", 3, true).encode(),
-    CALL = Trait::from(b"f1", 7, true).encode(),
-    CALLCODE = Trait::from(b"f2", 7, true).encode(),
-    RETURN = Trait::from(b"f3", 2, false).encode(),
-    DELEGATECALL = Trait::from(b"f4", 6, true).encode(),
-    CREATE2 = Trait::from(b"f5", 4, true).encode(),
-
-    STATICCALL = Trait::from(b"fa", 6, true).encode(),
-
-    REVERT = Trait::from(b"fd", 2, false).encode(),
-    SELFDESTRUCT = Trait::from(b"ff", 1, false).encode(),
-
-    #[default]
-    INVALID = Trait::from(b"fe", 0, false).encode(),
+#[derive(Default, Copy, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct Opcode {
+    pub code: u8,
+    pub stack_input: usize,
+    pub stack_output: usize,
+    pub n: usize // value of N in case of a PUSHN, DUPN, SWAPN or LOGN
 }
-static mut OPCODE_INITIALZED: bool = false;
+
+// 0x0 range - arithmetic ops.
+pub const STOP : Opcode = Opcode {code: 0x00, stack_input: 0, stack_output: 0, n: 0};
+pub const ADD : Opcode = Opcode {code: 0x01, stack_input: 2, stack_output: 1, n: 0};
+pub const MUL : Opcode = Opcode {code: 0x02, stack_input: 2, stack_output: 1, n: 0};
+pub const SUB : Opcode = Opcode {code: 0x03, stack_input: 2, stack_output: 1, n: 0};
+pub const DIV : Opcode = Opcode {code: 0x04, stack_input: 2, stack_output: 1, n: 0};
+pub const SDIV : Opcode = Opcode {code: 0x05, stack_input: 2, stack_output: 1, n: 0};
+pub const MOD : Opcode = Opcode {code: 0x06, stack_input: 2, stack_output: 1, n: 0};
+pub const SMOD : Opcode = Opcode {code: 0x07, stack_input: 2, stack_output: 1, n: 0};
+pub const ADDMOD : Opcode = Opcode {code: 0x08, stack_input: 3, stack_output: 1, n: 0};
+pub const MULMOD : Opcode = Opcode {code: 0x09, stack_input: 3, stack_output: 1, n: 0};
+pub const EXP : Opcode = Opcode {code: 0x0a, stack_input: 2, stack_output: 1, n: 0};
+pub const SIGNEXTEND : Opcode = Opcode {code: 0x0b, stack_input: 2, stack_output: 1, n: 0};
+
+// 0x10 range - comparison ops.
+pub const LT : Opcode = Opcode {code: 0x10, stack_input: 2, stack_output: 1, n: 0};
+pub const GT : Opcode = Opcode {code: 0x11, stack_input: 2, stack_output: 1, n: 0};
+pub const SLT : Opcode = Opcode {code: 0x12, stack_input: 2, stack_output: 1, n: 0};
+pub const SGT : Opcode = Opcode {code: 0x13, stack_input: 2, stack_output: 1, n: 0};
+pub const EQ : Opcode = Opcode {code: 0x14, stack_input: 2, stack_output: 1, n: 0};
+pub const ISZERO : Opcode = Opcode {code: 0x15, stack_input: 1, stack_output: 1, n: 0};
+pub const AND : Opcode = Opcode {code: 0x16, stack_input: 2, stack_output: 1, n: 0};
+pub const OR : Opcode = Opcode {code: 0x17, stack_input: 2, stack_output: 1, n: 0};
+pub const XOR : Opcode = Opcode {code: 0x18, stack_input: 2, stack_output: 1, n: 0};
+pub const NOT : Opcode = Opcode {code: 0x19, stack_input: 1, stack_output: 1, n: 0};
+pub const BYTE : Opcode = Opcode {code: 0x1a, stack_input: 2, stack_output: 1, n: 0};
+pub const SHL : Opcode = Opcode {code: 0x1b, stack_input: 2, stack_output: 1, n: 0};
+pub const SHR : Opcode = Opcode {code: 0x1c, stack_input: 2, stack_output: 1, n: 0};
+pub const SAR : Opcode = Opcode {code: 0x1d, stack_input: 2, stack_output: 1, n: 0};
+
+// 0x20 range - crypto.
+pub const SHA3 : Opcode = Opcode {code: 0x20, stack_input: 2, stack_output: 1, n: 0};
+
+// 0x30 range - closure state.
+pub const ADDRESS : Opcode = Opcode {code: 0x30, stack_input: 0, stack_output: 1, n: 0};
+pub const BALANCE : Opcode = Opcode {code: 0x31, stack_input: 1, stack_output: 1, n: 0};
+pub const ORIGIN : Opcode = Opcode {code: 0x32, stack_input: 0, stack_output: 1, n: 0};
+pub const CALLER : Opcode = Opcode {code: 0x33, stack_input: 0, stack_output: 1, n: 0};
+pub const CALLVALUE : Opcode = Opcode {code: 0x34, stack_input: 0, stack_output: 1, n: 0};
+pub const CALLDATALOAD : Opcode = Opcode {code: 0x35, stack_input: 1, stack_output: 1, n: 0};
+pub const CALLDATASIZE : Opcode = Opcode {code: 0x36, stack_input: 0, stack_output: 1, n: 0};
+pub const CALLDATACOPY : Opcode = Opcode {code: 0x37, stack_input: 3, stack_output: 0, n: 0};
+pub const CODESIZE : Opcode = Opcode {code: 0x38, stack_input: 0, stack_output: 1, n: 0};
+pub const CODECOPY : Opcode = Opcode {code: 0x39, stack_input: 3, stack_output: 0, n: 0};
+pub const GASPRICE : Opcode = Opcode {code: 0x3a, stack_input: 0, stack_output: 1, n: 0};
+pub const EXTCODESIZE : Opcode = Opcode {code: 0x3b, stack_input: 1, stack_output: 1, n: 0};
+pub const EXTCODECOPY : Opcode = Opcode {code: 0x3c, stack_input: 4, stack_output: 0, n: 0};
+pub const RETURNDATASIZE : Opcode = Opcode {code: 0x3d, stack_input: 0, stack_output: 1, n: 0};
+pub const RETURNDATACOPY : Opcode = Opcode {code: 0x3e, stack_input: 3, stack_output: 0, n: 0};
+pub const EXTCODEHASH : Opcode = Opcode {code: 0x3f, stack_input: 1, stack_output: 1, n: 0};
+
+// 0x40 range - block operations.
+pub const BLOCKHASH : Opcode = Opcode {code: 0x40, stack_input: 1, stack_output: 1, n: 0};
+pub const COINBASE : Opcode = Opcode {code: 0x41, stack_input: 0, stack_output: 1, n: 0};
+pub const TIMESTAMP : Opcode = Opcode {code: 0x42, stack_input: 0, stack_output: 1, n: 0};
+pub const NUMBER : Opcode = Opcode {code: 0x43, stack_input: 0, stack_output: 1, n: 0};
+pub const DIFFICULTY : Opcode = Opcode {code: 0x44, stack_input: 0, stack_output: 1, n: 0};
+pub const GASLIMIT : Opcode = Opcode {code: 0x45, stack_input: 0, stack_output: 1, n: 0};
+pub const CHAINID : Opcode = Opcode {code: 0x46, stack_input: 0, stack_output: 1, n: 0};
+pub const SELFBALANCE : Opcode = Opcode {code: 0x47, stack_input: 0, stack_output: 1, n: 0};
+pub const BASEFEE : Opcode = Opcode {code: 0x48, stack_input: 0, stack_output: 1, n: 0};
+
+
+// 0x50 range - 'storage' and execution.
+pub const POP : Opcode = Opcode {code: 0x50, stack_input: 1, stack_output: 0, n: 0};
+pub const MLOAD : Opcode = Opcode {code: 0x51, stack_input: 1, stack_output: 1, n: 0};
+pub const MSTORE : Opcode = Opcode {code: 0x52, stack_input: 2, stack_output: 0, n: 0};
+pub const MSTORE8 : Opcode = Opcode {code: 0x53, stack_input: 2, stack_output: 0, n: 0};
+pub const SLOAD : Opcode = Opcode {code: 0x54, stack_input: 1, stack_output: 1, n: 0};
+pub const SSTORE : Opcode = Opcode {code: 0x55, stack_input: 2, stack_output: 0, n: 0};
+pub const JUMP : Opcode = Opcode {code: 0x56, stack_input: 1, stack_output: 0, n: 0};
+pub const JUMPI : Opcode = Opcode {code: 0x57, stack_input: 2, stack_output: 0, n: 0};
+pub const PC : Opcode = Opcode {code: 0x58, stack_input: 0, stack_output: 1, n: 0};
+pub const MSIZE : Opcode = Opcode {code: 0x59, stack_input: 0, stack_output: 1, n: 0};
+pub const GAS : Opcode = Opcode {code: 0x5a, stack_input: 0, stack_output: 1, n: 0};
+pub const JUMPDEST : Opcode = Opcode {code: 0x5b, stack_input: 0, stack_output: 0, n: 0};
+
+// 0x60 range - pushes.
+pub const PUSH1 : Opcode = Opcode {code: 0x60, stack_input: 0, stack_output: 1, n: 1};
+pub const PUSH2 : Opcode = Opcode {code: 0x61, stack_input: 0, stack_output: 1, n: 2};
+pub const PUSH3 : Opcode = Opcode {code: 0x62, stack_input: 0, stack_output: 1, n: 3};
+pub const PUSH4 : Opcode = Opcode {code: 0x63, stack_input: 0, stack_output: 1, n: 4};
+pub const PUSH5 : Opcode = Opcode {code: 0x64, stack_input: 0, stack_output: 1, n: 5};
+pub const PUSH6 : Opcode = Opcode {code: 0x65, stack_input: 0, stack_output: 1, n: 6};
+pub const PUSH7 : Opcode = Opcode {code: 0x66, stack_input: 0, stack_output: 1, n: 7};
+pub const PUSH8 : Opcode = Opcode {code: 0x67, stack_input: 0, stack_output: 1, n: 8};
+pub const PUSH9 : Opcode = Opcode {code: 0x68, stack_input: 0, stack_output: 1, n: 9};
+pub const PUSH10 : Opcode = Opcode {code: 0x69, stack_input: 0, stack_output: 1, n: 10};
+pub const PUSH11 : Opcode = Opcode {code: 0x6a, stack_input: 0, stack_output: 1, n: 11};
+pub const PUSH12 : Opcode = Opcode {code: 0x6b, stack_input: 0, stack_output: 1, n: 12};
+pub const PUSH13 : Opcode = Opcode {code: 0x6c, stack_input: 0, stack_output: 1, n: 13};
+pub const PUSH14 : Opcode = Opcode {code: 0x6d, stack_input: 0, stack_output: 1, n: 14};
+pub const PUSH15 : Opcode = Opcode {code: 0x6e, stack_input: 0, stack_output: 1, n: 15};
+pub const PUSH16 : Opcode = Opcode {code: 0x6f, stack_input: 0, stack_output: 1, n: 16};
+pub const PUSH17 : Opcode = Opcode {code: 0x70, stack_input: 0, stack_output: 1, n: 17};
+pub const PUSH18 : Opcode = Opcode {code: 0x71, stack_input: 0, stack_output: 1, n: 18};
+pub const PUSH19 : Opcode = Opcode {code: 0x72, stack_input: 0, stack_output: 1, n: 19};
+pub const PUSH20 : Opcode = Opcode {code: 0x73, stack_input: 0, stack_output: 1, n: 20};
+pub const PUSH21 : Opcode = Opcode {code: 0x74, stack_input: 0, stack_output: 1, n: 21};
+pub const PUSH22 : Opcode = Opcode {code: 0x75, stack_input: 0, stack_output: 1, n: 22};
+pub const PUSH23 : Opcode = Opcode {code: 0x76, stack_input: 0, stack_output: 1, n: 23};
+pub const PUSH24 : Opcode = Opcode {code: 0x77, stack_input: 0, stack_output: 1, n: 24};
+pub const PUSH25 : Opcode = Opcode {code: 0x78, stack_input: 0, stack_output: 1, n: 25};
+pub const PUSH26 : Opcode = Opcode {code: 0x79, stack_input: 0, stack_output: 1, n: 26};
+pub const PUSH27 : Opcode = Opcode {code: 0x7a, stack_input: 0, stack_output: 1, n: 27};
+pub const PUSH28 : Opcode = Opcode {code: 0x7b, stack_input: 0, stack_output: 1, n: 28};
+pub const PUSH29 : Opcode = Opcode {code: 0x7c, stack_input: 0, stack_output: 1, n: 29};
+pub const PUSH30 : Opcode = Opcode {code: 0x7d, stack_input: 0, stack_output: 1, n: 30};
+pub const PUSH31 : Opcode = Opcode {code: 0x7e, stack_input: 0, stack_output: 1, n: 31};
+pub const PUSH32 : Opcode = Opcode {code: 0x7f, stack_input: 0, stack_output: 1, n: 32};
+
+// 0x80 range - dups.
+pub const DUP1 : Opcode = Opcode {code: 0x80, stack_input: 1, stack_output: 0, n: 1};
+pub const DUP2 : Opcode = Opcode {code: 0x81, stack_input: 2, stack_output: 0, n: 2};
+pub const DUP3 : Opcode = Opcode {code: 0x82, stack_input: 3, stack_output: 0, n: 3};
+pub const DUP4 : Opcode = Opcode {code: 0x83, stack_input: 4, stack_output: 0, n: 4};
+pub const DUP5 : Opcode = Opcode {code: 0x84, stack_input: 5, stack_output: 0, n: 5};
+pub const DUP6 : Opcode = Opcode {code: 0x85, stack_input: 6, stack_output: 0, n: 6};
+pub const DUP7 : Opcode = Opcode {code: 0x86, stack_input: 7, stack_output: 0, n: 7};
+pub const DUP8 : Opcode = Opcode {code: 0x87, stack_input: 8, stack_output: 0, n: 8};
+pub const DUP9 : Opcode = Opcode {code: 0x88, stack_input: 9, stack_output: 0, n: 9};
+pub const DUP10: Opcode = Opcode {code: 0x89, stack_input: 10, stack_output: 0, n: 10};
+pub const DUP11: Opcode = Opcode {code: 0x8a, stack_input: 11, stack_output: 0, n: 11};
+pub const DUP12: Opcode = Opcode {code: 0x8b, stack_input: 12, stack_output: 0, n: 12};
+pub const DUP13: Opcode = Opcode {code: 0x8c, stack_input: 13, stack_output: 0, n: 13};
+pub const DUP14: Opcode = Opcode {code: 0x8d, stack_input: 14, stack_output: 0, n: 14};
+pub const DUP15: Opcode = Opcode {code: 0x8e, stack_input: 15, stack_output: 0, n: 15};
+pub const DUP16: Opcode = Opcode {code: 0x8f, stack_input: 16, stack_output: 0, n: 16};
+
+// 0x90 range - swaps.
+pub const SWAP1 : Opcode = Opcode {code: 0x90, stack_input: 1, stack_output: 0, n: 1};
+pub const SWAP2 : Opcode = Opcode {code: 0x91, stack_input: 2, stack_output: 0, n: 2};
+pub const SWAP3 : Opcode = Opcode {code: 0x92, stack_input: 3, stack_output: 0, n: 3};
+pub const SWAP4 : Opcode = Opcode {code: 0x93, stack_input: 4, stack_output: 0, n: 4};
+pub const SWAP5 : Opcode = Opcode {code: 0x94, stack_input: 5, stack_output: 0, n: 5};
+pub const SWAP6 : Opcode = Opcode {code: 0x95, stack_input: 6, stack_output: 0, n: 6};
+pub const SWAP7 : Opcode = Opcode {code: 0x96, stack_input: 7, stack_output: 0, n: 7};
+pub const SWAP8 : Opcode = Opcode {code: 0x97, stack_input: 8, stack_output: 0, n: 8};
+pub const SWAP9 : Opcode = Opcode {code: 0x98, stack_input: 9, stack_output: 0, n: 9};
+pub const SWAP10 : Opcode = Opcode {code: 0x99, stack_input: 10, stack_output: 0, n: 10};
+pub const SWAP11 : Opcode = Opcode {code: 0x9a, stack_input: 11, stack_output: 0, n: 11};
+pub const SWAP12 : Opcode = Opcode {code: 0x9b, stack_input: 12, stack_output: 0, n: 12};
+pub const SWAP13 : Opcode = Opcode {code: 0x9c, stack_input: 13, stack_output: 0, n: 13};
+pub const SWAP14 : Opcode = Opcode {code: 0x9d, stack_input: 14, stack_output: 0, n: 14};
+pub const SWAP15 : Opcode = Opcode {code: 0x9e, stack_input: 15, stack_output: 0, n: 15};
+pub const SWAP16 : Opcode = Opcode {code: 0x9f, stack_input: 16, stack_output: 0, n: 16};
+
+// 0xa0 range - logging ops.
+pub const LOG0 : Opcode = Opcode {code: 0xa0, stack_input: 2, stack_output: 0, n: 0};
+pub const LOG1 : Opcode = Opcode {code: 0xa1, stack_input: 3, stack_output: 0, n: 1};
+pub const LOG2 : Opcode = Opcode {code: 0xa2, stack_input: 4, stack_output: 0, n: 2};
+pub const LOG3 : Opcode = Opcode {code: 0xa3, stack_input: 5, stack_output: 0, n: 3};
+pub const LOG4 : Opcode = Opcode {code: 0xa4, stack_input: 6, stack_output: 0, n: 4};
+
+// 0xf0 range - closures.
+pub const CREATE : Opcode = Opcode {code: 0xf0, stack_input: 3, stack_output: 1, n: 0};
+pub const CALL : Opcode = Opcode {code: 0xf1, stack_input: 7, stack_output: 1, n: 0};
+pub const CALLCODE : Opcode = Opcode {code: 0xf2, stack_input: 7, stack_output: 1, n: 0};
+pub const RETURN : Opcode = Opcode {code: 0xf3, stack_input: 2, stack_output: 0, n: 0};
+pub const DELEGATECALL : Opcode = Opcode {code: 0xf4, stack_input: 6, stack_output: 0, n: 0};
+pub const CREATE2 : Opcode = Opcode {code: 0xf5, stack_input: 4, stack_output: 1, n: 0};
+
+pub const STATICCALL : Opcode = Opcode {code: 0xfa, stack_input: 6, stack_output: 1, n: 0};
+
+pub const REVERT : Opcode = Opcode {code: 0xfd, stack_input: 2, stack_output: 0, n: 0};
+
+pub const SELFDESTRUCT : Opcode = Opcode {code: 0xff, stack_input: 1, stack_output: 0, n: 0};
+
 
 impl Opcode {
-    pub fn from_u8(from: u8) -> Self {
-        unsafe {
-            if !OPCODE_INITIALZED {
-                init_opcodes();
-                OPCODE_INITIALZED = true;
-            }
+    pub const fn from_code(code: u8) -> Self {
+        match code {
+            0x00 => STOP,
+            0x01 => ADD,
+            0x02 => MUL,
+            0x03 => SUB,
+            0x04 => DIV,
+            0x05 => SDIV,
+            0x06 => MOD,
+            0x07 => SMOD,
+            0x08 => ADDMOD,
+            0x09 => MULMOD,
+            0x0a => EXP,
+            0x0b => SIGNEXTEND,
+            
+            0x10 => LT,
+            0x11 => GT,
+            0x12 => SLT,
+            0x13 => SGT,
+            0x14 => EQ,
+            0x15 => ISZERO,
+            0x16 => AND,
+            0x17 => OR,
+            0x18 => XOR,
+            0x19 => NOT,
+            0x1a => BYTE,
+            0x1b => SHL,
+            0x1c => SHR,
+            0x1d => SAR,
+            
+            0x20 => SHA3,
+
+            0x30 => ADDRESS,
+            0x31 => BALANCE,
+            0x32 => ORIGIN,
+            0x33 => CALLER,
+            0x34 => CALLVALUE,
+            0x35 => CALLDATALOAD,
+            0x36 => CALLDATASIZE,
+            0x37 => CALLDATACOPY,
+            0x38 => CODESIZE,
+            0x39 => CODECOPY,
+            0x3a => GASPRICE,
+            0x3b => EXTCODESIZE,
+            0x3c => EXTCODECOPY,
+            0x3d => RETURNDATASIZE,
+            0x3e => RETURNDATACOPY,
+            0x3f => EXTCODEHASH,
+
+            0x40 => BLOCKHASH,
+            0x41 => COINBASE,
+            0x42 => TIMESTAMP,
+            0x43 => NUMBER,
+            0x44 => DIFFICULTY,
+            0x45 => GASLIMIT,
+            0x46 => CHAINID,
+            0x47 => SELFBALANCE,
+            0x48 => BASEFEE,
+
+            0x50 => POP,
+            0x51 => MLOAD,
+            0x52 => MSTORE,
+            0x53 => MSTORE8,
+            0x54 => SLOAD,
+            0x55 => SSTORE,
+            0x56 => JUMP,
+            0x57 => JUMPI,
+            0x58 => PC,
+            0x59 => MSIZE,
+            0x5a => GAS,
+            0x5b => JUMPDEST,
+
+            0x60 => PUSH1,
+            0x61 => PUSH2,
+            0x62 => PUSH3,
+            0x63 => PUSH4,
+            0x64 => PUSH5,
+            0x65 => PUSH6,
+            0x66 => PUSH7,
+            0x67 => PUSH8,
+            0x68 => PUSH9,
+            0x69 => PUSH10,
+            0x6a => PUSH11,
+            0x6b => PUSH12,
+            0x6c => PUSH13,
+            0x6d => PUSH14,
+            0x6e => PUSH15,
+            0x6f => PUSH16,
+            0x70 => PUSH17,
+            0x71 => PUSH18,
+            0x72 => PUSH19,
+            0x73 => PUSH20,
+            0x74 => PUSH21,
+            0x75 => PUSH22,
+            0x76 => PUSH23,
+            0x77 => PUSH24,
+            0x78 => PUSH25,
+            0x79 => PUSH26,
+            0x7a => PUSH27,
+            0x7b => PUSH28,
+            0x7c => PUSH29,
+            0x7d => PUSH30,
+            0x7e => PUSH31,
+            0x7f => PUSH32,
+
+            0x80 => DUP1,
+            0x81 => DUP2,
+            0x82 => DUP3,
+            0x83 => DUP4,
+            0x84 => DUP5,
+            0x85 => DUP6,
+            0x86 => DUP7,
+            0x87 => DUP8,
+            0x88 => DUP9,
+            0x89 => DUP10,
+            0x8a => DUP11,
+            0x8b => DUP12,
+            0x8c => DUP13,
+            0x8d => DUP14,
+            0x8e => DUP15,
+            0x8f => DUP16,
+
+            0x90 => SWAP1,
+            0x91 => SWAP2,
+            0x92 => SWAP3,
+            0x93 => SWAP4,
+            0x94 => SWAP5,
+            0x95 => SWAP6,
+            0x96 => SWAP7,
+            0x97 => SWAP8,
+            0x98 => SWAP9,
+            0x99 => SWAP10,
+            0x9a => SWAP11,
+            0x9b => SWAP12,
+            0x9c => SWAP13,
+            0x9d => SWAP14,
+            0x9e => SWAP15,
+            0x9f => SWAP16,
+
+            0xa0 => LOG0,
+            0xa1 => LOG1,
+            0xa2 => LOG2,
+            0xa3 => LOG3,
+            0xa4 => LOG4,
+            
+            0xf0 => CREATE,
+            0xf1 => CALL,
+            0xf2 => CALLCODE,
+            0xf3 => RETURN,
+            0xf4 => DELEGATECALL,
+            0xf5 => CREATE2,
+
+            0xfa => STATICCALL,
+
+            0xfd => REVERT,
+
+            0xff => SELFDESTRUCT,
+
+            _ => Opcode {code, stack_input: 0, stack_output: 0, n: 0},
         }
-        match HEX_TO_OPCODE.lock().unwrap().get(&from) {
-            Some(opcode) => *opcode,
-            None => Opcode::INVALID,
+    }
+
+    pub fn from_name(name: &str) -> Self {
+        match name {
+            "STOP" => STOP,
+            "ADD" => ADD,
+            "MUL" => MUL,
+            "SUB" => SUB,
+            "DIV" => DIV,
+            "SDIV" => SDIV,
+            "MOD" => MOD,
+            "SMOD" => SMOD,
+            "ADDMOD" => ADDMOD,
+            "MULMOD" => MULMOD,
+            "EXP" => EXP,
+            "SIGNEXTEND" => SIGNEXTEND,
+            
+            "LT" => LT,
+            "GT" => GT,
+            "SLT" => SLT,
+            "SGT" => SGT,
+            "EQ" => EQ,
+            "ISZERO" => ISZERO,
+            "AND" => AND,
+            "OR" => OR,
+            "XOR" => XOR,
+            "NOT" => NOT,
+            "BYTE" => BYTE,
+            "SHL" => SHL,
+            "SHR" => SHR,
+            "SAR" => SAR,
+            
+            "SHA3" => SHA3,
+
+            "ADDRESS" => ADDRESS,
+            "BALANCE" => BALANCE,
+            "ORIGIN" => ORIGIN,
+            "CALLER" => CALLER,
+            "CALLVALUE" => CALLVALUE,
+            "CALLDATALOAD" => CALLDATALOAD,
+            "CALLDATASIZE" => CALLDATASIZE,
+            "CALLDATACOPY" => CALLDATACOPY,
+            "CODESIZE" => CODESIZE,
+            "CODECOPY" => CODECOPY,
+            "GASPRICE" => GASPRICE,
+            "EXTCODESIZE" => EXTCODESIZE,
+            "EXTCODECOPY" => EXTCODECOPY,
+            "RETURNDATASIZE" => RETURNDATASIZE,
+            "RETURNDATACOPY" => RETURNDATACOPY,
+            "EXTCODEHASH" => EXTCODEHASH,
+
+            "BLOCKHASH" => BLOCKHASH,
+            "COINBASE" => COINBASE,
+            "TIMESTAMP" => TIMESTAMP,
+            "NUMBER" => NUMBER,
+            "DIFFICULTY" => DIFFICULTY,
+            "GASLIMIT" => GASLIMIT,
+            "CHAINID" => CHAINID,
+            "SELFBALANCE" => SELFBALANCE,
+            "BASEFEE" => BASEFEE,
+
+            "POP" => POP,
+            "MLOAD" => MLOAD,
+            "MSTORE" => MSTORE,
+            "MSTORE8" => MSTORE8,
+            "SLOAD" => SLOAD,
+            "SSTORE" => SSTORE,
+            "JUMP" => JUMP,
+            "JUMPI" => JUMPI,
+            "PC" => PC,
+            "MSIZE" => MSIZE,
+            "GAS" => GAS,
+            "JUMPDEST" => JUMPDEST,
+
+            "PUSH1" => PUSH1,
+            "PUSH2" => PUSH2,
+            "PUSH3" => PUSH3,
+            "PUSH4" => PUSH4,
+            "PUSH5" => PUSH5,
+            "PUSH6" => PUSH6,
+            "PUSH7" => PUSH7,
+            "PUSH8" => PUSH8,
+            "PUSH9" => PUSH9,
+            "PUSH10" => PUSH10,
+            "PUSH11" => PUSH11,
+            "PUSH12" => PUSH12,
+            "PUSH13" => PUSH13,
+            "PUSH14" => PUSH14,
+            "PUSH15" => PUSH15,
+            "PUSH16" => PUSH16,
+            "PUSH17" => PUSH17,
+            "PUSH18" => PUSH18,
+            "PUSH19" => PUSH19,
+            "PUSH20" => PUSH20,
+            "PUSH21" => PUSH21,
+            "PUSH22" => PUSH22,
+            "PUSH23" => PUSH23,
+            "PUSH24" => PUSH24,
+            "PUSH25" => PUSH25,
+            "PUSH26" => PUSH26,
+            "PUSH27" => PUSH27,
+            "PUSH28" => PUSH28,
+            "PUSH29" => PUSH29,
+            "PUSH30" => PUSH30,
+            "PUSH31" => PUSH31,
+            "PUSH32" => PUSH32,
+
+            "DUP1" => DUP1,
+            "DUP2" => DUP2,
+            "DUP3" => DUP3,
+            "DUP4" => DUP4,
+            "DUP5" => DUP5,
+            "DUP6" => DUP6,
+            "DUP7" => DUP7,
+            "DUP8" => DUP8,
+            "DUP9" => DUP9,
+            "DUP10" => DUP10,
+            "DUP11" => DUP11,
+            "DUP12" => DUP12,
+            "DUP13" => DUP13,
+            "DUP14" => DUP14,
+            "DUP15" => DUP15,
+            "DUP16" => DUP16,
+
+            "SWAP1" => SWAP1,
+            "SWAP2" => SWAP2,
+            "SWAP3" => SWAP3,
+            "SWAP4" => SWAP4,
+            "SWAP5" => SWAP5,
+            "SWAP6" => SWAP6,
+            "SWAP7" => SWAP7,
+            "SWAP8" => SWAP8,
+            "SWAP9" => SWAP9,
+            "SWAP10" => SWAP10,
+            "SWAP11" => SWAP11,
+            "SWAP12" => SWAP12,
+            "SWAP13" => SWAP13,
+            "SWAP14" => SWAP14,
+            "SWAP15" => SWAP15,
+            "SWAP16" => SWAP16,
+
+            "LOG0" => LOG0,
+            "LOG1" => LOG1,
+            "LOG2" => LOG2,
+            "LOG3" => LOG3,
+            "LOG4" => LOG4,
+            
+            "CREATE" => CREATE,
+            "CALL" => CALL,
+            "CALLCODE" => CALLCODE,
+            "RETURN" => RETURN,
+            "DELEGATECALL" => DELEGATECALL,
+            "CREATE2" => CREATE2,
+
+            "STATICCALL" => STATICCALL,
+
+            "REVERT" => REVERT,
+
+            "SELFDESTRUCT" => SELFDESTRUCT,
+            _ => panic!("Invalid opcode name"),
         }
     }
 
-    pub fn n_stack_input(&self) -> usize {
-        return OPCODE_INFO.lock().unwrap()[self].n_stack_input as usize;
-    }
+    pub const fn get_name(&self) -> &'static str{
+        match self {
+            &STOP => "STOP",
+            &ADD => "ADD",
+            &MUL => "MUL",
+            &SUB => "SUB",
+            &DIV => "DIV",
+            &SDIV => "SDIV",
+            &MOD => "MOD",
+            &SMOD => "SMOD",
+            &ADDMOD => "ADDMOD",
+            &MULMOD => "MULMOD",
+            &EXP => "EXP",
+            &SIGNEXTEND => "SIGNEXTEND",
+            
+            &LT => "LT",
+            &GT => "GT",
+            &SLT => "SLT",
+            &SGT => "SGT",
+            &EQ => "EQ",
+            &ISZERO => "ISZERO",
+            &AND => "AND",
+            &OR => "OR",
+            &XOR => "XOR",
+            &NOT => "NOT",
+            &BYTE => "BYTE",
+            &SHL => "SHL",
+            &SHR => "SHR",
+            &SAR => "SAR",
+            
+            &SHA3 => "SHA3",
 
-    pub fn has_stack_output(&self) -> bool {
-        return OPCODE_INFO.lock().unwrap()[self].stack_output;
-    }
+            &ADDRESS => "ADDRESS",
+            &BALANCE => "BALANCE",
+            &ORIGIN => "ORIGIN",
+            &CALLER => "CALLER",
+            &CALLVALUE => "CALLVALUE",
+            &CALLDATALOAD => "CALLDATALOAD",
+            &CALLDATASIZE => "CALLDATASIZE",
+            &CALLDATACOPY => "CALLDATACOPY",
+            &CODESIZE => "CODESIZE",
+            &CODECOPY => "CODECOPY",
+            &GASPRICE => "GASPRICE",
+            &EXTCODESIZE => "EXTCODESIZE",
+            &EXTCODECOPY => "EXTCODECOPY",
+            &RETURNDATASIZE => "RETURNDATASIZE",
+            &RETURNDATACOPY => "RETURNDATACOPY",
+            &EXTCODEHASH => "EXTCODEHASH",
 
-    pub fn hex_code(&self) -> String {
-        let res: String = format!("{:x}", OPCODE_INFO.lock().unwrap()[self].hex_symbol);
-        if res.len() == 2 {
-            res
-        } else {
-            "0".to_owned() + &res
+            &BLOCKHASH => "BLOCKHASH",
+            &COINBASE => "COINBASE",
+            &TIMESTAMP => "TIMESTAMP",
+            &NUMBER => "NUMBER",
+            &DIFFICULTY => "DIFFICULTY",
+            &GASLIMIT => "GASLIMIT",
+            &CHAINID => "CHAINID",
+            &SELFBALANCE => "SELFBALANCE",
+            &BASEFEE => "BASEFEE",
+
+            &POP => "POP",
+            &MLOAD => "MLOAD",
+            &MSTORE => "MSTORE",
+            &MSTORE8 => "MSTORE8",
+            &SLOAD => "SLOAD",
+            &SSTORE => "SSTORE",
+            &JUMP => "JUMP",
+            &JUMPI => "JUMPI",
+            &PC => "PC",
+            &MSIZE => "MSIZE",
+            &GAS => "GAS",
+            &JUMPDEST => "JUMPDEST",
+
+            &PUSH1 => "PUSH1",
+            &PUSH2 => "PUSH2",
+            &PUSH3 => "PUSH3",
+            &PUSH4 => "PUSH4",
+            &PUSH5 => "PUSH5",
+            &PUSH6 => "PUSH6",
+            &PUSH7 => "PUSH7",
+            &PUSH8 => "PUSH8",
+            &PUSH9 => "PUSH9",
+            &PUSH10 => "PUSH10",
+            &PUSH11 => "PUSH11",
+            &PUSH12 => "PUSH12",
+            &PUSH13 => "PUSH13",
+            &PUSH14 => "PUSH14",
+            &PUSH15 => "PUSH15",
+            &PUSH16 => "PUSH16",
+            &PUSH17 => "PUSH17",
+            &PUSH18 => "PUSH18",
+            &PUSH19 => "PUSH19",
+            &PUSH20 => "PUSH20",
+            &PUSH21 => "PUSH21",
+            &PUSH22 => "PUSH22",
+            &PUSH23 => "PUSH23",
+            &PUSH24 => "PUSH24",
+            &PUSH25 => "PUSH25",
+            &PUSH26 => "PUSH26",
+            &PUSH27 => "PUSH27",
+            &PUSH28 => "PUSH28",
+            &PUSH29 => "PUSH29",
+            &PUSH30 => "PUSH30",
+            &PUSH31 => "PUSH31",
+            &PUSH32 => "PUSH32",
+
+            &DUP1 => "DUP1",
+            &DUP2 => "DUP2",
+            &DUP3 => "DUP3",
+            &DUP4 => "DUP4",
+            &DUP5 => "DUP5",
+            &DUP6 => "DUP6",
+            &DUP7 => "DUP7",
+            &DUP8 => "DUP8",
+            &DUP9 => "DUP9",
+            &DUP10 => "DUP10",
+            &DUP11 => "DUP11",
+            &DUP12 => "DUP12",
+            &DUP13 => "DUP13",
+            &DUP14 => "DUP14",
+            &DUP15 => "DUP15",
+            &DUP16 => "DUP16",
+
+            &SWAP1 => "SWAP1",
+            &SWAP2 => "SWAP2",
+            &SWAP3 => "SWAP3",
+            &SWAP4 => "SWAP4",
+            &SWAP5 => "SWAP5",
+            &SWAP6 => "SWAP6",
+            &SWAP7 => "SWAP7",
+            &SWAP8 => "SWAP8",
+            &SWAP9 => "SWAP9",
+            &SWAP10 => "SWAP10",
+            &SWAP11 => "SWAP11",
+            &SWAP12 => "SWAP12",
+            &SWAP13 => "SWAP13",
+            &SWAP14 => "SWAP14",
+            &SWAP15 => "SWAP15",
+            &SWAP16 => "SWAP16",
+
+            &LOG0 => "LOG0",
+            &LOG1 => "LOG1",
+            &LOG2 => "LOG2",
+            &LOG3 => "LOG3",
+            &LOG4 => "LOG4",
+            
+            &CREATE => "CREATE",
+            &CALL => "CALL",
+            &CALLCODE => "CALLCODE",
+            &RETURN => "RETURN",
+            &DELEGATECALL => "DELEGATECALL",
+            &CREATE2 => "CREATE2",
+
+            &STATICCALL => "STATICCALL",
+
+            &REVERT => "REVERT",
+
+            &SELFDESTRUCT => "SELFDESTRUCT",
+            _ => "INVALID",
         }
     }
 
-    pub fn to_string(&self) -> String {
-        let res: &'static str = self.into();
-        return res.to_string();
-    }
-
-    fn as_repetitive_opcode(&self, base_name: &str) -> Option<usize> {
-        let name: String = self.to_string();
-        if name.len() >= base_name.len() + 1 && &name[0..base_name.len()] == base_name {
-            return Some(name[base_name.len()..].parse().unwrap());
-        } else {
-            return None;
+    pub const fn is_push(&self) -> bool {
+        match self {
+            &PUSH1 | &PUSH2 | &PUSH3 | &PUSH4 | &PUSH5 | &PUSH6 | &PUSH7 | &PUSH8 | &PUSH9
+            | &PUSH10 | &PUSH11 | &PUSH12 | &PUSH13 | &PUSH14 | &PUSH15 | &PUSH16 | &PUSH17
+            | &PUSH18 | &PUSH19 | &PUSH20 | &PUSH21 | &PUSH22 | &PUSH23 | &PUSH24 | &PUSH25
+            | &PUSH26 | &PUSH27 | &PUSH28 | &PUSH29 | &PUSH30 | &PUSH31 | &PUSH32 => true,
+            _ => false,
         }
     }
 
-    pub fn as_push(&self) -> Option<usize> {
-        return self.as_repetitive_opcode("PUSH");
+    pub const fn is_dup(&self) -> bool {
+        match self {
+            &DUP1 | &DUP2 | &DUP3 | &DUP4 | &DUP5 | &DUP6 | &DUP7 | &DUP8 | &DUP9 | &DUP10
+            | &DUP11 | &DUP12 | &DUP13 | &DUP14 | &DUP15 | &DUP16 => true,
+            _ => false,
+        }
     }
-    pub fn as_swap(&self) -> Option<usize> {
-        return self.as_repetitive_opcode("SWAP");
-    }
-    pub fn as_dup(&self) -> Option<usize> {
-        return self.as_repetitive_opcode("DUP");
-    }
-    pub fn as_log(&self) -> Option<usize> {
-        return self.as_repetitive_opcode("LOG");
-    }
-}
 
-lazy_static! {
-    static ref HEX_TO_OPCODE: Mutex<HashMap<u8, Opcode>> = Mutex::new(HashMap::new());
-    static ref OPCODE_INFO: Mutex<HashMap<Opcode, Trait>> = Mutex::new(HashMap::new());
-}
-struct Trait {
-    hex_symbol: u8,     // the hex code of the opcode
-    n_stack_input: u8,  // number of elements consumed on the stack
-    stack_output: bool, // does it produce an element on the stack
-}
+    pub const fn is_swap(&self) -> bool {
+        match self {
+            &SWAP1 | &SWAP2 | &SWAP3 | &SWAP4 | &SWAP5 | &SWAP6 | &SWAP7 | &SWAP8 | &SWAP9
+            | &SWAP10 | &SWAP11 | &SWAP12 | &SWAP13 | &SWAP14 | &SWAP15 | &SWAP16 => true,
+            _ => false,
+        }
+    }
 
-impl Trait {
-    const fn from(hex_symbol: &[u8], n_stack_input: u8, stack_output: bool) -> Self {
-        return Trait {
-            hex_symbol: hex_to_u8(hex_symbol),
-            n_stack_input,
-            stack_output,
-        };
+    pub const fn is_invalid(&self) -> bool {
+        return !self.is_push() && !self.is_dup() && !self.is_swap() &&
+        match self {
+            _ => true,
+        }
     }
-    const fn encode(&self) -> isize {
-        return (self.hex_symbol as isize) * 2isize.pow(9)
-            + (self.n_stack_input as isize) * 2isize.pow(1)
-            + (self.stack_output as isize);
-    }
-    const fn decode(encoded: isize) -> Self {
-        return Trait {
-            hex_symbol: (encoded / 2isize.pow(9)) as u8,
-            n_stack_input: ((encoded / 2) % 2isize.pow(8)) as u8,
-            stack_output: (encoded % 2) != 0,
-        };
-    }
-}
-
-pub fn init_opcodes() {
-    for opcode in Opcode::iter() {
-        let encoded: isize = opcode as isize;
-        let traits: Trait = Trait::decode(encoded);
-        HEX_TO_OPCODE
-            .lock()
-            .unwrap()
-            .insert(traits.hex_symbol, opcode);
-        OPCODE_INFO.lock().unwrap().insert(opcode, traits);
-    }
-}
-
-const fn hex_to_u8(hex_str: &[u8]) -> u8 {
-    // hex_str: 2 characters in {0, 1 ... 9, a, b ... f}
-    return (Decoder::Hex.decode(hex_str) as [u8; 1])[0];
 }

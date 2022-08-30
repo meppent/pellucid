@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use itertools::Itertools;
 
 use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
-use crate::bytecode_reader::opcode::Opcode;
+use crate::bytecode_reader::opcode::{Opcode, self};
 use crate::evm::context::Context;
 use crate::evm::expression::Expression;
 use crate::evm::state::ExecutionState;
@@ -12,12 +12,12 @@ use crate::utils::{remove_values_where, usize_to_hex};
 
 // A block terminates with:
 const STOP_OPCODES: [Opcode; 6] = [
-    Opcode::RETURN,
-    Opcode::REVERT,
-    Opcode::SELFDESTRUCT,
-    Opcode::STOP,
-    Opcode::JUMP,
-    Opcode::JUMPI,
+    opcode::RETURN,
+    opcode::REVERT,
+    opcode::SELFDESTRUCT,
+    opcode::STOP,
+    opcode::JUMP,
+    opcode::JUMPI,
 ];
 // ... or when the next opcode is JUMPDEST
 
@@ -52,15 +52,15 @@ impl<'a> Block<'a> {
 
     pub fn is_jumpable_from(&self, vopcode: Vopcode) -> bool {
         match vopcode.opcode {
-            Opcode::JUMP => self.code[0].opcode == Opcode::JUMPDEST,
-            Opcode::JUMPI => {
-                self.code[0].opcode == Opcode::JUMPDEST
+            opcode::JUMP => self.code[0].opcode == opcode::JUMPDEST,
+            opcode::JUMPI => {
+                self.code[0].opcode == opcode::JUMPDEST
                     || vopcode.pc + 1 == self.get_first_vopcode().pc
             }
 
             _ => {
                 assert!(!STOP_OPCODES.contains(&vopcode.opcode));
-                self.get_first_vopcode().opcode == Opcode::JUMPDEST
+                self.get_first_vopcode().opcode == opcode::JUMPDEST
                     && vopcode.get_next_pc() == Some(self.get_first_vopcode().pc)
             }
         }
@@ -173,13 +173,13 @@ impl<'a> BlockSet<'a> {
                 None
             };
             if pc_start == None
-                && (opcode == Opcode::JUMPDEST || previous_opcode == Some(Opcode::JUMPI))
+                && (opcode == opcode::JUMPDEST || previous_opcode == Some(opcode::JUMPI))
             {
                 // start a new block
                 pc_start = Some(pc);
             }
             if pc_start != None
-                && (STOP_OPCODES.contains(&opcode) || next_opcode == Some(Opcode::JUMPDEST))
+                && (STOP_OPCODES.contains(&opcode) || next_opcode == Some(opcode::JUMPDEST))
                 || vopcode.is_last
             {
                 // end block
