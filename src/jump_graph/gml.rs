@@ -1,13 +1,16 @@
 use crate::bytecode_reader::bytecode::stringify_vopcodes;
 
-use super::graph::BlockSet;
+use super::graph::{Block, BlockSet};
 
 pub fn to_gml(block_set: &BlockSet) -> String {
     let mut gml: String = String::new();
     gml.push_str("graph\n[\n");
 
     //nodes
-    for block in block_set.get_blocks() {
+    let mut blocks: Vec<Block> = block_set.get_blocks().cloned().collect();
+    blocks.sort_by_key(|block: &Block| block.get_pc_start());
+
+    for block in blocks {
         gml.push_str("\tnode\n\t[\n\tid ");
         gml.push_str(&block.get_pc_start().to_string());
         gml.push_str("\n\tlabel \"");
@@ -17,7 +20,11 @@ pub fn to_gml(block_set: &BlockSet) -> String {
     }
 
     // edges
-    for (origin_pc_start, dest_pc_start) in block_set.get_edges().iter() {
+    let mut edges: Vec<(usize, usize)> = block_set.get_edges();
+    edges.sort_by_key(|(pc_start_origin, pc_start_dest): &(usize, usize)| {
+        *pc_start_origin * 100_000 + pc_start_dest
+    });
+    for (origin_pc_start, dest_pc_start) in edges {
         gml.push_str("\tedge\n\t[\n\tsource ");
         gml.push_str(&origin_pc_start.to_string());
         gml.push_str("\n\ttarget ");
