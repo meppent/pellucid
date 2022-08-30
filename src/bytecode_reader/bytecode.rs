@@ -1,11 +1,11 @@
 use hex;
 use primitive_types::U256;
 use std::fmt;
-use std::{collections::HashMap, usize};
+use std::collections::HashMap;
 
 use crate::utils::remove_0x;
 
-use super::opcode::{Opcode, self};
+use super::opcode::{Opcode};
 use super::vopcode::Vopcode;
 
 #[derive(Default, Debug, PartialEq)]

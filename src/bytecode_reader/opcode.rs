@@ -687,10 +687,30 @@ impl Opcode {
         }
     }
 
-    pub const fn is_invalid(&self) -> bool {
-        return !self.is_push() && !self.is_dup() && !self.is_swap() &&
+    pub const fn is_log(&self) -> bool {
         match self {
-            _ => true,
+            &LOG0 | &LOG1 | &LOG2 | &LOG3 | &LOG4  => true,
+            _ => false,
         }
+    }
+
+
+    pub const fn is_invalid(&self) -> bool {
+        return !self.is_push()
+            && !self.is_dup()
+            && !self.is_swap()
+            && !self.is_log()
+            && match self {
+                &STOP | &ADD | &MUL | &SUB | &DIV | &SDIV | &MOD | &SMOD | &ADDMOD | &MULMOD
+                | &EXP | &SIGNEXTEND | &LT | &GT | &SLT | &SGT | &EQ | &ISZERO | &AND | &OR
+                | &XOR | &NOT | &BYTE | &SHL | &SHR | &SAR | &SHA3 | &ADDRESS | &BALANCE
+                | &ORIGIN | &CALLER | &CALLVALUE | &CALLDATALOAD | &CALLDATASIZE
+                | &CALLDATACOPY | &CODESIZE | &CODECOPY | &GASPRICE | &EXTCODESIZE
+                | &EXTCODECOPY | &RETURNDATASIZE | &RETURNDATACOPY | &EXTCODEHASH | &BLOCKHASH
+                | &COINBASE | &TIMESTAMP | &NUMBER | &DIFFICULTY | &GASLIMIT | &CHAINID
+                | &SELFBALANCE | &BASEFEE | &POP | &MLOAD | &MSTORE | &MSTORE8 | &SLOAD
+                | &SSTORE | &JUMP | &JUMPI | &PC | &MSIZE | &GAS | &JUMPDEST | &CREATE | &CALL | &CALLCODE | &RETURN | &DELEGATECALL | &CREATE2 | &STATICCALL | &REVERT | &SELFDESTRUCT => false,
+                _ => true,
+            };
     }
 }
