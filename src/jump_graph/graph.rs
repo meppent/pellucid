@@ -153,16 +153,16 @@ impl<'a> Debug for Block<'a> {
     }
 }
 
-struct ConnectedBlock<'a> {
+pub struct ConnectedBlock<'a> {
     pub block: Block<'a>,
-    pub links: Vec<HashMap<Position, Vec<Location>>>, // context index => {UP => list of its parents locations, DOWN => list of its children locations}
+    pub links: HashMap<usize, HashMap<Position, Vec<Location>>>, // context index => {UP => list of its parents locations, DOWN => list of its children locations}
 }
 
 impl<'a> ConnectedBlock<'a> {
     pub fn new(block: Block<'a>) -> Self {
         return ConnectedBlock {
             block,
-            links: vec![],
+            links: HashMap::new(),
         };
     }
 }
@@ -177,24 +177,12 @@ impl<'a> BlockSet<'a> {
     }
 
     pub fn get_connected_block_mut(&mut self, pc_start: usize) -> &mut ConnectedBlock<'a> {
-        return &mut self.connected_blocks.get_mut(&pc_start).unwrap();
+        return self.connected_blocks.get_mut(&pc_start).unwrap();
     }
 
     pub fn get_block_mut(&mut self, pc_start: usize) -> &mut Block<'a> {
-        return &mut self.get_connected_block_mut().block;
+        return &mut self.get_connected_block_mut(pc_start).block;
     }
-
-    // pub fn get_block_tip_mut(&mut self, location: Location) -> &mut BlockTip {
-    //     return self
-    //         .blocks
-    //         .get_mut(&location.pc_start)
-    //         .unwrap()
-    //         .tips
-    //         .get_mut(location.context_index)
-    //         .unwrap()
-    //         .get_mut(&location.position)
-    //         .unwrap();
-    // }
 
     pub fn get_blocks(&self) -> Vec<Block<'a>> {
         return self
@@ -214,15 +202,15 @@ impl<'a> BlockSet<'a> {
 
     pub fn get_edges(&self) -> Vec<(usize, usize)> {
         let mut edges: Vec<(usize, usize)> = vec![]; // (pc_start origin, pc_start dest)
-                                                     // for (_, block) in &self.blocks {
-                                                     //     let origin_pc_start: usize = block.block.get_pc_start();
-                                                     //     for tips in &block.tips {
-                                                     //         for dest_location in &tips[&Position::DOWN].locations {
-                                                     //             let dest_pc_start: usize = dest_location.pc_start;
-                                                     //             edges.push((origin_pc_start, dest_pc_start));
-                                                     //         }
-                                                     //     }
-                                                     // }
+        for (_, connected_block) in &self.connected_blocks {
+            let origin_pc_start: usize = connected_block.block.get_pc_start();
+            for (_, sub_links) in &connected_block.links {
+                for dest_location in &sub_links[&Position::DOWN] {
+                    let dest_pc_start: usize = dest_location.pc_start;
+                    edges.push((origin_pc_start, dest_pc_start));
+                }
+            }
+        }
         return edges;
     }
 
@@ -231,7 +219,7 @@ impl<'a> BlockSet<'a> {
             connected_blocks: HashMap::new(),
         };
         block_set.find_blocks(bytecode);
-        block_set.connect_from(Context::new(), 0);
+        block_set.extend(Context::new(), 0);
         return block_set;
     }
 
@@ -268,12 +256,29 @@ impl<'a> BlockSet<'a> {
         }
     }
 
-    fn connect(&mut self, origin_location: Location, dest_location: Location){
-        .links.get_mut(index)
+    fn connect(&mut self, origin_location: Location, dest_location: Location) {
+        let links: &mut HashMap<usize, HashMap<Position, Vec<Location>>> =
+            &mut self.get_connected_block_mut(origin_location.pc_start).links;
+        if links.contains_key(&origin_location.context_index) {
+            links.insert(
+                origin_location.context_index,
+                HashMap::from([(Position::UP, vec![]), (Position::DOWN, vec![])]),
+            );
+        }
+        links
+            .get_mut(&origin_location.context_index)
+            .unwrap()
+            .get_mut(&origin_location.position)
+            .unwrap()
+            .push(dest_location);
+    }
+    fn connect_both(&mut self, location_0: Location, location_1: Location) {
+        self.connect(location_0, location_1);
+        self.connect(location_1, location_0);
     }
 
-    fn connect_from(&mut self, initial_context: Context, pc_start: usize) {
-        dbg!("connect_from");
+    fn extend(&mut self, initial_context: Context, pc_start: usize) {
+        dbg!("extend");
         let block: &mut Block = self.get_block_mut(pc_start);
         if !block.contains_initial_context(&initial_context) {
             let (origin_context_index, final_context, mut next_dests): (
@@ -284,7 +289,9 @@ impl<'a> BlockSet<'a> {
             let last_vopcode: Vopcode = block.get_last_vopcode();
             remove_values_where(&mut next_dests, |jump_dest: &usize| {
                 !self.contains_block_at(*jump_dest)
-                    || !self.connected_blocks[jump_dest].block.is_jumpable_from(last_vopcode)
+                    || !self.connected_blocks[jump_dest]
+                        .block
+                        .is_jumpable_from(last_vopcode)
             }); // remove potential invalid destinations
             let dest_initial_context: Context = final_context.clean_state();
             let origin_location: Location = Location {
@@ -296,13 +303,13 @@ impl<'a> BlockSet<'a> {
                 let dest_block: &mut Block = self.get_block_mut(next_dest);
                 let dest_context_index: usize =
                     dest_block.get_index_of_incomming_initial_context(&dest_initial_context);
-                let next_location: Location = Location {
+                let dest_location: Location = Location {
                     pc_start: next_dest,
                     context_index: dest_context_index,
                     position: Position::UP,
                 };
-                //dest_block.connect_from(initial_context, pc_start)
-                self.connect_from(dest_initial_context.clone(), next_dest);
+                self.connect_both(origin_location, dest_location);
+                self.extend(dest_initial_context.clone(), next_dest);
             }
         }
     }

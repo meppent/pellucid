@@ -7,7 +7,7 @@ pub fn to_gml(block_set: &BlockSet) -> String {
     gml.push_str("graph\n[\n");
 
     //nodes
-    let mut blocks: Vec<Block> = block_set.get_blocks().cloned().collect();
+    let mut blocks: Vec<Block> = block_set.get_blocks();
     blocks.sort_by_key(|block: &Block| block.get_pc_start());
 
     for block in blocks {
