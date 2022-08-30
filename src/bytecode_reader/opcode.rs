@@ -79,7 +79,7 @@ pub enum Opcode {
     JUMPDEST,
 
     // 0x60 range - pushes.
-    PUSH { n_bytes: usize },
+    PUSH { item_size: usize },
 
     // 0x80 range - dups.
     DUP { depth: usize },
@@ -446,7 +446,7 @@ impl Opcode {
             },
 
             // 0x60 range - pushes.
-            Opcode::PUSH { n_bytes } => OpcodeInfo {
+            Opcode::PUSH { item_size: n_bytes } => OpcodeInfo {
                 code: 0x5f + *n_bytes as u8,
                 stack_input: 0,
                 stack_output: 1,
@@ -541,7 +541,7 @@ impl Opcode {
     }
 
     pub fn is_push(&self) -> bool {
-        if let Self::PUSH { n_bytes } = self {
+        if let Self::PUSH { item_size: n_bytes } = self {
             true
         } else {
             false
@@ -570,7 +570,7 @@ impl Opcode {
             false
         }
     }
-    
+
     pub fn from(code: u8) -> Opcode {
         return match code {
             // 0x0 range - arithmetic ops.
@@ -650,38 +650,38 @@ impl Opcode {
             0x5B => Opcode::JUMPDEST,
 
             // 0x60 range - pushes.
-            0x60 => Opcode::PUSH { n_bytes: 1 },
-            0x61 => Opcode::PUSH { n_bytes: 2 },
-            0x62 => Opcode::PUSH { n_bytes: 3 },
-            0x63 => Opcode::PUSH { n_bytes: 4 },
-            0x64 => Opcode::PUSH { n_bytes: 5 },
-            0x65 => Opcode::PUSH { n_bytes: 6 },
-            0x66 => Opcode::PUSH { n_bytes: 7 },
-            0x67 => Opcode::PUSH { n_bytes: 8 },
-            0x68 => Opcode::PUSH { n_bytes: 9 },
-            0x69 => Opcode::PUSH { n_bytes: 10 },
-            0x6a => Opcode::PUSH { n_bytes: 11 },
-            0x6b => Opcode::PUSH { n_bytes: 12 },
-            0x6c => Opcode::PUSH { n_bytes: 13 },
-            0x6d => Opcode::PUSH { n_bytes: 14 },
-            0x6e => Opcode::PUSH { n_bytes: 15 },
-            0x6f => Opcode::PUSH { n_bytes: 16 },
-            0x70 => Opcode::PUSH { n_bytes: 17 },
-            0x71 => Opcode::PUSH { n_bytes: 18 },
-            0x72 => Opcode::PUSH { n_bytes: 19 },
-            0x73 => Opcode::PUSH { n_bytes: 20 },
-            0x74 => Opcode::PUSH { n_bytes: 21 },
-            0x75 => Opcode::PUSH { n_bytes: 22 },
-            0x76 => Opcode::PUSH { n_bytes: 23 },
-            0x77 => Opcode::PUSH { n_bytes: 24 },
-            0x78 => Opcode::PUSH { n_bytes: 25 },
-            0x79 => Opcode::PUSH { n_bytes: 26 },
-            0x7A => Opcode::PUSH { n_bytes: 27 },
-            0x7B => Opcode::PUSH { n_bytes: 28 },
-            0x7C => Opcode::PUSH { n_bytes: 29 },
-            0x7D => Opcode::PUSH { n_bytes: 30 },
-            0x7E => Opcode::PUSH { n_bytes: 31 },
-            0x7F => Opcode::PUSH { n_bytes: 32 },
+            0x60 => Opcode::PUSH { item_size: 1 },
+            0x61 => Opcode::PUSH { item_size: 2 },
+            0x62 => Opcode::PUSH { item_size: 3 },
+            0x63 => Opcode::PUSH { item_size: 4 },
+            0x64 => Opcode::PUSH { item_size: 5 },
+            0x65 => Opcode::PUSH { item_size: 6 },
+            0x66 => Opcode::PUSH { item_size: 7 },
+            0x67 => Opcode::PUSH { item_size: 8 },
+            0x68 => Opcode::PUSH { item_size: 9 },
+            0x69 => Opcode::PUSH { item_size: 10 },
+            0x6a => Opcode::PUSH { item_size: 11 },
+            0x6b => Opcode::PUSH { item_size: 12 },
+            0x6c => Opcode::PUSH { item_size: 13 },
+            0x6d => Opcode::PUSH { item_size: 14 },
+            0x6e => Opcode::PUSH { item_size: 15 },
+            0x6f => Opcode::PUSH { item_size: 16 },
+            0x70 => Opcode::PUSH { item_size: 17 },
+            0x71 => Opcode::PUSH { item_size: 18 },
+            0x72 => Opcode::PUSH { item_size: 19 },
+            0x73 => Opcode::PUSH { item_size: 20 },
+            0x74 => Opcode::PUSH { item_size: 21 },
+            0x75 => Opcode::PUSH { item_size: 22 },
+            0x76 => Opcode::PUSH { item_size: 23 },
+            0x77 => Opcode::PUSH { item_size: 24 },
+            0x78 => Opcode::PUSH { item_size: 25 },
+            0x79 => Opcode::PUSH { item_size: 26 },
+            0x7A => Opcode::PUSH { item_size: 27 },
+            0x7B => Opcode::PUSH { item_size: 28 },
+            0x7C => Opcode::PUSH { item_size: 29 },
+            0x7D => Opcode::PUSH { item_size: 30 },
+            0x7E => Opcode::PUSH { item_size: 31 },
+            0x7F => Opcode::PUSH { item_size: 32 },
 
             // 0x80 range - dups.
             0x80 => Opcode::DUP { depth: 1 },
