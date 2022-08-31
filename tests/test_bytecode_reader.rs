@@ -1,5 +1,6 @@
 use hex;
 use pellucid::bytecode_reader::bytecode::Bytecode;
+use pellucid::bytecode_reader::vopcode::Vopcode;
 use pellucid::bytecode_reader::opcode::Opcode;
 use primitive_types::U256;
 use rand;
@@ -7,11 +8,12 @@ mod utils;
 
 #[test]
 pub fn test_simple_contract_bytecode() {
-    let contract: utils::Contract = utils::Contract::SIMPLE_CONTRACT;
-    let bytecode: Bytecode = Bytecode::from(&contract.get_bytecode());
-    dbg!(contract.get_opcodes().len());
-    dbg!(bytecode.to_string().len());
-    assert!(bytecode.to_string() == contract.get_opcodes());
+    Vopcode::from_string("af");
+    // let contract: utils::Contract = utils::Contract::SIMPLE_CONTRACT;
+    // let bytecode: Bytecode = Bytecode::from(&contract.get_bytecode());
+    // dbg!(contract.get_opcodes().len());
+    // dbg!(bytecode.to_string().len());
+    // assert!(bytecode.to_string() == contract.get_opcodes());
 }
 
 #[test]

@@ -2,10 +2,11 @@ use hex;
 use primitive_types::U256;
 use std::fmt;
 use std::collections::HashMap;
+use std::cmp;
 
 use crate::utils::remove_0x;
 
-use super::opcode::{Opcode};
+use super::opcode::Opcode;
 use super::vopcode::Vopcode;
 
 #[derive(Default, Debug, PartialEq)]
@@ -23,16 +24,21 @@ impl fmt::Display for Bytecode {
 }
 
 impl Bytecode {
-    pub fn from(raw_bytecode: &str) -> Bytecode {
+
+    pub fn new() -> Self {
+        return Bytecode {
+            vopcodes: Vec::new(),
+            pc_to_index: HashMap::new(),
+        };
+    }
+
+    pub fn from(raw_bytecode: &str) -> Self {
         let vec_bytecode: Vec<u8> = match hex::decode(remove_0x(&raw_bytecode)) {
             Ok(res) => res,
             Err(err) => panic!("Failed to decode bytecode: {}", err),
         };
 
-        let mut bytecode: Bytecode = Bytecode {
-            vopcodes: Vec::new(),
-            pc_to_index: HashMap::new(),
-        };
+        let mut bytecode: Bytecode = Bytecode::new();
 
         let bytecode_length = vec_bytecode.len();
         let mut pc: usize = 0;
@@ -41,25 +47,23 @@ impl Bytecode {
             let opcode: Opcode = Opcode::from(vec_bytecode[pc]);
             pc += 1;
 
-            let mut param: Option<U256> = None;
+            let mut item: Option<U256> = None;
 
             if let Opcode::PUSH {item_size} = opcode {
-                if pc + item_size <= bytecode_length {
-                    param = Some(U256::from_big_endian(&vec_bytecode[pc..pc + item_size]));
-                }
-
-                pc += item_size;
+                let item_end = cmp::min(pc + item_size, bytecode_length);
+                item = Some(U256::from_big_endian(&vec_bytecode[pc..item_end]));
+                pc = item_end;
             }
 
-            bytecode
-                .pc_to_index
-                .insert(origin_line, bytecode.vopcodes.len());
-            bytecode
-                .vopcodes
-                .push(Vopcode::new(opcode, param, origin_line, pc >= bytecode_length));
+            bytecode.insert_vopcode(Vopcode::new(opcode, item, origin_line, pc >= bytecode_length));
         }
 
         return bytecode;
+    }
+
+    fn insert_vopcode(&mut self, vopcode: Vopcode) {
+        self.pc_to_index.insert(vopcode.pc, self.vopcodes.len());
+        self.vopcodes.push(vopcode);
     }
 
     pub fn get_vopcode_at(&self, pc: usize) -> &Vopcode {
@@ -86,4 +90,32 @@ pub fn stringify_vopcodes(vopcodes: &[Vopcode]) -> String {
         res.push_str("\n");
     }
     return res;
+}
+
+#[cfg(test)] 
+mod tests {
+    use super::*;
+    use std::fs;
+
+    fn read_opcodes_file(path: &str) -> Bytecode {
+        let mut bytecode : Bytecode = Bytecode::new();
+        let opcodes_string : String = fs::read_to_string(path).expect("Unable to read file.");
+        for opcode_line in opcodes_string.split("\n") {
+            println!("{}", opcode_line);
+            if let Some(vopcode) = Vopcode::from_string(opcode_line) {
+                bytecode.insert_vopcode(vopcode);
+            }
+        }
+        let vopcode_count = bytecode.vopcodes.len();
+        bytecode.vopcodes[vopcode_count - 1].is_last = true;
+        return bytecode;
+    }
+
+    #[test]
+    pub fn test_bytecode_split_simple_contract() {
+        let bytecode_ref : Bytecode = read_opcodes_file("./assets/contracts/simple_contract/opcodes.txt");
+        let bytecode_string : String = fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt").expect("Unable to read file.");
+        let bytecode_test : Bytecode = Bytecode::from(&bytecode_string);
+        assert_eq!(bytecode_ref, bytecode_test, "Bytecode mismatch");
+    }
 }

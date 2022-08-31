@@ -12,9 +12,7 @@ const HEX_CHARS: [char; 22] = [
 ];
 
 pub fn u256_to_hex(value: U256) -> String {
-    let mut hex_value: String = String::from("0x");
-    hex_value.push_str(&format!("{:x}", value));
-    return hex_value;
+    return format!("0x{:02x}", value);
 }
 
 pub fn remove_0x(s: &str) -> &str {
@@ -41,9 +39,7 @@ pub fn assert_hex(hex: &str) {
 }
 
 pub fn usize_to_hex(n: usize) -> String {
-    let mut res: String = String::from("0x");
-    res.push_str(&format!("{:x}", n));
-    return res;
+    return format!("0x{:x}", n);
 }
 
 pub fn remove_values_where<T: PartialEq, F>(vec: &mut Vec<T>, condition: F)
