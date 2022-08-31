@@ -1,7 +1,7 @@
+use super::opcode::Opcode;
+use crate::utils::u256_to_hex;
 use primitive_types::U256;
 use std::fmt;
-use crate::utils::u256_to_hex;
-use super::opcode::Opcode;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Vopcode {
@@ -81,9 +81,6 @@ impl Vopcode {
 
         return res;
     }
-
-    
-    
 }
 
 impl fmt::Display for Vopcode {
@@ -97,52 +94,48 @@ impl fmt::Display for Vopcode {
     }
 }
 
-#[cfg(test)] 
+#[cfg(test)]
 mod tests {
     use super::*;
     use regex::Regex;
 
     impl Vopcode {
         pub fn from_string(vopcode_str: &str) -> Option<Vopcode> {
-            let re = Regex::new(r"([A-Fa-f0-9]+)[^\w\d]+([A-Fa-f0-9]{1, 2})[^\w\d]+([\w\d]+)[^\w\d]+(?:0x|)?([A-Fa-f0-9]+)?").unwrap();
+            let re = Regex::new(r"([A-Fa-f0-9]+)[^\w\d]+([A-Fa-f0-9]{1, 2})[^\w\d]+([\w\d]+)(?:[^\w\d]*(?:0x|)?([A-Fa-f0-9]*))?").unwrap();
             if let Some(caps) = re.captures(vopcode_str) {
                 match (caps.get(1), caps.get(2), caps.get(3)) {
                     (Some(pc), Some(code), Some(name)) => {
                         let opcode: Opcode = Opcode::from(hex::decode(code.as_str()).unwrap()[0]);
-                        
-                        if name.as_str().to_lowercase() == opcode.name().to_lowercase() {
+
+                        if name.as_str().to_uppercase() == opcode.name().to_uppercase() {
                             let mut item: Option<U256> = None;
                             match opcode {
-                                Opcode::PUSH{item_size: _} => {
+                                Opcode::PUSH { item_size: _ } => {
                                     if let Some(item_match) = caps.get(4) {
                                         let item_str: &str = item_match.as_str();
-    
+
                                         if item_str.len() > 0 {
                                             match U256::from_str_radix(item_str, 16) {
                                                 Ok(item_usize) => item = Some(item_usize),
-                                                Err(_) => {},
+                                                Err(_) => {}
                                             }
                                         }
                                     }
-                                },
+                                }
                                 _ => (),
                             };
                             return Some(Vopcode::new(
                                 Opcode::from(u8::from_str_radix(code.as_str(), 16).unwrap()),
                                 item,
                                 usize::from_str_radix(pc.as_str(), 16).unwrap(),
-                                false
+                                false,
                             ));
                         }
-                    },
+                    }
                     _ => (),
                 };
-
-                
             }
             return None;
-            
         }
     }
-    
 }
