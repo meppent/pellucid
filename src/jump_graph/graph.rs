@@ -22,8 +22,8 @@ const STOP_OPCODES: [Opcode; 6] = [
 
 #[derive(Clone, Copy, Hash, Eq, PartialEq)]
 pub enum Position {
-    UP,
-    DOWN,
+    INITIAL,
+    FINAL,
 }
 // ... or when the next opcode is JUMPDEST
 #[derive(Clone, Copy)]
@@ -37,27 +37,64 @@ pub struct Location {
 pub struct Block<'a> {
     pub code: &'a [Vopcode],
     pub contexts: Vec<HashMap<Position, Context>>,
+    pub delta: usize,
+    pub delta_min: usize,
 }
 
+/* The concept of Block:
+                                              index 0                    index 1
+                                                 |                          |
+                                                 V                          V
+
+            Position::INITIAL    ―>     ┌―――――――――――――――――――┐     ┌―――――――――――――――――――┐
+                                        |  initial context  |     |  initial context  |   ...
+                ┌――┬―――――――――――――┬―――――――――――――――――――――――――――――――――――――――――――――――――――――――――┐
+  pc_start -->  |b6|  JUMPDEST   |                                                         |
+                |b7|  DUP        |                |                         |              |
+                |b8|  MLOAD      |                |                         |              |
+                |..|  ...        |                |                         |              |
+                |  |             |                |                         |              |
+                |  |             |                |                         |              |
+                |  |             |                V                         V              |
+  pc_end   -->  |  |             |                                                         |
+                └――┴―――――――――――――┴―――――――――――――――――――――――――――――――――――――――――――――――――――――――――┘
+                                        |  final context    |     |  final context    |  ...
+            Position::FINAL    -->      └―――――――――――――――――――┘     └―――――――――――――――――――┘
+*/
 impl<'a> Block<'a> {
-    pub fn new(code: &'a [Vopcode]) -> Self {
+    pub fn new(code: &'a [Vopcode], delta: usize, delta_min: usize) -> Self {
         return Block {
             code,
             contexts: vec![],
+            delta,
+            delta_min,
         };
     }
+    
     pub fn get_pc_start(&self) -> usize {
         return self.code[0].pc;
     }
+    
     pub fn get_pc_end(&self) -> usize {
         return self.code[self.code.len() - 1].pc;
     }
+    
     pub fn get_last_vopcode(&self) -> Vopcode {
         return self.code[self.code.len() - 1];
     }
+    
     pub fn get_first_vopcode(&self) -> Vopcode {
         return self.code[0];
     }
+    
+    pub fn get_input_size(&self) -> usize {
+        return self.delta_min;
+    }
+
+    pub fn get_output_size(&self) -> usize {
+        return self.delta - self.delta_min;
+    }
+    
     pub fn get_n_initial_contexts(&self) -> usize {
         return self.contexts.len();
     }
@@ -105,7 +142,7 @@ impl<'a> Block<'a> {
         return self
             .contexts
             .iter()
-            .map(|tip_pair: &HashMap<Position, Context>| tip_pair[&Position::UP].clone())
+            .map(|tip_pair: &HashMap<Position, Context>| tip_pair[&Position::INITIAL].clone())
             .collect::<Vec<Context>>();
     }
 
@@ -136,8 +173,8 @@ impl<'a> Block<'a> {
         assert!(!self.contains_initial_context(&initial_context));
         let final_context: Context = initial_context.run(self.code);
         self.contexts.push(HashMap::from([
-            (Position::UP, initial_context),
-            (Position::DOWN, final_context.clone()),
+            (Position::INITIAL, initial_context),
+            (Position::FINAL, final_context.clone()),
         ]));
         let next_dests: Vec<usize> = self.get_next_dests(&final_context.state);
         return (self.contexts.len() - 1, final_context, next_dests);
@@ -205,7 +242,7 @@ impl<'a> BlockSet<'a> {
         for (_, connected_block) in &self.connected_blocks {
             let origin_pc_start: usize = connected_block.block.get_pc_start();
             for (_, sub_links) in &connected_block.links {
-                for dest_location in &sub_links[&Position::DOWN] {
+                for dest_location in &sub_links[&Position::FINAL] {
                     let dest_pc_start: usize = dest_location.pc_start;
                     edges.push((origin_pc_start, dest_pc_start));
                 }
@@ -225,8 +262,10 @@ impl<'a> BlockSet<'a> {
 
     fn find_blocks(&mut self, bytecode: &'a Bytecode) {
         let mut pc_start: Option<usize> = Some(0);
-
         let mut previous_opcode: Option<Opcode> = None;
+        let mut delta: usize = 0;
+        let mut delta_min: usize = 0;
+
         for vopcode in bytecode.iter(0, bytecode.get_last_pc()) {
             let opcode: Opcode = vopcode.opcode;
             let pc: usize = vopcode.pc;
@@ -242,15 +281,23 @@ impl<'a> BlockSet<'a> {
                 pc_start = Some(pc);
             }
             if pc_start != None
-                && (STOP_OPCODES.contains(&opcode) || next_opcode == Some(Opcode::JUMPDEST))
-                || vopcode.is_last
             {
-                // end block
-                self.connected_blocks.insert(
-                    pc_start.unwrap(),
-                    ConnectedBlock::new(Block::new(bytecode.slice_code(pc_start.unwrap(), pc))),
-                );
-                pc_start = None;
+                delta += opcode.delta();
+                if delta < delta_min {
+                    delta_min = delta;
+                }
+                if  (STOP_OPCODES.contains(&opcode) || next_opcode == Some(Opcode::JUMPDEST)) || vopcode.is_last
+                {
+                    // end block
+                    delta = 0;
+                    delta_min = 0;
+
+                    self.connected_blocks.insert(
+                        pc_start.unwrap(),
+                        ConnectedBlock::new(Block::new(bytecode.slice_code(pc_start.unwrap(), pc), delta, delta_min)),
+                    );
+                    pc_start = None;
+                }
             }
             previous_opcode = Some(opcode);
         }
@@ -264,7 +311,7 @@ impl<'a> BlockSet<'a> {
         if !links.contains_key(&location_to_connect.context_index) {
             links.insert(
                 location_to_connect.context_index,
-                HashMap::from([(Position::UP, vec![]), (Position::DOWN, vec![])]),
+                HashMap::from([(Position::INITIAL, vec![]), (Position::FINAL, vec![])]),
             );
         }
         links
@@ -298,7 +345,7 @@ impl<'a> BlockSet<'a> {
         let origin_location: Location = Location {
             pc_start,
             context_index: origin_context_index,
-            position: Position::DOWN,
+            position: Position::FINAL,
         };
         for next_dest in next_dests {
             let dest_block: &mut Block = self.get_block_mut(next_dest);
@@ -307,7 +354,7 @@ impl<'a> BlockSet<'a> {
             let dest_location: Location = Location {
                 pc_start: next_dest,
                 context_index: dest_context_index,
-                position: Position::UP,
+                position: Position::INITIAL,
             };
             self.connect_both(origin_location, dest_location);
             self.extend(dest_initial_context.clone(), next_dest);
