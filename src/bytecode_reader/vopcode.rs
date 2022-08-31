@@ -116,7 +116,6 @@ mod tests {
                                 Opcode::PUSH{item_size: _} => {
                                     if let Some(item_match) = caps.get(4) {
                                         let item_str: &str = item_match.as_str();
-                                        println!("{}", item_match.as_str());
     
                                         if item_str.len() > 0 {
                                             match U256::from_str_radix(item_str, 16) {

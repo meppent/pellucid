@@ -101,7 +101,6 @@ mod tests {
         let mut bytecode : Bytecode = Bytecode::new();
         let opcodes_string : String = fs::read_to_string(path).expect("Unable to read file.");
         for opcode_line in opcodes_string.split("\n") {
-            println!("{}", opcode_line);
             if let Some(vopcode) = Vopcode::from_string(opcode_line) {
                 bytecode.insert_vopcode(vopcode);
             }
