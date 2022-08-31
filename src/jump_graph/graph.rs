@@ -39,6 +39,26 @@ pub struct Block<'a> {
     pub contexts: Vec<HashMap<Position, Context>>,
 }
 
+/* The concept of Block:
+                                              index 0                    index 1
+                                                 |                          |
+                                                 V                          V
+
+            Position::INITIAL    ―>     ┌―――――――――――――――――――┐     ┌―――――――――――――――――――┐
+                                        |  initial context  |     |  initial context  |   ...
+                ┌――┬―――――――――――――┬―――――――――――――――――――――――――――――――――――――――――――――――――――――――――┐
+  pc_start -->  |b6|  JUMPDEST   |                                                         |
+                |b7|  DUP        |                |                         |              |
+                |b8|  MLOAD      |                |                         |              |
+                |..|  ...        |                |                         |              |
+                |  |             |                |                         |              |
+                |  |             |                |                         |              |
+                |  |             |                V                         V              |
+  pc_end   -->  |  |             |                                                         |
+                └――┴―――――――――――――┴―――――――――――――――――――――――――――――――――――――――――――――――――――――――――┘
+                                        |  final context    |     |  final context    |  ...
+            Position::FINAL    -->      └―――――――――――――――――――┘     └―――――――――――――――――――┘
+*/
 impl<'a> Block<'a> {
     pub fn new(code: &'a [Vopcode]) -> Self {
         return Block {
