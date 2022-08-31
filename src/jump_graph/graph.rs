@@ -22,8 +22,8 @@ const STOP_OPCODES: [Opcode; 6] = [
 
 #[derive(Clone, Copy, Hash, Eq, PartialEq)]
 pub enum Position {
-    UP,
-    DOWN,
+    INITIAL,
+    FINAL,
 }
 // ... or when the next opcode is JUMPDEST
 #[derive(Clone, Copy)]
@@ -105,7 +105,7 @@ impl<'a> Block<'a> {
         return self
             .contexts
             .iter()
-            .map(|tip_pair: &HashMap<Position, Context>| tip_pair[&Position::UP].clone())
+            .map(|tip_pair: &HashMap<Position, Context>| tip_pair[&Position::INITIAL].clone())
             .collect::<Vec<Context>>();
     }
 
@@ -136,8 +136,8 @@ impl<'a> Block<'a> {
         assert!(!self.contains_initial_context(&initial_context));
         let final_context: Context = initial_context.run(self.code);
         self.contexts.push(HashMap::from([
-            (Position::UP, initial_context),
-            (Position::DOWN, final_context.clone()),
+            (Position::INITIAL, initial_context),
+            (Position::FINAL, final_context.clone()),
         ]));
         let next_dests: Vec<usize> = self.get_next_dests(&final_context.state);
         return (self.contexts.len() - 1, final_context, next_dests);
@@ -205,7 +205,7 @@ impl<'a> BlockSet<'a> {
         for (_, connected_block) in &self.connected_blocks {
             let origin_pc_start: usize = connected_block.block.get_pc_start();
             for (_, sub_links) in &connected_block.links {
-                for dest_location in &sub_links[&Position::DOWN] {
+                for dest_location in &sub_links[&Position::FINAL] {
                     let dest_pc_start: usize = dest_location.pc_start;
                     edges.push((origin_pc_start, dest_pc_start));
                 }
@@ -264,7 +264,7 @@ impl<'a> BlockSet<'a> {
         if !links.contains_key(&location_to_connect.context_index) {
             links.insert(
                 location_to_connect.context_index,
-                HashMap::from([(Position::UP, vec![]), (Position::DOWN, vec![])]),
+                HashMap::from([(Position::INITIAL, vec![]), (Position::FINAL, vec![])]),
             );
         }
         links
@@ -298,7 +298,7 @@ impl<'a> BlockSet<'a> {
         let origin_location: Location = Location {
             pc_start,
             context_index: origin_context_index,
-            position: Position::DOWN,
+            position: Position::FINAL,
         };
         for next_dest in next_dests {
             let dest_block: &mut Block = self.get_block_mut(next_dest);
@@ -307,7 +307,7 @@ impl<'a> BlockSet<'a> {
             let dest_location: Location = Location {
                 pc_start: next_dest,
                 context_index: dest_context_index,
-                position: Position::UP,
+                position: Position::INITIAL,
             };
             self.connect_both(origin_location, dest_location);
             self.extend(dest_initial_context.clone(), next_dest);
