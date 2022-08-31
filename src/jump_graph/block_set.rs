@@ -6,10 +6,8 @@ use crate::bytecode_reader::opcode::Opcode;
 use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
 use crate::evm::context::Context;
 
-use crate::jump_graph::display::draw;
-use crate::jump_graph::gml::to_gml;
-use crate::utils::{remove_values_where, write_file, self};
-use crate::utils::tests::Contract;
+
+use crate::utils::{remove_values_where};
 
 use super::block::{Block, Location, Position, STOP_OPCODES};
 
@@ -188,6 +186,9 @@ impl<'a> BlockSet<'a> {
         }
     }
 }
+mod test{
+    use crate::{utils::{tests::Contract, write_file}, bytecode_reader::bytecode::Bytecode, jump_graph::{display::draw, gml::to_gml}};
+    use super::BlockSet;
 
 #[test]
 fn test_gml() {
@@ -216,4 +217,4 @@ fn test_graph_drawing() {
         write_file("temp_current_drawing.txt", &graph_drawing);
         panic!("drawings differ, temp files were generated so you can see the diffs");
     }
-}
+}}
