@@ -37,6 +37,8 @@ pub struct Location {
 pub struct Block<'a> {
     pub code: &'a [Vopcode],
     pub contexts: Vec<HashMap<Position, Context>>,
+    pub delta: usize,
+    pub delta_min: usize,
 }
 
 /* The concept of Block:
@@ -60,24 +62,39 @@ pub struct Block<'a> {
             Position::FINAL    -->      └―――――――――――――――――――┘     └―――――――――――――――――――┘
 */
 impl<'a> Block<'a> {
-    pub fn new(code: &'a [Vopcode]) -> Self {
+    pub fn new(code: &'a [Vopcode], delta: usize, delta_min: usize) -> Self {
         return Block {
             code,
             contexts: vec![],
+            delta,
+            delta_min,
         };
     }
+    
     pub fn get_pc_start(&self) -> usize {
         return self.code[0].pc;
     }
+    
     pub fn get_pc_end(&self) -> usize {
         return self.code[self.code.len() - 1].pc;
     }
+    
     pub fn get_last_vopcode(&self) -> Vopcode {
         return self.code[self.code.len() - 1];
     }
+    
     pub fn get_first_vopcode(&self) -> Vopcode {
         return self.code[0];
     }
+    
+    pub fn get_input_size(&self) -> usize {
+        return self.delta_min;
+    }
+
+    pub fn get_output_size(&self) -> usize {
+        return self.delta - self.delta_min;
+    }
+    
     pub fn get_n_initial_contexts(&self) -> usize {
         return self.contexts.len();
     }
@@ -245,8 +262,10 @@ impl<'a> BlockSet<'a> {
 
     fn find_blocks(&mut self, bytecode: &'a Bytecode) {
         let mut pc_start: Option<usize> = Some(0);
-
         let mut previous_opcode: Option<Opcode> = None;
+        let mut delta: usize = 0;
+        let mut delta_min: usize = 0;
+
         for vopcode in bytecode.iter(0, bytecode.get_last_pc()) {
             let opcode: Opcode = vopcode.opcode;
             let pc: usize = vopcode.pc;
@@ -262,15 +281,23 @@ impl<'a> BlockSet<'a> {
                 pc_start = Some(pc);
             }
             if pc_start != None
-                && (STOP_OPCODES.contains(&opcode) || next_opcode == Some(Opcode::JUMPDEST))
-                || vopcode.is_last
             {
-                // end block
-                self.connected_blocks.insert(
-                    pc_start.unwrap(),
-                    ConnectedBlock::new(Block::new(bytecode.slice_code(pc_start.unwrap(), pc))),
-                );
-                pc_start = None;
+                delta += opcode.delta();
+                if delta < delta_min {
+                    delta_min = delta;
+                }
+                if  (STOP_OPCODES.contains(&opcode) || next_opcode == Some(Opcode::JUMPDEST)) || vopcode.is_last
+                {
+                    // end block
+                    delta = 0;
+                    delta_min = 0;
+
+                    self.connected_blocks.insert(
+                        pc_start.unwrap(),
+                        ConnectedBlock::new(Block::new(bytecode.slice_code(pc_start.unwrap(), pc), delta, delta_min)),
+                    );
+                    pc_start = None;
+                }
             }
             previous_opcode = Some(opcode);
         }
