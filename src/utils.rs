@@ -161,3 +161,47 @@ pub fn write_file(file: &str, data: &str) {
 pub fn read_file(file: &str) -> String {
     return fs::read_to_string(file).expect("Unable to read file.");
 }
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+
+
+    pub enum Contract {
+        SIMPLE_CONTRACT,
+    }
+
+    impl Contract {
+        fn get_path(&self) -> String {
+            let mut res: String = String::from("./assets/contracts/");
+            res.push_str(match self {
+                Self::SIMPLE_CONTRACT => "simple_contract/",
+            });
+            return res;
+        }
+
+        pub fn get_bytecode(&self) -> String {
+            let mut bytecode_path: String = self.get_path();
+            bytecode_path.push_str("bytecode.txt");
+            return read_file(&bytecode_path);
+        }
+
+        pub fn get_opcodes(&self) -> String {
+            let mut opcodes_path: String = self.get_path();
+            opcodes_path.push_str("opcodes.txt");
+            return read_file(&opcodes_path);
+        }
+
+        pub fn get_graph_drawing(&self) -> String {
+            let mut opcodes_path: String = self.get_path();
+            opcodes_path.push_str("graph_drawing.txt");
+            return read_file(&opcodes_path);
+        }
+
+        pub fn get_gml(&self) -> String {
+            let mut opcodes_path: String = self.get_path();
+            opcodes_path.push_str("graph.gml");
+            return read_file(&opcodes_path);
+        }
+    }
+}
