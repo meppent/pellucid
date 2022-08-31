@@ -96,6 +96,7 @@ pub fn stringify_vopcodes(vopcodes: &[Vopcode]) -> String {
 mod tests {
     use super::*;
     use std::fs;
+    use rand;
 
     fn read_opcodes_file(path: &str) -> Bytecode {
         let mut bytecode : Bytecode = Bytecode::new();
@@ -111,10 +112,45 @@ mod tests {
     }
 
     #[test]
-    pub fn test_bytecode_split_simple_contract() {
+    fn test_bytecode_split_simple_contract() {
         let bytecode_ref : Bytecode = read_opcodes_file("./assets/contracts/simple_contract/opcodes.txt");
         let bytecode_string : String = fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt").expect("Unable to read file.");
         let bytecode_test : Bytecode = Bytecode::from(&bytecode_string);
         assert_eq!(bytecode_ref, bytecode_test, "Bytecode mismatch");
+    }
+
+    #[test]
+    fn test_0x_support() {
+        let mut random_vec: Vec<u8> = Vec::new();
+        for _ in 0..200 {
+            random_vec.push(rand::random::<u8>());
+        }
+        let bytecode1 = hex::encode(random_vec);
+        let mut bytecode2 = "0x".to_owned();
+        bytecode2.push_str(&bytecode1);
+        assert_eq!(
+            Bytecode::from(&bytecode1),
+            Bytecode::from(&bytecode2)
+        );
+    }
+
+    #[test]
+    fn test_invalid_bytecode() {
+        assert!(
+            std::panic::catch_unwind(|| Bytecode::from("abc")).is_err(),
+            "Odd size bytecode without 0x did not panic"
+        );
+        assert!(
+            std::panic::catch_unwind(|| Bytecode::from("0xabc")).is_err(),
+            "Odd size bytecode with 0x did not panic"
+        );
+        assert!(
+            std::panic::catch_unwind(|| Bytecode::from("abcg")).is_err(),
+            "Bytecode with invalid character without 0x did not panic"
+        );
+        assert!(
+            std::panic::catch_unwind(|| Bytecode::from("0xabcg")).is_err(),
+            "Bytecode with invalid character with 0x did not panic"
+        );
     }
 }
