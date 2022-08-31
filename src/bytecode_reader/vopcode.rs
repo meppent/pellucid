@@ -30,8 +30,8 @@ impl Vopcode {
             Some(
                 self.pc
                     + 1
-                    + if let Opcode::PUSH { item_size: n_bytes } = self.opcode {
-                        n_bytes
+                    + if let Opcode::PUSH { item_size } = self.opcode {
+                        item_size
                     } else {
                         0
                     },

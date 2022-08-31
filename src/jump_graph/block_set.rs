@@ -7,7 +7,7 @@ use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
 use crate::evm::context::Context;
 use crate::utils::remove_values_where;
 
-use super::block::{Block, Location, Position, STOP_OPCODES};
+use super::block::{Block, Location, Position};
 
 pub struct ConnectedBlock<'a> {
     pub block: Block<'a>,
@@ -79,50 +79,65 @@ impl<'a> BlockSet<'a> {
         return block_set;
     }
 
+    fn insert_connected_block(
+        &mut self,
+        bytecode: &'a Bytecode,
+        pc_start: usize,
+        pc_end : usize,
+        delta: &mut isize,
+        delta_min: &mut isize
+    ) {
+        self.connected_blocks.insert(
+            pc_start,
+            ConnectedBlock::new(
+                Block::new(
+                    bytecode.slice_code(pc_start, pc_end),
+                    *delta,
+                    *delta_min,
+                )
+            ),
+        );
+        (*delta, *delta_min) = (0, 0);
+    }
+
     fn find_blocks(&mut self, bytecode: &'a Bytecode) {
         let mut pc_start: Option<usize> = Some(0);
-        let mut previous_opcode: Option<Opcode> = None;
         let mut delta: isize = 0;
         let mut delta_min: isize = 0;
 
         for vopcode in bytecode.iter(0, bytecode.get_last_pc()) {
             let opcode: Opcode = vopcode.opcode;
             let pc: usize = vopcode.pc;
-            let next_opcode: Option<Opcode> = if let Some(next_pc) = vopcode.get_next_pc() {
-                Some(bytecode.get_vopcode_at(next_pc).opcode)
-            } else {
-                None
-            };
-            if pc_start == None
-                && (opcode == Opcode::JUMPDEST || previous_opcode == Some(Opcode::JUMPI))
-            {
-                // start a new block
-                pc_start = Some(pc);
-            }
-            if pc_start != None {
-                delta += opcode.delta();
-                if delta < delta_min {
-                    delta_min = delta;
-                }
-                if (STOP_OPCODES.contains(&opcode) || next_opcode == Some(Opcode::JUMPDEST))
-                    || vopcode.is_last
-                {
-                    // end block
-                    delta = 0;
-                    delta_min = 0;
+            
+            match pc_start {
+                Some(pc_start_) => {
+                    // we are in a block, we search for the end
 
-                    self.connected_blocks.insert(
-                        pc_start.unwrap(),
-                        ConnectedBlock::new(Block::new(
-                            bytecode.slice_code(pc_start.unwrap(), pc),
-                            delta,
-                            delta_min,
-                        )),
-                    );
-                    pc_start = None;
-                }
-            }
-            previous_opcode = Some(opcode);
+                    // correct because the JUMPDEST delta is 0, todo: find a better way to do this
+                    delta += opcode.delta();
+                    if delta < delta_min {
+                        delta_min = delta;
+                    }
+
+                    if vopcode.is_last || opcode.is_exiting() || opcode == Opcode::JUMP {
+                        self.insert_connected_block(bytecode, pc_start_, pc, &mut delta, &mut delta_min);
+                        pc_start = None;
+                    } else if opcode == Opcode::JUMPI {
+                        self.insert_connected_block(bytecode, pc_start_, pc, &mut delta, &mut delta_min);
+                        pc_start = Some(pc+1);
+                    } else if opcode == Opcode::JUMPDEST {
+                        self.insert_connected_block(bytecode, pc_start_, pc-1, &mut delta, &mut delta_min);
+                        pc_start = Some(pc);
+                    }
+                    
+                },
+                None => {
+                    // we are not in a block, we search for a new block
+                    if opcode == Opcode::JUMPDEST {
+                        pc_start = Some(pc);
+                    }
+                },
+            };
         }
     }
 

@@ -8,16 +8,6 @@ use crate::evm::expression::Expression;
 use crate::evm::state::ExecutionState;
 use crate::utils:: usize_to_hex;
 
-// A block terminates with:
-pub const STOP_OPCODES: [Opcode; 6] = [
-    Opcode::RETURN,
-    Opcode::REVERT,
-    Opcode::SELFDESTRUCT,
-    Opcode::STOP,
-    Opcode::JUMP,
-    Opcode::JUMPI,
-];
-
 #[derive(Clone, Copy, Hash, Eq, PartialEq)]
 pub enum Position {
     INITIAL,
@@ -105,7 +95,7 @@ impl<'a> Block<'a> {
                     || vopcode.pc + 1 == self.get_first_vopcode().pc
             }
             _ => {
-                assert!(!STOP_OPCODES.contains(&vopcode.opcode));
+                assert!(!vopcode.opcode.is_exiting() && !vopcode.opcode.is_jump());
                 self.get_first_vopcode().opcode == Opcode::JUMPDEST
                     && vopcode.get_next_pc() == Some(self.get_first_vopcode().pc)
             }

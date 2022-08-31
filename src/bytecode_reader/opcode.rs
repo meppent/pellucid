@@ -682,6 +682,20 @@ impl Opcode {
         }
     }
 
+    pub fn is_exiting(&self) -> bool {
+        match self {
+            Self::STOP | Self::RETURN | Self::REVERT | Self::SELFDESTRUCT => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_jump(&self) -> bool {
+        match self {
+            Self::JUMP | Self::JUMPI => true,
+            _ => false,
+        }
+    }
+
     pub fn delta(&self) -> isize {
         return self.stack_output() as isize- self.stack_input() as isize;
     }
