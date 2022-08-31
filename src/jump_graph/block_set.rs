@@ -5,7 +5,7 @@ use itertools::Itertools;
 use crate::bytecode_reader::opcode::Opcode;
 use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
 use crate::evm::context::Context;
-use crate::utils::remove_values_where;
+use crate::utils::{remove_values_where, usize_to_hex};
 
 use super::block::{Block, Location, Position};
 
@@ -87,6 +87,9 @@ impl<'a> BlockSet<'a> {
         delta: &mut isize,
         delta_min: &mut isize
     ) {
+        dbg!(usize_to_hex(pc_start));
+        dbg!(usize_to_hex(pc_end));
+        dbg!("");
         self.connected_blocks.insert(
             pc_start,
             ConnectedBlock::new(
@@ -102,6 +105,7 @@ impl<'a> BlockSet<'a> {
 
     fn find_blocks(&mut self, bytecode: &'a Bytecode) {
         let mut pc_start: Option<usize> = Some(0);
+        let mut previous_pc: usize = 0;
         let mut delta: isize = 0;
         let mut delta_min: isize = 0;
 
@@ -124,7 +128,7 @@ impl<'a> BlockSet<'a> {
                         self.insert_connected_block(bytecode, pc_start_, pc, &mut delta, &mut delta_min);
                         pc_start = Some(pc+1);
                     } else if opcode == Opcode::JUMPDEST {
-                        self.insert_connected_block(bytecode, pc_start_, pc-1, &mut delta, &mut delta_min);
+                        self.insert_connected_block(bytecode, pc_start_, previous_pc, &mut delta, &mut delta_min);
                         pc_start = Some(pc);
                     }
                     
@@ -136,6 +140,7 @@ impl<'a> BlockSet<'a> {
                     }
                 },
             };
+            previous_pc = pc;
         }
     }
 
