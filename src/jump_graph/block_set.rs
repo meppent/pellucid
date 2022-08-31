@@ -6,8 +6,9 @@ use crate::bytecode_reader::opcode::Opcode;
 use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
 use crate::evm::context::Context;
 
+use crate::jump_graph::display::draw;
 use crate::jump_graph::gml::to_gml;
-use crate::utils::{remove_values_where, write_file};
+use crate::utils::{remove_values_where, write_file, self};
 use crate::utils::tests::Contract;
 
 use super::block::{Block, Location, Position, STOP_OPCODES};
@@ -201,4 +202,18 @@ fn test_gml() {
         panic!("the gml is invalid, temp files were generated so you can see the diffs");
     }
     
+}
+#[test]
+fn test_graph_drawing() {
+    let contract: Contract = Contract::SIMPLE_CONTRACT;
+    let bytecode: Bytecode = Bytecode::from(&contract.get_bytecode());
+    let block_set: BlockSet = BlockSet::new(&bytecode);
+    let graph_drawing: String = draw(&block_set, &bytecode);
+    let graph_drawing_ref : String = contract.get_graph_drawing();
+
+    if graph_drawing != contract.get_graph_drawing(){
+        write_file("temp_ref_drawing.txt", &graph_drawing_ref);
+        write_file("temp_current_drawing.txt", &graph_drawing);
+        panic!("drawings differ, temp files were generated so you can see the diffs");
+    }
 }
