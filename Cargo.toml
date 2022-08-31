@@ -15,7 +15,8 @@ log = "*"
 env_logger = "*"
 itertools="*"
 ctor="*"
-rand="*"
+
 
 [dev-dependencies]
 regex="1.6.0"
+rand="0.8.5"
