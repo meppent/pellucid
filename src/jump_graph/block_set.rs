@@ -5,9 +5,7 @@ use itertools::Itertools;
 use crate::bytecode_reader::opcode::Opcode;
 use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
 use crate::evm::context::Context;
-
-
-use crate::utils::{remove_values_where};
+use crate::utils::remove_values_where;
 
 use super::block::{Block, Location, Position, STOP_OPCODES};
 
@@ -186,35 +184,42 @@ impl<'a> BlockSet<'a> {
         }
     }
 }
-mod test{
-    use crate::{utils::{tests::Contract, write_file}, bytecode_reader::bytecode::Bytecode, jump_graph::{display::draw, gml::to_gml}};
-    use super::BlockSet;
 
-#[test]
-fn test_gml() {
-    let contract: Contract = Contract::SIMPLE_CONTRACT;
-    let bytecode: Bytecode = Bytecode::from(&contract.get_bytecode());
+#[cfg(test)]
+mod tests {
+    use crate::utils::*;
+    use crate::utils::tests::*;
+    use crate::jump_graph::gml::*;
+    use crate::jump_graph::display::*;
 
-    let block_set: BlockSet = BlockSet::new(&bytecode);
-    let gml: String = to_gml(&block_set);
-    if gml != contract.get_gml(){
-        write_file("temp_target.gml", &contract.get_gml());
-        write_file("temp_current.gml", &gml);
-        panic!("the gml is invalid, temp files were generated so you can see the diffs");
+    use super::*;
+
+    #[test]
+    fn test_gml() {
+        let contract: Contract = Contract::SIMPLE_CONTRACT;
+        let bytecode: Bytecode = Bytecode::from(&contract.get_bytecode());
+
+        let block_set: BlockSet = BlockSet::new(&bytecode);
+        let gml: String = to_gml(&block_set);
+        if gml != contract.get_gml(){
+            write_file("temp_target.gml", &contract.get_gml());
+            write_file("temp_current.gml", &gml);
+            panic!("the gml is invalid, temp files were generated so you can see the diffs");
+        }
+        
     }
-    
+    #[test]
+    fn test_graph_drawing() {
+        let contract: Contract = Contract::SIMPLE_CONTRACT;
+        let bytecode: Bytecode = Bytecode::from(&contract.get_bytecode());
+        let block_set: BlockSet = BlockSet::new(&bytecode);
+        let graph_drawing: String = draw(&block_set, &bytecode);
+        let graph_drawing_ref : String = contract.get_graph_drawing();
+
+        if graph_drawing != contract.get_graph_drawing(){
+            write_file("temp_ref_drawing.txt", &graph_drawing_ref);
+            write_file("temp_current_drawing.txt", &graph_drawing);
+            panic!("drawings differ, temp files were generated so you can see the diffs");
+        }
+    }
 }
-#[test]
-fn test_graph_drawing() {
-    let contract: Contract = Contract::SIMPLE_CONTRACT;
-    let bytecode: Bytecode = Bytecode::from(&contract.get_bytecode());
-    let block_set: BlockSet = BlockSet::new(&bytecode);
-    let graph_drawing: String = draw(&block_set, &bytecode);
-    let graph_drawing_ref : String = contract.get_graph_drawing();
-
-    if graph_drawing != contract.get_graph_drawing(){
-        write_file("temp_ref_drawing.txt", &graph_drawing_ref);
-        write_file("temp_current_drawing.txt", &graph_drawing);
-        panic!("drawings differ, temp files were generated so you can see the diffs");
-    }
-}}
