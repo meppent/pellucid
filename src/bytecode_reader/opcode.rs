@@ -532,7 +532,7 @@ impl Opcode {
                     code: 0x7f + *depth as u8,
                     name,
                     stack_input: *depth,
-                    stack_output: 0,
+                    stack_output: depth + 1,
                 }
             },
 
@@ -544,7 +544,7 @@ impl Opcode {
                     code: 0x8f + *depth as u8,
                     name,
                     stack_input: *depth,
-                    stack_output: 0,
+                    stack_output: *depth,
                 }
             },
 
@@ -680,6 +680,10 @@ impl Opcode {
             Self::INVALID { code: _ } => true,
             _ => false,
         }
+    }
+
+    pub fn delta(&self) -> usize {
+        return self.stack_output() - self.stack_input();
     }
 
     pub fn from(code: u8) -> Opcode {
