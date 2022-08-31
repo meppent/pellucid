@@ -115,9 +115,7 @@ impl<'a> BlockSet<'a> {
 
                     // correct because the JUMPDEST delta is 0, todo: find a better way to do this
                     delta += opcode.delta();
-                    if delta < delta_min {
-                        delta_min = delta;
-                    }
+                    delta_min = delta_min.min(delta);
 
                     if vopcode.is_last || opcode.is_exiting() || opcode == Opcode::JUMP {
                         self.insert_connected_block(bytecode, pc_start_, pc, &mut delta, &mut delta_min);
