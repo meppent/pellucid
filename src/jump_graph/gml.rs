@@ -1,8 +1,8 @@
 use crate::bytecode_reader::bytecode::stringify_vopcodes;
 
-use super::graph::{Block, BlockSet};
+use super::{block_set::{ BlockSet}, block::Block};
 
-pub fn to_gml(block_set: &BlockSet) -> String {
+pub fn to_gml(block_set: & BlockSet) -> String {
     let mut gml: String = String::new();
     gml.push_str("graph\n[\n");
 
@@ -34,3 +34,5 @@ pub fn to_gml(block_set: &BlockSet) -> String {
     gml.push_str("]");
     return gml;
 }
+
+

@@ -8,7 +8,7 @@ mod utils;
 
 #[test]
 pub fn test_simple_contract_bytecode() {
-    Vopcode::from_string("af");
+    //Vopcode::from_string("af");
     // let contract: utils::Contract = utils::Contract::SIMPLE_CONTRACT;
     // let bytecode: Bytecode = Bytecode::from(&contract.get_bytecode());
     // dbg!(contract.get_opcodes().len());

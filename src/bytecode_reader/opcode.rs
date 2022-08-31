@@ -682,8 +682,8 @@ impl Opcode {
         }
     }
 
-    pub fn delta(&self) -> usize {
-        return self.stack_output() - self.stack_input();
+    pub fn delta(&self) -> isize {
+        return self.stack_output() as isize- self.stack_input() as isize;
     }
 
     pub fn from(code: u8) -> Opcode {
