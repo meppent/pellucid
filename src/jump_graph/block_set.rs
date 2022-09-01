@@ -5,7 +5,7 @@ use itertools::Itertools;
 use crate::bytecode_reader::opcode::Opcode;
 use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
 use crate::evm::context::Context;
-use crate::utils::{remove_values_where, usize_to_hex};
+use crate::utils::{remove_values_where};
 
 use super::block::{Block, Location, Position};
 
@@ -87,9 +87,6 @@ impl<'a> BlockSet<'a> {
         delta: &mut isize,
         delta_min: &mut isize
     ) {
-        dbg!(usize_to_hex(pc_start));
-        dbg!(usize_to_hex(pc_end));
-        dbg!("");
         self.connected_blocks.insert(
             pc_start,
             ConnectedBlock::new(
