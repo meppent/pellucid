@@ -7,7 +7,7 @@ use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
 use crate::evm::context::Context;
 use crate::utils::{remove_values_where, usize_to_hex};
 
-use super::block::{Block, Location, Position};
+use super::old_block::{Block, Location, Position};
 
 pub struct ConnectedBlock<'a> {
     pub block: Block<'a>,
