@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::{cell::RefCell, rc::Rc};
 use crate::bytecode_reader::opcode::Opcode;
 use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
@@ -37,7 +38,7 @@ impl<'a> BlockRef<'a> {
        self.inner.borrow_mut().nodes.push(node.inner);
     }
 
-    pub fn number_of_nodes(&self) -> usize {
+    pub fn nodes_count(&self) -> usize {
         return self.inner.borrow().nodes.len();
     }
 
@@ -50,7 +51,15 @@ impl<'a> BlockRef<'a> {
         return false;
     }
 
-    //pub fn get_nodes(&self)
+    pub fn get_nodes(&self) -> Vec<NodeRef<'a>> {
+        return self
+            .inner
+            .borrow()
+            .nodes
+            .iter()
+            .map(|inner: &Rc<RefCell<Node<'a>>>| NodeRef{inner: inner.clone()})
+            .collect();
+    }
 
 }
 
@@ -79,18 +88,49 @@ impl<'a> NodeRef <'a> {
         };
     }
 
+    pub fn create_with_neighbors(&self, block: Rc<RefCell<Block<'a>>>, initial_context: Context, final_context: Context, parents: Vec<NodeRef<'a>>, children: Vec<NodeRef<'a>>) -> Self {
+        let created = NodeRef::new(block, initial_context, final_context);
+        for parent in parents{
+            created.add_parent(parent);
+        }
+        for child in children{
+            created.add_children(child);
+        }
+        return created
+    }
+
     pub fn clone(&self) -> Self {
         return NodeRef {inner: self.inner.clone()}
     }
     
-    pub fn add_parent(self, parent: NodeRef<'a>) {
-        self.inner.borrow_mut().parents.push(parent.clone().inner);
-        parent.inner.borrow_mut().children.push(self.inner);
+    pub fn get_children(&self) -> Vec<NodeRef<'a>> {
+        return self
+            .inner
+            .borrow()
+            .children
+            .iter()
+            .map(|inner: &Rc<RefCell<Node<'a>>>| NodeRef{inner: inner.clone()})
+            .collect();
     }
 
-    pub fn add_children(self, parent: NodeRef<'a>) {
+    pub fn get_parents(&self) -> Vec<NodeRef<'a>> {
+        return self
+            .inner
+            .borrow()
+            .parents
+            .iter()
+            .map(|inner: &Rc<RefCell<Node<'a>>>| NodeRef{inner: inner.clone()})
+            .collect();
+    }
+    
+    pub fn add_parent(&self, parent: NodeRef<'a>) {
         self.inner.borrow_mut().parents.push(parent.clone().inner);
-        parent.inner.borrow_mut().children.push(self.inner);
+        parent.inner.borrow_mut().children.push(self.clone().inner);
+    }
+
+    pub fn add_children(&self, child: NodeRef<'a>) {
+        self.inner.borrow_mut().children.push(child.clone().inner);
+        child.inner.borrow_mut().parents.push(self.clone().inner);
     }
 
     pub fn get_block(&self) -> BlockRef<'a> {
@@ -100,5 +140,20 @@ impl<'a> NodeRef <'a> {
 }
 
 struct Graph<'a> {
-    pub blocks: Vec<Block<'a>>,
+    pub blocks: HashMap<usize, BlockRef<'a>>,
+}
+
+impl <'a> Graph<'a> {
+
+    pub fn new() -> Self {
+        return Graph{blocks: HashMap::new()};
+    }
+
+    pub fn add_block(&mut self, block: BlockRef<'a>) {
+        self.blocks[&block.code[0].pc] = block;
+    }
+
+    pub fn get_block(&self, index: usize) -> BlockRef<'a> {
+        return BlockRef{inner: Rc::new(RefCell::new(self.blocks[index].clone()))};
+    }
 }
