@@ -5,7 +5,7 @@ use crate::bytecode_reader::{opcode::Opcode, vopcode::Vopcode};
 use core::fmt::Debug;
 use std::vec;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct Context {
     pub stack: Stack,
     pub state: ExecutionState,

@@ -6,7 +6,6 @@ use crate::evm::context::Context;
 use crate::evm::stack::Stack;
 use super::node::{Node, NodeRef};
 
-
 #[derive(Debug)]
 pub struct Block<'a> {
     code: &'a [Vopcode],
@@ -14,7 +13,6 @@ pub struct Block<'a> {
     delta_min: isize,
     nodes: Vec<Rc<RefCell<Node<'a>>>>,
 }
-
 
 pub struct BlockRef<'a>{
     inner: Rc<RefCell<Block<'a>>>
@@ -30,8 +28,6 @@ impl<'a> BlockRef<'a> {
             )
         };
     }
-
-    
 
     pub fn clone(&self)->Self{
         return BlockRef { inner: self.inner.clone() }
@@ -58,6 +54,10 @@ impl<'a> BlockRef<'a> {
         return self.inner.borrow().code;
     }
 
+    pub fn get_pc_start(&self) -> usize{
+        return self.get_code()[0].pc;
+    }
+
     pub fn get_delta(&self)->isize{
         return self.inner.borrow().delta;
     }
@@ -75,5 +75,4 @@ impl<'a> BlockRef<'a> {
             .map(|inner: &Rc<RefCell<Node<'a>>>| NodeRef::wrap(inner.clone()))
             .collect();
     }
-
 }

@@ -18,7 +18,7 @@ impl <'a> Graph<'a> {
     }
 
     pub fn add_block(&mut self, block: BlockRef<'a>) {
-        self.blocks.insert(block.get_code()[0].pc, block);
+        self.blocks.insert(block.get_pc_start(), block);
     }
 
     pub fn get_block(&self, index: usize) -> BlockRef<'a> {
@@ -26,9 +26,15 @@ impl <'a> Graph<'a> {
     }
 
     pub fn in_depth_search(&self){
-        let visited: HashSet<BlockRef> = HashSet::new();
+        let mut visited: HashSet<BlockRef> = HashSet::new();
         for (index, block) in &(self.blocks){
-
+            if !visited.contains(block){
+                self.explore(block, visited);
+            }
         }
+    }
+
+    pub fn explore(self){
+
     }
 }

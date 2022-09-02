@@ -1,6 +1,6 @@
 use super::expression::Expression;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Hash)]
 pub struct Stack {
     data: Vec<Expression>,
 }

@@ -3,7 +3,7 @@ use crate::utils::u256_to_hex;
 use primitive_types::U256;
 use std::fmt;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy, Hash)]
 pub struct Vopcode {
     // an opcode with a value, used when it's a PUSH
     pub opcode: Opcode,

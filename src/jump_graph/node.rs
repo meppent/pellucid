@@ -16,6 +16,16 @@ pub struct Node<'a>{
     children: Vec<Rc<RefCell<Node<'a>>>>,
 }
 
+impl <'a> std::hash::Hash for Node<'a> {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: std::hash::Hasher,
+    {
+        //state.write_usize(self.block.borrow().pc_start);
+        state.finish();
+    }
+}
+
 pub struct NodeRef<'a>{
     inner: Rc<RefCell<Node<'a>>>
 }
