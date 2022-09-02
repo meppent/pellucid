@@ -44,7 +44,7 @@ impl <'a> Graph<'a> {
         }
     }
 
-    pub fn BFS_search(&self, fun_before: &dyn Fn(&NodeRef<'a>), fun_after: &dyn Fn(&NodeRef<'a>)) {
+    pub fn BFS_search(&self, fun: &dyn Fn(&NodeRef<'a>)) {
         let mut visited: HashSet<NodeRef> = HashSet::new();
         let mut queue: Queue<isize> = queue![];
         queue.add(&(self.blocks)[0].get_nodes()[0]);
@@ -52,12 +52,9 @@ impl <'a> Graph<'a> {
         while !queue.is_empty(){
             let node = queue.pop().unwrap();
             
-            if queue.size() == 0{
-                fun_after(&node);//TODO UNCORRECT
-            }
             if !visited.contains(&node){
                 visited.insert(node);
-                fun_before(&node);
+                fun(&node);
                 for child in node.get_children(){
                     queue.add(child);
                 }
