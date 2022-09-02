@@ -15,6 +15,7 @@ log = "*"
 env_logger = "*"
 itertools="*"
 ctor="*"
+queues = "1.0.2"
 
 
 [dev-dependencies]
