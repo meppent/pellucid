@@ -51,8 +51,9 @@ impl <'a> Graph<'a> {
 
         while !queue.is_empty(){
             let node = queue.pop().unwrap();
+            
             if queue.size() == 0{
-                fun_after(&node);
+                fun_after(&node);//TODO UNCORRECT
             }
             if !visited.contains(&node){
                 visited.insert(node);
