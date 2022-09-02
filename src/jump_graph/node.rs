@@ -1,9 +1,6 @@
-use std::collections::HashMap;
 use std::{cell::RefCell, rc::Rc};
-use crate::bytecode_reader::opcode::Opcode;
-use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
 use crate::evm::context::Context;
-use crate::evm::stack::Stack;
+use crate::utils::calculate_hash;
 use super::block::{Block, BlockRef};
 
 
@@ -16,20 +13,29 @@ pub struct Node<'a>{
     children: Vec<Rc<RefCell<Node<'a>>>>,
 }
 
-impl <'a> std::hash::Hash for Node<'a> {
+
+
+pub struct NodeRef<'a>{
+    pub inner: Rc<RefCell<Node<'a>>>
+}
+
+impl <'a> std::hash::Hash for NodeRef<'a> {
     fn hash<H>(&self, state: &mut H)
     where
         H: std::hash::Hasher,
     {
-        //state.write_usize(self.block.borrow().pc_start);
+        state.write_usize(self.get_block().get_pc_start());
+        state.write_u64(calculate_hash(&self.get_initial_context()));
         state.finish();
     }
 }
 
-pub struct NodeRef<'a>{
-    inner: Rc<RefCell<Node<'a>>>
+impl <'a>PartialEq for NodeRef<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        return calculate_hash(&self) == calculate_hash(&other);
+    }
 }
-
+impl<'a> Eq for NodeRef<'a> {}
 
 impl<'a> NodeRef <'a> {
     pub fn new(block: Rc<RefCell<Block<'a>>>, initial_context: Context, final_context: Context) -> Self {
@@ -71,6 +77,10 @@ impl<'a> NodeRef <'a> {
     pub fn get_final_context(&self) -> Context {
         return self.inner.borrow().final_context.clone();
     }
+
+    pub fn get_block(&self) -> BlockRef<'a> {
+        return BlockRef{inner: self.inner.borrow().block.clone()};
+    }
     
     pub fn get_children(&self) -> Vec<NodeRef<'a>> {
         return self
@@ -100,14 +110,6 @@ impl<'a> NodeRef <'a> {
     pub fn add_children(&self, child: NodeRef<'a>) {
         self.inner.borrow_mut().children.push(child.clone().inner);
         child.inner.borrow_mut().parents.push(self.clone().inner);
-    }
-
-    pub fn wrap(inner: Rc<RefCell<Node<'a>>>)->Self{
-        return NodeRef{inner};
-    }
-
-    pub fn unwrap(&self)->Rc<RefCell<Node<'a>>>{
-        return self.inner.clone();
     }
 
 }

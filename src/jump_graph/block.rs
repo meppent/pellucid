@@ -1,8 +1,5 @@
-use std::collections::HashMap;
 use std::{cell::RefCell, rc::Rc};
-use crate::bytecode_reader::opcode::Opcode;
-use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
-use crate::evm::context::Context;
+use crate::bytecode_reader::{ vopcode::Vopcode};
 use crate::evm::stack::Stack;
 use super::node::{Node, NodeRef};
 
@@ -17,6 +14,22 @@ pub struct Block<'a> {
 pub struct BlockRef<'a>{
     inner: Rc<RefCell<Block<'a>>>
 }
+
+impl <'a> std::hash::Hash for BlockRef<'a> {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: std::hash::Hasher,
+    {
+        state.write_usize(self.get_pc_start());
+        state.finish();
+    }
+}
+impl <'a>PartialEq for BlockRef<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        return self.get_pc_start() == other.get_pc_start();
+    }
+}
+impl<'a> Eq for BlockRef<'a> {}
 
 impl<'a> BlockRef<'a> {
     pub fn new(code: &'a [Vopcode], delta: isize, delta_min: isize) -> Self {
@@ -34,7 +47,7 @@ impl<'a> BlockRef<'a> {
     }
 
     pub fn add_node(&self, node: NodeRef<'a>){
-       self.inner.borrow_mut().nodes.push(node.unwrap());
+       self.inner.borrow_mut().nodes.push(node.inner);
     }
 
     pub fn nodes_count(&self) -> usize {
@@ -72,7 +85,7 @@ impl<'a> BlockRef<'a> {
             .borrow()
             .nodes
             .iter()
-            .map(|inner: &Rc<RefCell<Node<'a>>>| NodeRef::wrap(inner.clone()))
+            .map(|inner: &Rc<RefCell<Node<'a>>>| NodeRef{inner: inner.clone()})
             .collect();
     }
 }

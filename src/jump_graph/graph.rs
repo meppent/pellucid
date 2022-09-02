@@ -26,10 +26,12 @@ impl <'a> Graph<'a> {
     }
 
     pub fn in_depth_search(&self){
-        let mut visited: HashSet<BlockRef> = HashSet::new();
-        for (index, block) in &(self.blocks){
-            if !visited.contains(block){
-                self.explore(block, visited);
+        let mut visited: HashSet<NodeRef> = HashSet::new();
+        for (index_block, block) in &(self.blocks){
+            for node in block.get_nodes(){
+                if !visited.contains(&node){
+                    self.explore(node, &mut visited);
+                }
             }
         }
     }
