@@ -53,6 +53,7 @@ pub struct SymbolicBlock {
     symbolic_expressions: Stack<SymbolicExpression>,
     effects: Vec<Rc<Effect>>,
     n_args: usize,
+    n_outputs: usize,
 }
 
 impl SymbolicBlock {
@@ -61,13 +62,18 @@ impl SymbolicBlock {
             symbolic_expressions: Stack::new(),
             effects: Vec::new(),
             n_args: 0,
+            n_outputs: 0,
         };
 
         for vopcode in code {
             symbolic_block.add_vopcode(vopcode);
         }
-
+        symbolic_block.n_outputs = symbolic_block.len() + symbolic_block.n_args;
         return symbolic_block;
+    }
+
+    pub fn delta(&self) -> isize {
+        return self.n_outputs as isize - self.n_args as isize;
     }
 
     pub fn add_vopcode(&mut self, vopcode: &Vopcode) {
@@ -81,14 +87,18 @@ impl SymbolicBlock {
 
             Opcode::SWAP { depth } => self.swap(depth),
 
+            Opcode::POP => {
+                self.pop();
+            }
+
             opcode => {
                 
-                let n_args = opcode.stack_input();
+                let opcode_n_args = opcode.stack_input();
                 let initial_len = self.len();
-                let local_delta = if n_args > self.len() {n_args - initial_len} else { 0 };
+                let local_delta = if opcode_n_args > self.len() {opcode_n_args - initial_len} else { 0 };
                 let mut symbolic_expressions: Vec<SymbolicExpression> = Vec::new();
 
-                for i in 0..n_args {
+                for i in 0..opcode_n_args {
                     if i < initial_len {
                         symbolic_expressions.push(self.pop());
                     } else {
@@ -98,6 +108,7 @@ impl SymbolicBlock {
                 self.n_args += local_delta;
 
                 let effect: Option<Rc<Effect>>;
+
                 if opcode.has_effect(){
                     let effect_ref = Rc::new(Effect::COMPOSE(opcode, symbolic_expressions.clone()));
                     effect = Some(Rc::clone(&effect_ref));
