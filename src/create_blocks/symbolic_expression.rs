@@ -46,7 +46,7 @@ impl SymbolicStack {
             opcode => {
                 let args = opcode.stack_input();
                 let initial_len = self.len();
-                let local_delta = if args > self.len() { args - initial_len } else { 0 };
+                let local_delta = if args > self.len() {args - initial_len} else { 0 };
                 let mut vec_symbolic_expr = Vec::new();
                 for i in 0..args {
                     if i < initial_len {
