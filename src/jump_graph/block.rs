@@ -1,7 +1,8 @@
 use super::node::{Node, NodeRef};
-use crate::bytecode_reader::vopcode::Vopcode;
-use crate::evm::optional_push::Expression;
 use crate::evm::stack::Stack;
+use crate::{
+    bytecode_reader::vopcode::Vopcode, evm::expressions::sparse_expression::SparseExpression,
+};
 use std::{cell::RefCell, rc::Rc};
 
 #[derive(Debug)]
@@ -58,13 +59,9 @@ impl<'a> BlockRef<'a> {
         return self.inner.borrow().nodes.len();
     }
 
-    pub fn contains_initial_stack(&self, initial_stack: &Stack<Expression>) -> bool {
+    pub fn contains_initial_stack(&self, initial_stack: &Stack<SparseExpression>) -> bool {
         for node in self.get_nodes() {
-            if node
-                .get_initial_context()
-                .stack
-                .equals_on_bytes(initial_stack)
-            {
+            if &node.get_initial_context().stack == initial_stack {
                 return true;
             }
         }

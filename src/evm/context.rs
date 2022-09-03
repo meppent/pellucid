@@ -1,16 +1,18 @@
+use crate::bytecode_reader::vopcode::Vopcode;
+
+use super::execution_state::ExecutionState;
 use super::expressions::expression::Expression;
 use super::stack::Stack;
-use super::execution_state::ExecutionState;
 use core::fmt::Debug;
 use std::hash::Hash;
 
 #[derive(Clone, Debug, Hash)]
-pub struct Context<Expr: Expression + Hash + Debug + Clone> {
+pub struct Context<Expr: Expression> {
     pub stack: Stack<Expr>,
     pub state: ExecutionState<Expr>,
 }
 
-impl<Expr: Expression + Hash + Debug + Clone> Context<Expr> {
+impl<Expr: Expression> Context<Expr> {
     pub fn new() -> Self {
         return Context {
             stack: Stack::new(),
@@ -25,71 +27,14 @@ impl<Expr: Expression + Hash + Debug + Clone> Context<Expr> {
         };
     }
 
-    // pub fn apply_vopcode(&mut self, vopcode: &Vopcode) {
-    //     if self.state != ExecutionState::RUNNING {
-    //         panic!("Trying to run a stopped stack")
-    //     }
-    //     let opcode: Opcode = vopcode.opcode;
-
-    //     if opcode.stack_input() > self.stack.len() {
-    //         self.state = ExecutionState::REVERT;
-    //         return;
-    //     }
-
-    //     if opcode.is_invalid() {
-    //         self.state = ExecutionState::REVERT
-    //     } else {
-    //         self.state = match opcode {
-    //             Opcode::STOP | Opcode::RETURN => ExecutionState::RETURN,
-    //             Opcode::REVERT => ExecutionState::REVERT,
-    //             Opcode::SELFDESTRUCT => ExecutionState::SELFDESTRUCT,
-    //             Opcode::JUMP => ExecutionState::JUMP(self.stack.pop()),
-    //             Opcode::JUMPI => ExecutionState::JUMPI(self.stack.pop(), self.stack.pop()),
-    //             _ => ExecutionState::RUNNING,
-    //         };
-    //     }
-
-    //     if self.state != ExecutionState::RUNNING {
-    //         return;
-    //     }
-
-    //     match opcode {
-    //         Opcode::PUSH { item_size: _ } => {
-    //             if let Some(pushed) = vopcode.value {
-    //                 self.stack.push(Expression::PUSH(pushed));
-    //             } else {
-    //                 self.state = ExecutionState::REVERT;
-    //                 return;
-    //             }
-    //         }
-    //         Opcode::DUP { depth } => {
-    //             self.stack.dup(depth);
-    //         }
-    //         Opcode::SWAP { depth } => {
-    //             self.stack.swap(depth);
-    //         }
-    //         _ => {
-    //             let mut consumed_expressions: Vec<Box<Expression>> = vec![];
-    //             for _ in 0..opcode.stack_input() {
-    //                 consumed_expressions.push(Box::new(self.stack.pop()));
-    //             }
-    //             if opcode.stack_output() > 0 {
-    //                 self.stack
-    //                     .push(Expression::COMPOSE(opcode, consumed_expressions));
-    //             }
-    //         }
-    //     }
-    // }
-
-    // pub fn run(&self, code: &[Vopcode]) -> Context<Expr> {
-    //     let mut final_context: Context<Expr> = self.clone();
-    //     for vopcode in code {
-    //         final_context.apply_vopcode(vopcode);
-
-    //         if final_context.state != ExecutionState::RUNNING {
-    //             break;
-    //         }
-    //     }
-    //     return final_context;
-    // }
+    pub fn run(&self, code: &[Vopcode]) -> Context<Expr> {
+        let mut final_context: Context<Expr> = self.clone();
+        for vopcode in code {
+            Expr::apply_vopcode_on_context(&mut final_context, vopcode);
+            if final_context.state != ExecutionState::RUNNING {
+                break;
+            }
+        }
+        return final_context;
+    }
 }

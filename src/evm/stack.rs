@@ -1,21 +1,23 @@
 use core::fmt::Debug;
 use std::hash::Hash;
 
+use super::expressions::expression::Expression;
+
 #[derive(Clone, Debug, Hash)]
-pub struct Stack<E: Clone + Debug + Hash> {
+pub struct Stack<E: Expression> {
     data: Vec<E>,
 }
 
-impl<E: Clone + Debug + Hash> Stack<E> {
+impl<Expr: Expression> Stack<Expr> {
     pub const fn new() -> Self {
         return Stack { data: Vec::new() };
     }
 
-    pub fn push(&mut self, expr: E) {
+    pub fn push(&mut self, expr: Expr) {
         self.data.push(expr);
     }
 
-    pub fn pop(&mut self) -> E {
+    pub fn pop(&mut self) -> Expr {
         return self.data.pop().unwrap();
     }
 
@@ -32,15 +34,11 @@ impl<E: Clone + Debug + Hash> Stack<E> {
         self.push(self.data[self.len() - n].clone());
     }
 
-    pub fn peek(&self) -> E {
+    pub fn peek(&self) -> Expr {
         return self.data[self.len() - 1].clone();
     }
 
-    pub fn peek_at(&self, index: usize) -> E {
-        return self.data[index].clone();
-    }
-
-    pub fn _get_data(&self) -> &Vec<E> {
+    pub fn _get_data(&self) -> &Vec<Expr> {
         return &self.data;
     }
 }

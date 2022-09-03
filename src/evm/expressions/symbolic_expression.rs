@@ -1,10 +1,10 @@
 use crate::{
     bytecode_reader::{opcode::Opcode, vopcode::Vopcode},
-    evm::{context::Context, execution_state::ExecutionState, stack::Stack},
+    evm::{context::Context, execution_state::ExecutionState},
 };
 use primitive_types::U256;
 
-use super::expression::{check_state_transition, Expression};
+use super::expression::{apply_state_transition, Expression};
 
 #[derive(Debug, PartialEq, Clone, Hash)]
 pub enum SymbolicExpression {
@@ -12,20 +12,14 @@ pub enum SymbolicExpression {
     COMPOSE(Opcode, Vec<Box<SymbolicExpression>>),
 }
 
-impl PartialEq for Stack<SymbolicExpression> {
-    fn eq(&self, other: &Self) -> bool {
-        return self._get_data() == other._get_data();
-    }
-}
 
 impl Expression for SymbolicExpression {
     fn apply_vopcode_on_context(context: &mut Context<Self>, vopcode: &Vopcode) {
         let opcode: Opcode = vopcode.opcode;
-        check_state_transition(context, &opcode);
+        apply_state_transition(context, &opcode);
         if context.state != ExecutionState::RUNNING {
             return;
         }
-
         match opcode {
             Opcode::PUSH { item_size: _ } => {
                 context.stack.push(Self::PUSH(vopcode.value.unwrap()));

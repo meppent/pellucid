@@ -1,25 +1,22 @@
-use std::{cell::RefCell, rc::Rc};
-use crate::evm::context::Context;
-use crate::utils::calculate_hash;
 use super::block::{Block, BlockRef};
-
+use crate::evm::{context::Context, expressions::sparse_expression::SparseExpression};
+use crate::utils::calculate_hash;
+use std::{cell::RefCell, rc::Rc};
 
 #[derive(Debug)]
-pub struct Node<'a>{
-    initial_context: Context,
-    final_context: Context,
+pub struct Node<'a> {
+    initial_context: Context<SparseExpression>,
+    final_context: Context<SparseExpression>,
     block: Rc<RefCell<Block<'a>>>,
     parents: Vec<Rc<RefCell<Node<'a>>>>,
     children: Vec<Rc<RefCell<Node<'a>>>>,
 }
 
-
-
-pub struct NodeRef<'a>{
-    pub inner: Rc<RefCell<Node<'a>>>
+pub struct NodeRef<'a> {
+    pub inner: Rc<RefCell<Node<'a>>>,
 }
 
-impl <'a> std::hash::Hash for NodeRef<'a> {
+impl<'a> std::hash::Hash for NodeRef<'a> {
     fn hash<H>(&self, state: &mut H)
     where
         H: std::hash::Hasher,
@@ -30,65 +27,77 @@ impl <'a> std::hash::Hash for NodeRef<'a> {
     }
 }
 
-impl <'a>PartialEq for NodeRef<'a> {
+impl<'a> PartialEq for NodeRef<'a> {
     fn eq(&self, other: &Self) -> bool {
         return calculate_hash(&self) == calculate_hash(&other);
     }
 }
 impl<'a> Eq for NodeRef<'a> {}
 
-impl<'a> NodeRef <'a> {
-    pub fn new(block: Rc<RefCell<Block<'a>>>, initial_context: Context, final_context: Context) -> Self {
-        return NodeRef{
-            inner: Rc::new(
-                RefCell::new(
-                    Node {initial_context, final_context, block, parents: vec![], children: vec![]}
-                )
-            )
+impl<'a> NodeRef<'a> {
+    pub fn new(
+        block: Rc<RefCell<Block<'a>>>,
+        initial_context: Context<SparseExpression>,
+        final_context: Context<SparseExpression>,
+    ) -> Self {
+        return NodeRef {
+            inner: Rc::new(RefCell::new(Node {
+                initial_context,
+                final_context,
+                block,
+                parents: vec![],
+                children: vec![],
+            })),
         };
     }
 
     pub fn create_with_neighbors(
         &self,
         block: Rc<RefCell<Block<'a>>>,
-        initial_context: Context,
-        final_context: Context,
+        initial_context: Context<SparseExpression>,
+        final_context: Context<SparseExpression>,
         parents: Vec<NodeRef<'a>>,
-        children: Vec<NodeRef<'a>>
+        children: Vec<NodeRef<'a>>,
     ) -> Self {
         let created = NodeRef::new(block, initial_context, final_context);
-        for parent in parents{
+        for parent in parents {
             created.add_parent(parent);
         }
-        for child in children{
+        for child in children {
             created.add_children(child);
         }
-        return created
+        return created;
     }
 
     pub fn clone(&self) -> Self {
-        return NodeRef {inner: self.inner.clone()}
+        return NodeRef {
+            inner: self.inner.clone(),
+        };
     }
 
-    pub fn get_initial_context(&self) -> Context {
+    pub fn get_initial_context(&self) -> Context<SparseExpression> {
         return self.inner.borrow().initial_context.clone();
     }
 
-    pub fn get_final_context(&self) -> Context {
+    pub fn get_final_context(&self) -> Context<SparseExpression> {
         return self.inner.borrow().final_context.clone();
     }
 
     pub fn get_block(&self) -> BlockRef<'a> {
-        return BlockRef{inner: self.inner.borrow().block.clone()};
+        return BlockRef {
+            inner: self.inner.borrow().block.clone(),
+        };
     }
-    
+
     pub fn get_children(&self) -> Vec<NodeRef<'a>> {
         return self
             .inner
             .borrow()
             .children
             .iter()
-            .map(|inner: &Rc<RefCell<Node<'a>>>| NodeRef{inner: inner.clone()})
+            .map(|inner: &Rc<RefCell<Node<'a>>>| NodeRef {
+                inner: inner.clone(),
+            })
             .collect();
     }
 
@@ -98,10 +107,12 @@ impl<'a> NodeRef <'a> {
             .borrow()
             .parents
             .iter()
-            .map(|inner: &Rc<RefCell<Node<'a>>>| NodeRef{inner: inner.clone()})
+            .map(|inner: &Rc<RefCell<Node<'a>>>| NodeRef {
+                inner: inner.clone(),
+            })
             .collect();
     }
-    
+
     pub fn add_parent(&self, parent: NodeRef<'a>) {
         self.inner.borrow_mut().parents.push(parent.clone().inner);
         parent.inner.borrow_mut().children.push(self.clone().inner);
@@ -111,5 +122,4 @@ impl<'a> NodeRef <'a> {
         self.inner.borrow_mut().children.push(child.clone().inner);
         child.inner.borrow_mut().parents.push(self.clone().inner);
     }
-
 }

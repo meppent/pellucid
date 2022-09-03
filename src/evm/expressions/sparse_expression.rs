@@ -1,11 +1,11 @@
 use crate::{
     bytecode_reader::{opcode::Opcode, vopcode::Vopcode},
-    evm::{context::Context, execution_state::ExecutionState, stack::Stack},
+    evm::{context::Context, execution_state::ExecutionState},
 };
 
 use primitive_types::U256;
 
-use super::expression::{check_state_transition, Expression};
+use super::expression::{apply_state_transition, Expression};
 
 #[derive(Debug, PartialEq, Clone, Hash)]
 pub enum SparseExpression {
@@ -13,16 +13,10 @@ pub enum SparseExpression {
     OTHER,
 }
 
-impl PartialEq for Stack<SparseExpression> {
-    fn eq(&self, other: &Self) -> bool {
-        return self._get_data() == other._get_data();
-    }
-}
-
 impl Expression for SparseExpression {
     fn apply_vopcode_on_context(context: &mut Context<Self>, vopcode: &Vopcode) {
         let opcode: Opcode = vopcode.opcode;
-        check_state_transition(context, &opcode);
+        apply_state_transition(context, &opcode);
         if context.state != ExecutionState::RUNNING {
             return;
         }
