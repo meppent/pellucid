@@ -4,8 +4,8 @@ use std::hash::Hash;
 use super::expressions::expression::Expression;
 
 #[derive(Clone, Debug, Hash)]
-pub struct Stack<E: Expression> {
-    data: Vec<E>,
+pub struct Stack<Expr: Expression> {
+    data: Vec<Expr>,
 }
 
 impl<Expr: Expression> Stack<Expr> {

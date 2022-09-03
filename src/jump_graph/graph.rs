@@ -27,11 +27,11 @@ impl<'a> Graph<'a> {
         return self.blocks[&index].clone();
     }
 
-    pub fn DFS_search(&self, fun_before: &dyn Fn(&NodeRef<'a>), fun_after: &dyn Fn(&NodeRef<'a>)) {
+    pub fn DFS_search(&self, fun_before: &dyn Fn(NodeRef<'a>), fun_after: &dyn Fn(NodeRef<'a>)) {
         let mut visited: HashSet<NodeRef> = HashSet::new();
         //first node access every node
         self.explore_DFS(
-            &(self.blocks)[&0].get_nodes()[0],
+            (&self.blocks)[&0].get_nodes()[0].clone(),
             &mut visited,
             fun_before,
             fun_after,
@@ -39,37 +39,20 @@ impl<'a> Graph<'a> {
     }
 
     pub fn explore_DFS(
-        self,
-        node: NodeRef,
-        &mut visited: HashSet<NodeRef>,
-        fun_before: &dyn Fn(&NodeRef<'a>),
-        fun_after: &dyn Fn(&NodeRef<'a>),
+        &self,
+        node: NodeRef<'a>,
+        visited: &mut HashSet<NodeRef<'a>>,
+        fun_before: &dyn Fn(NodeRef<'a>),
+        fun_after: &dyn Fn(NodeRef<'a>),
     ) {
-        if !visited.contains(&node) {
-            visited.insert(node);
-            fun_before(&node);
+        if !visited.contains(&node.clone()) {
+            visited.insert(node.clone());
+            fun_before(node.clone());
             for child in node.get_children() {
-                self.explore_DFS(child, &mut visited, fun_before, fun_after);
+                (&self).explore_DFS(child.clone(), visited, &fun_before, &fun_after);
             }
-            fun_after(&node);
+            fun_after(node.clone());
         }
     }
 
-    pub fn BFS_search(&self, fun: &dyn Fn(&NodeRef<'a>)) {
-        let mut visited: HashSet<NodeRef> = HashSet::new();
-        let mut queue: Queue<isize> = queue![];
-        queue.add(&(self.blocks)[0].get_nodes()[0]);
-
-        while !queue.is_empty() {
-            let node = queue.pop().unwrap();
-
-            if !visited.contains(&node) {
-                visited.insert(node);
-                fun(&node);
-                for child in node.get_children() {
-                    queue.add(child);
-                }
-            }
-        }
-    }
 }

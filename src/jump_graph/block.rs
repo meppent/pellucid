@@ -14,7 +14,7 @@ pub struct Block<'a> {
 }
 
 pub struct BlockRef<'a> {
-    inner: Rc<RefCell<Block<'a>>>,
+    pub inner: Rc<RefCell<Block<'a>>>,
 }
 
 impl<'a> std::hash::Hash for BlockRef<'a> {
