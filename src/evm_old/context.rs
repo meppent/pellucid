@@ -1,16 +1,15 @@
+use super::{execution_state::ExecutionState, simple_expression::SimpleExpression};
 use crate::tools::stack::Stack;
-use super::execution_state::ExecutionState;
-use super::simple_expression::SimpleExpression;
 use core::fmt::Debug;
 use std::hash::Hash;
 
 #[derive(Clone, Debug, Hash)]
-pub struct Context{
+pub struct Context {
     pub stack: Stack<SimpleExpression>,
     pub state: ExecutionState,
 }
 
-impl Context{
+impl Context {
     pub fn new() -> Self {
         return Context {
             stack: Stack::new(),
@@ -24,5 +23,4 @@ impl Context{
             state: ExecutionState::RUNNING,
         };
     }
-
 }

@@ -4,21 +4,43 @@ use crate::bytecode_reader::vopcode::Vopcode;
 use crate::tools::stack::Stack;
 use primitive_types::U256;
 
-#[derive(Debug, PartialEq, Clone, Hash)]
-pub enum SymbolicExpression {
-    BYTES(U256),
-    COMPOSE(Opcode, Vec<SymbolicExpression>),
-    ARG(usize),
-}
+// pub(crate) struct SymbolicExpression{
+//     stack_expression: StackExpression,
+//     effect: Effect,
+// }
 
-impl SymbolicExpression {}
+
+// #[derive(Debug, PartialEq, Clone, Hash)]
+// pub enum StackExpression {
+//     BYTES(U256),
+//     COMPOSE(Opcode, Vec<SymbolicExpression>),
+//     ARG(usize),
+// }
+
+// struct Effect {
+//     inner: Rc<>
+// }
+
+
+// impl SymbolicStack {}
 #[derive(Debug, PartialEq, Clone, Hash)]
 pub struct SymbolicStack {
-    inner: Stack<SymbolicExpression>,
+    inner: Stack<StackExpression>,
     delta: usize,
     delta_max: usize,
 }
 
+// pub enum StackExpression {
+//     BYTES(U256),
+//     COMPOSE(Opcode, Vec<SymbolicExpression>),
+//     ARG(usize),
+// }
+#[derive(Debug, PartialEq, Clone, Hash)]
+pub enum StackExpression {
+    BYTES(U256),
+    COMPOSE(Opcode, Vec<StackExpression>),
+    ARG(usize),
+}
 impl SymbolicStack {
     pub fn new() -> SymbolicStack {
         SymbolicStack {
@@ -32,7 +54,7 @@ impl SymbolicStack {
         match vopcode.opcode {
 
             Opcode::PUSH {item_size: _} => self.push(
-                SymbolicExpression::BYTES(vopcode.value.unwrap())
+                StackExpression::BYTES(vopcode.value.unwrap())
             ),
             
             Opcode::DUP {depth} => self.dup(depth),
@@ -52,11 +74,11 @@ impl SymbolicStack {
                     if i < initial_len {
                         vec_symbolic_expr.push(self.pop());
                     } else {
-                        vec_symbolic_expr.push(SymbolicExpression::ARG(self.delta_max + i - initial_len + 1))
+                        vec_symbolic_expr.push(StackExpression::ARG(self.delta_max + i - initial_len + 1))
                     }
                 }
                 self.delta_max += local_delta;
-                self.push(SymbolicExpression::COMPOSE(opcode, vec_symbolic_expr))
+                self.push(StackExpression::COMPOSE(opcode, vec_symbolic_expr))
 
             }
         }

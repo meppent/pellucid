@@ -1,11 +1,7 @@
 use super::node::{Node, NodeRef};
 use crate::{
     bytecode_reader::vopcode::Vopcode,
-    create_blocks::{
-        simple_expression::SimpleExpression,
-        symbolic_expression::{SymbolicExpression, SymbolicStack},
-    },
-    tools::stack::Stack,
+    tools::stack::Stack, create_blocks::symbolic_expression::SymbolicStack, evm_old::simple_expression::SimpleExpression,
 };
 use std::{cell::RefCell, rc::Rc};
 
@@ -16,6 +12,18 @@ pub struct Block<'a> {
     delta_min: isize,
     nodes: Vec<Rc<RefCell<Node<'a>>>>,
     symbolic_stack: SymbolicStack,
+}
+
+impl<'a> Block<'a> {
+    pub fn new(code: &'a [Vopcode], delta: isize, delta_min: isize) -> Self {
+        return Block {
+            code,
+            delta,
+            delta_min,
+            nodes: vec![],
+            symbolic_stack: SymbolicStack::new(),
+        };
+    }
 }
 
 pub struct BlockRef<'a> {
@@ -41,13 +49,7 @@ impl<'a> Eq for BlockRef<'a> {}
 impl<'a> BlockRef<'a> {
     pub fn new(code: &'a [Vopcode], delta: isize, delta_min: isize) -> Self {
         return BlockRef {
-            inner: Rc::new(RefCell::new(Block {
-                code,
-                delta,
-                delta_min,
-                nodes: vec![],
-                symbolic_stack: SymbolicStack::new(),
-            })),
+            inner: Rc::new(RefCell::new(Block::new(code, delta, delta_min))),
         };
     }
 
