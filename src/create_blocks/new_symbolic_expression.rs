@@ -28,7 +28,7 @@ impl SymbolicExpression {
         return SymbolicExpression::new(StackExpression::BYTES(value), effect);
     }
 
-    pub fn new_compose(opcode: Opcode, args: Vec<StackExpression>, effect: Option<Rc<Effect>>) -> Self {
+    pub fn new_compose(opcode: Opcode, args: Vec<SymbolicExpression>, effect: Option<Rc<Effect>>) -> Self {
         return SymbolicExpression::new(StackExpression::COMPOSE(opcode, args), effect);
     }
 
@@ -40,7 +40,7 @@ impl SymbolicExpression {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum StackExpression {
     BYTES(U256),
-    COMPOSE(Opcode, Vec<StackExpression>),
+    COMPOSE(Opcode, Vec<SymbolicExpression>),
     ARG(usize),
 }
 
@@ -52,8 +52,7 @@ pub enum Effect {
 pub struct SymbolicBlock {
     symbolic_expressions: Stack<SymbolicExpression>,
     effects: Vec<Effect>,
-    delta: usize,
-    delta_max: usize,
+    n_args: usize,
 }
 
 impl SymbolicBlock {
@@ -61,8 +60,7 @@ impl SymbolicBlock {
         let mut symbolic_block: SymbolicBlock = SymbolicBlock {
             symbolic_expressions: Stack::new(),
             effects: Vec::new(),
-            delta: 0,
-            delta_max: 0,
+            n_args: 0,
         };
 
         for vopcode in code {
@@ -82,24 +80,28 @@ impl SymbolicBlock {
             Opcode::DUP { depth } => self.dup(depth),
 
             Opcode::SWAP { depth } => self.swap(depth),
+
             opcode => {
-                if !opcode.has_effect(){
+                if opcode.has_effect(){
 
                 }
                 else{
-                    let args = opcode.stack_input();
+
+                    let n_args = opcode.stack_input();
                     let initial_len = self.len();
-                    let local_delta = if args > self.len() {args - initial_len} else { 0 };
-                    let mut vec_symbolic_expr = Vec::new();
-                    for i in 0..args {
+                    let local_delta = if n_args > self.len() {n_args - initial_len} else { 0 };
+                    let mut symbolic_expressions: Vec<SymbolicExpression> = Vec::new();
+
+                    for i in 0..n_args {
                         if i < initial_len {
-                            vec_symbolic_expr.push(self.pop());
+                            symbolic_expressions.push(self.pop());
                         } else {
-                            vec_symbolic_expr.push(StackExpression::new_arg(self.delta_max + i - initial_len + 1, None))
+                            symbolic_expressions.push(SymbolicExpression::new_arg(self.n_args + i - initial_len + 1, None))
                         }
                     }
-                    self.delta_max += local_delta;
-                    self.push(SymbolicExpression::new_compose(opcode, vec_symbolic_expr, None))
+
+                    self.n_args += local_delta;
+                    self.push(SymbolicExpression::new_compose(opcode, symbolic_expressions, None))
     
                 }
             }
