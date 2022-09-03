@@ -2,11 +2,11 @@ use core::fmt::Debug;
 use std::hash::Hash;
 
 #[derive(Clone, Debug, Hash)]
-pub struct Stack<E: Clone + Debug + Hash> {
+pub struct Stack<E: Clone + Debug + Hash + PartialEq> {
     data: Vec<E>,
 }
 
-impl<E: Clone + Debug + Hash> Stack<E> {
+impl<E: Clone + Debug + Hash + PartialEq> Stack<E> {
     pub const fn new() -> Self {
         return Stack { data: Vec::new() };
     }
@@ -38,5 +38,11 @@ impl<E: Clone + Debug + Hash> Stack<E> {
 
     pub fn _get_data(&self) -> &Vec<E> {
         return &self.data;
+    }
+}
+
+impl<E: Clone + Debug + Hash + PartialEq> PartialEq for Stack<E> {
+    fn eq(&self, other: &Self) -> bool {
+        self.data == other.data
     }
 }

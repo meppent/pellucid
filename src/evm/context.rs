@@ -1,6 +1,4 @@
-use crate::bytecode_reader::vopcode::Vopcode;
 use crate::tools::stack::Stack;
-
 use super::execution_state::ExecutionState;
 use super::simple_expression::SimpleExpression;
 use core::fmt::Debug;

@@ -1,8 +1,11 @@
 use super::node::{Node, NodeRef};
 use crate::{
-    bytecode_reader::vopcode::Vopcode, 
+    bytecode_reader::vopcode::Vopcode,
+    evm::{
+        simple_expression::SimpleExpression,
+        symbolic_expression::{SymbolicExpression, SymbolicStack},
+    },
     tools::stack::Stack,
-    evm::simple_expression::{SymbolicExpression}
 };
 use std::{cell::RefCell, rc::Rc};
 
@@ -12,7 +15,7 @@ pub struct Block<'a> {
     delta: isize,
     delta_min: isize,
     nodes: Vec<Rc<RefCell<Node<'a>>>>,
-    effect: Stack<SymbolicExpression>,
+    symbolic_stack: SymbolicStack,
 }
 
 pub struct BlockRef<'a> {
@@ -43,6 +46,7 @@ impl<'a> BlockRef<'a> {
                 delta,
                 delta_min,
                 nodes: vec![],
+                symbolic_stack: SymbolicStack::from(&code),
             })),
         };
     }
