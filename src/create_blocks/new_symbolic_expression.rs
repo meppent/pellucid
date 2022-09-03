@@ -1,11 +1,11 @@
-use std::rc::Rc;
+use std::{rc::Rc, fs};
 
 use primitive_types::U256;
 
 use crate::{
     bytecode_reader::{
         opcode::{Opcode, self},
-        vopcode::Vopcode,
+        vopcode::Vopcode, bytecode::Bytecode,
     },
     tools::stack::Stack,
 };
@@ -48,7 +48,7 @@ pub enum StackExpression {
 pub enum Effect {
     COMPOSE(Opcode, Vec<SymbolicExpression>),
 }
-
+#[derive(Debug)]
 pub struct SymbolicBlock {
     symbolic_expressions: Stack<SymbolicExpression>,
     effects: Vec<Rc<Effect>>,
@@ -85,6 +85,11 @@ impl SymbolicBlock {
         return self.n_outputs as isize - self.n_args as isize;
     }
 
+    pub fn add_place_holder_on_stack(&mut self){
+        self._down_push(SymbolicExpression::new_arg(self.n_args + 1, None));
+        self.n_args += 1;
+    }
+
     pub fn add_vopcode(&mut self, vopcode: &Vopcode) {
         match vopcode.opcode {
             Opcode::PUSH { item_size: _ } => {
@@ -92,13 +97,26 @@ impl SymbolicBlock {
                     .push(SymbolicExpression::new_bytes(vopcode.value.unwrap(), None));
             }
 
-            Opcode::DUP { depth } => self.dup(depth),
-
-            Opcode::SWAP { depth } => self.swap(depth),
+            Opcode::DUP { depth } => {
+                if self.len() == 0 {
+                    self.add_place_holder_on_stack();
+                } 
+                self.dup(depth)
+            },
+            
+            Opcode::SWAP { depth } => {
+                while self.len() < depth + 1 {
+                    self.add_place_holder_on_stack();
+                }
+                self.swap(depth)
+            },
 
             Opcode::POP => {
+                if self.len() == 0 {
+                    self.add_place_holder_on_stack();
+                } 
                 self.pop();
-            }
+            },
 
             opcode => {
                 
@@ -107,6 +125,7 @@ impl SymbolicBlock {
                 let local_delta = if opcode_n_args > self.len() {opcode_n_args - initial_len} else { 0 };
                 let mut symbolic_expressions: Vec<SymbolicExpression> = Vec::new();
 
+                // IDEA ? use add_place_holder_on_stack here, to avoid complicated maths (self.n_args + i - initial_len + 1, and self.n_args += local_delta;)
                 for i in 0..opcode_n_args {
                     if i < initial_len {
                         symbolic_expressions.push(self.pop());
@@ -147,6 +166,11 @@ impl SymbolicBlock {
         self.symbolic_expressions.push(symbolic_expression);
     }
 
+    pub fn _down_push(&mut self, symbolic_expression: SymbolicExpression) {
+        // add an element at the beginning of the stack of symbolic_expressions
+        self.symbolic_expressions._down_push(symbolic_expression);
+    }
+
     pub fn peek(&self) -> &SymbolicExpression {
         return self.symbolic_expressions.peek();
     }
@@ -163,4 +187,17 @@ impl SymbolicBlock {
     }
 }
 
+
+#[test]
+pub fn test(){
+    let bytecode_string: String =
+            fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt")
+                .expect("Unable to read file.");
+    let bytecode: Bytecode = Bytecode::from(&bytecode_string);
+    let vopcodes = bytecode.slice_code(16, 25);
+    //dbg!(vopcodes);
+    let block = SymbolicBlock::from(vopcodes);
+    dbg!(block);
+    
+}
 

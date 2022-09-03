@@ -57,11 +57,11 @@ impl SymbolicStack {
                 StackExpression::BYTES(vopcode.value.unwrap())
             ),
             
-            Opcode::DUP {depth} => self.dup(depth),
+            Opcode::DUP {depth} => self.dup(depth),  //add by left side, or run through every opcode beforehand to know what args to push to the stack before the struct build
             
-            Opcode::SWAP {depth} => self.swap(depth),
+            Opcode::SWAP {depth} => self.swap(depth), //same
 
-            Opcode::POP => {
+            Opcode::POP => { //same
                 let _ = self.pop();
             },
                 
