@@ -1,7 +1,8 @@
 use super::node::{Node, NodeRef};
-use crate::evm::stack::Stack;
 use crate::{
-    bytecode_reader::vopcode::Vopcode, evm::expressions::sparse_expression::SparseExpression,
+    bytecode_reader::vopcode::Vopcode, 
+    tools::stack::Stack,
+    evm::simple_expression::{SymbolicExpression}
 };
 use std::{cell::RefCell, rc::Rc};
 
@@ -11,6 +12,7 @@ pub struct Block<'a> {
     delta: isize,
     delta_min: isize,
     nodes: Vec<Rc<RefCell<Node<'a>>>>,
+    effect: Stack<SymbolicExpression>,
 }
 
 pub struct BlockRef<'a> {
@@ -59,7 +61,7 @@ impl<'a> BlockRef<'a> {
         return self.inner.borrow().nodes.len();
     }
 
-    pub fn contains_initial_stack(&self, initial_stack: &Stack<SparseExpression>) -> bool {
+    pub fn contains_initial_stack(&self, initial_stack: &Stack<SimpleExpression>) -> bool {
         for node in self.get_nodes() {
             if &node.get_initial_context().stack == initial_stack {
                 return true;

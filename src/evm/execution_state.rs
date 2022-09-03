@@ -1,14 +1,18 @@
 use std::fmt::Debug;
 
-use super::expressions::expression::Expression;
-
+use super::simple_expression::SimpleExpression;
 
 #[derive(PartialEq, Clone, Debug, Hash)]
-pub enum ExecutionState<Expr: Expression> {
+pub enum ExecutionState {
     RUNNING,
     REVERT,
     RETURN,
     SELFDESTRUCT,
-    JUMP { dest: Expr },
-    JUMPI { dest: Expr, condition: Expr },
+    JUMP {
+        dest: SimpleExpression,
+    },
+    JUMPI {
+        dest: SimpleExpression,
+        condition: SimpleExpression,
+    },
 }

@@ -1,10 +1,10 @@
 use hex;
 use primitive_types::U256;
-use std::fmt;
-use std::collections::HashMap;
 use std::cmp;
+use std::collections::HashMap;
+use std::fmt;
 
-use crate::utils::remove_0x;
+use crate::tools::utils::remove_0x;
 
 use super::opcode::Opcode;
 use super::vopcode::Vopcode;
@@ -24,7 +24,6 @@ impl fmt::Display for Bytecode {
 }
 
 impl Bytecode {
-
     pub fn new() -> Self {
         return Bytecode {
             vopcodes: Vec::new(),
@@ -49,13 +48,18 @@ impl Bytecode {
 
             let mut item: Option<U256> = None;
 
-            if let Opcode::PUSH {item_size} = opcode {
+            if let Opcode::PUSH { item_size } = opcode {
                 let item_end = cmp::min(pc + item_size, bytecode_length);
                 item = Some(U256::from_big_endian(&vec_bytecode[pc..item_end]));
                 pc = item_end;
             }
 
-            bytecode.insert_vopcode(Vopcode::new(opcode, item, origin_line, pc >= bytecode_length));
+            bytecode.insert_vopcode(Vopcode::new(
+                opcode,
+                item,
+                origin_line,
+                pc >= bytecode_length,
+            ));
         }
 
         return bytecode;
@@ -92,15 +96,15 @@ pub fn stringify_vopcodes(vopcodes: &[Vopcode]) -> String {
     return res;
 }
 
-#[cfg(test)] 
+#[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
     use rand;
+    use std::fs;
 
     fn read_opcodes_file(path: &str) -> Bytecode {
-        let mut bytecode : Bytecode = Bytecode::new();
-        let opcodes_string : String = fs::read_to_string(path).expect("Unable to read file.");
+        let mut bytecode: Bytecode = Bytecode::new();
+        let opcodes_string: String = fs::read_to_string(path).expect("Unable to read file.");
         for opcode_line in opcodes_string.split("\n") {
             if let Some(vopcode) = Vopcode::from_string(opcode_line) {
                 bytecode.insert_vopcode(vopcode);
@@ -113,9 +117,12 @@ mod tests {
 
     #[test]
     fn test_bytecode_split_simple_contract() {
-        let bytecode_ref : Bytecode = read_opcodes_file("./assets/contracts/simple_contract/opcodes.txt");
-        let bytecode_string : String = fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt").expect("Unable to read file.");
-        let bytecode_test : Bytecode = Bytecode::from(&bytecode_string);
+        let bytecode_ref: Bytecode =
+            read_opcodes_file("./assets/contracts/simple_contract/opcodes.txt");
+        let bytecode_string: String =
+            fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt")
+                .expect("Unable to read file.");
+        let bytecode_test: Bytecode = Bytecode::from(&bytecode_string);
         assert_eq!(bytecode_ref, bytecode_test, "Bytecode mismatch");
     }
 
@@ -128,10 +135,7 @@ mod tests {
         let bytecode1 = hex::encode(random_vec);
         let mut bytecode2 = "0x".to_owned();
         bytecode2.push_str(&bytecode1);
-        assert_eq!(
-            Bytecode::from(&bytecode1),
-            Bytecode::from(&bytecode2)
-        );
+        assert_eq!(Bytecode::from(&bytecode1), Bytecode::from(&bytecode2));
     }
 
     #[test]

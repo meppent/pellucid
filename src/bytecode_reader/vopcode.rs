@@ -1,5 +1,6 @@
+use crate::tools::utils::u256_to_hex;
+
 use super::opcode::Opcode;
-use crate::utils::u256_to_hex;
 use primitive_types::U256;
 use std::fmt;
 

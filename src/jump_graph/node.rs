@@ -1,12 +1,14 @@
 use super::block::{Block, BlockRef};
-use crate::evm::{context::Context, expressions::sparse_expression::SparseExpression};
-use crate::utils::calculate_hash;
+use crate::{
+    evm::{context::Context, expressions::sparse_expression::SimpleExpression},
+    tools::utils::calculate_hash,
+};
 use std::{cell::RefCell, rc::Rc};
 
 #[derive(Debug)]
 pub struct Node<'a> {
-    initial_context: Context<SparseExpression>,
-    final_context: Context<SparseExpression>,
+    initial_context: Context<SimpleExpression>,
+    final_context: Context<SimpleExpression>,
     block: Rc<RefCell<Block<'a>>>,
     parents: Vec<Rc<RefCell<Node<'a>>>>,
     children: Vec<Rc<RefCell<Node<'a>>>>,
@@ -37,8 +39,8 @@ impl<'a> Eq for NodeRef<'a> {}
 impl<'a> NodeRef<'a> {
     pub fn new(
         block: Rc<RefCell<Block<'a>>>,
-        initial_context: Context<SparseExpression>,
-        final_context: Context<SparseExpression>,
+        initial_context: Context<SimpleExpression>,
+        final_context: Context<SimpleExpression>,
     ) -> Self {
         return NodeRef {
             inner: Rc::new(RefCell::new(Node {
@@ -54,8 +56,8 @@ impl<'a> NodeRef<'a> {
     pub fn create_with_neighbors(
         &self,
         block: Rc<RefCell<Block<'a>>>,
-        initial_context: Context<SparseExpression>,
-        final_context: Context<SparseExpression>,
+        initial_context: Context<SimpleExpression>,
+        final_context: Context<SimpleExpression>,
         parents: Vec<NodeRef<'a>>,
         children: Vec<NodeRef<'a>>,
     ) -> Self {
@@ -75,11 +77,11 @@ impl<'a> NodeRef<'a> {
         };
     }
 
-    pub fn get_initial_context(&self) -> Context<SparseExpression> {
+    pub fn get_initial_context(&self) -> Context<SimpleExpression> {
         return self.inner.borrow().initial_context.clone();
     }
 
-    pub fn get_final_context(&self) -> Context<SparseExpression> {
+    pub fn get_final_context(&self) -> Context<SimpleExpression> {
         return self.inner.borrow().final_context.clone();
     }
 

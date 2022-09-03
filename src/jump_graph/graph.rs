@@ -1,12 +1,7 @@
-use crate::bytecode_reader::opcode::Opcode;
-use crate::bytecode_reader::{bytecode::Bytecode, vopcode::Vopcode};
-use crate::evm::stack::Stack;
 use std::collections::{HashMap, HashSet};
-use std::{cell::RefCell, rc::Rc};
 extern crate queues;
-use super::block::{Block, BlockRef};
-use super::node::{Node, NodeRef};
-use queues::*;
+use super::block::BlockRef;
+use super::node::NodeRef;
 
 struct Graph<'a> {
     pub blocks: HashMap<usize, BlockRef<'a>>,
@@ -54,5 +49,4 @@ impl<'a> Graph<'a> {
             fun_after(node.clone());
         }
     }
-
 }
