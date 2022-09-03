@@ -96,11 +96,14 @@ impl SymbolicBlock {
                     }
                 }
                 self.n_args += local_delta;
-                
-                let effect: Option<Rc<Effect>> = if opcode.has_effect(){
-                    Effect::COMPOSE(opcode, ())
+
+                let effect: Option<Rc<Effect>>;
+                if opcode.has_effect(){
+                    let effect_ref = Rc::new(Effect::COMPOSE(opcode, symbolic_expressions.clone()));
+                    effect = Some(Rc::clone(&effect_ref));
+                    self.effects.push(Rc::clone(&effect_ref));
                 }else{
-                    None
+                    effect = None;
                 };
 
                 if opcode.stack_output() > 0 {
@@ -108,8 +111,8 @@ impl SymbolicBlock {
                 }
                 }
             }
-        }
     }
+    
 
     pub fn len(&self) -> usize {
         return self.symbolic_expressions.len();
