@@ -46,7 +46,7 @@ impl<'a> BlockRef<'a> {
                 delta,
                 delta_min,
                 nodes: vec![],
-                symbolic_stack: SymbolicStack::from(&code),
+                symbolic_stack: SymbolicStack::new(),
             })),
         };
     }

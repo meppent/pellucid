@@ -32,8 +32,8 @@ impl<E: Clone + Debug + Hash + PartialEq> Stack<E> {
         self.push(self.data[self.len() - n].clone());
     }
 
-    pub fn peek(&self) -> E {
-        return self.data[self.len() - 1].clone();
+    pub fn peek(&self) -> &E {
+        return &self.data[self.len() - 1];
     }
 
     pub fn _get_data(&self) -> &Vec<E> {
