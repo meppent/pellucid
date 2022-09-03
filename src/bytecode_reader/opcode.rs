@@ -121,7 +121,7 @@ impl Opcode {
                 name: "PUSH".to_owned(),
                 stack_input: 0,
                 stack_output: 0,
-                external_effect: false,
+                external_effect: true,
             },
             Opcode::ADD => OpcodeInfo {
                 code: 0x01,
@@ -657,7 +657,7 @@ impl Opcode {
                 name: "RETURN".to_owned(),
                 stack_input: 2,
                 stack_output: 0,
-                external_effect: false,
+                external_effect: true,
             },
             Opcode::DELEGATECALL => OpcodeInfo {
                 code: 0xf4,
@@ -685,14 +685,14 @@ impl Opcode {
                 name: "REVERT".to_owned(),
                 stack_input: 2,
                 stack_output: 0,
-                external_effect: false,
+                external_effect: true,
             },
             Opcode::SELFDESTRUCT => OpcodeInfo {
                 code: 0xff,
                 name: "SELFDESTRUCT".to_owned(),
                 stack_input: 1,
                 stack_output: 0,
-                external_effect: false,
+                external_effect: true,
             },
             Opcode::INVALID { code } => OpcodeInfo {
                 code: *code,

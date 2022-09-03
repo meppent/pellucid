@@ -4,8 +4,8 @@ use primitive_types::U256;
 
 use crate::{
     bytecode_reader::{
-        opcode::Opcode,
-        vopcode::{self, Vopcode},
+        opcode::{Opcode, self},
+        vopcode::Vopcode,
     },
     tools::stack::Stack,
 };
@@ -67,8 +67,17 @@ impl SymbolicBlock {
 
         for vopcode in code {
             symbolic_block.add_vopcode(vopcode);
+
+            // TODO remove when tests are set up
+            if vopcode.opcode.is_exiting() || vopcode.opcode.is_jump() {
+                assert!(vopcode.pc == code[code.len()-1].pc);
+            }
+
         }
         symbolic_block.n_outputs = symbolic_block.len() + symbolic_block.n_args;
+
+        
+
         return symbolic_block;
     }
 
@@ -122,6 +131,7 @@ impl SymbolicBlock {
                 }
                 }
             }
+            
     }
     
 
@@ -152,3 +162,5 @@ impl SymbolicBlock {
         self.symbolic_expressions.push(to_change);
     }
 }
+
+
