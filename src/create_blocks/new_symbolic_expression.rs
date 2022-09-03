@@ -46,12 +46,12 @@ pub enum StackExpression {
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Effect {
-    COMPOSE(Opcode, Vec<StackExpression>),
+    COMPOSE(Opcode, Vec<SymbolicExpression>),
 }
 
 pub struct SymbolicBlock {
     symbolic_expressions: Stack<SymbolicExpression>,
-    effects: Vec<Effect>,
+    effects: Vec<Rc<Effect>>,
     n_args: usize,
 }
 
@@ -82,11 +82,13 @@ impl SymbolicBlock {
             Opcode::SWAP { depth } => self.swap(depth),
 
             opcode => {
-                if opcode.has_effect(){
 
-                }
-                else{
-
+                let effect: Option<Rc<Effect>> = if opcode.has_effect(){
+                    Effect::COMPOSE(opcode, ())
+                }else{
+                    None
+                };
+                if opcode.stack_output() > 0 {
                     let n_args = opcode.stack_input();
                     let initial_len = self.len();
                     let local_delta = if n_args > self.len() {n_args - initial_len} else { 0 };
@@ -99,10 +101,10 @@ impl SymbolicBlock {
                             symbolic_expressions.push(SymbolicExpression::new_arg(self.n_args + i - initial_len + 1, None))
                         }
                     }
-
                     self.n_args += local_delta;
-                    self.push(SymbolicExpression::new_compose(opcode, symbolic_expressions, None))
-    
+                    if opcode.stack_output() > 0 {
+                        self.push(SymbolicExpression::new_compose(opcode, symbolic_expressions, effect))
+                    }
                 }
             }
         }
