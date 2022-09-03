@@ -1,17 +1,12 @@
-use super::expression::Expression;
 use core::fmt::Debug;
 use std::hash::Hash;
 
 #[derive(Clone, Debug, Hash)]
-pub struct Stack<E: Clone+ Debug+ Hash> {
+pub struct Stack<E: Clone + Debug + Hash> {
     data: Vec<E>,
 }
 
-trait StackEqual{
-    fn stack_equals<E>(stack_0: Stack<E>, stack_1: Stack<E>)->bool;
-}
-
-impl<E: Clone + Debug + Hash> Stack<E>{
+impl<E: Clone + Debug + Hash> Stack<E> {
     pub const fn new() -> Self {
         return Stack { data: Vec::new() };
     }
@@ -41,20 +36,11 @@ impl<E: Clone + Debug + Hash> Stack<E>{
         return self.data[self.len() - 1].clone();
     }
 
-    pub fn equals_on_bytes(&self, other: &Self) -> bool {
-        if self.data.len() != other.data.len() {
-            return false;
-        }
-        for index in 0..self.len() {
-            if let (Expression::VALUE(value0), Expression::VALUE(value1)) =
-                (&self.data[index], &other.data[index])
-            {
-                if value0 != value1 {
-                    return false;
-                }
-            }
-        }
+    pub fn peek_at(&self, index: usize) -> E {
+        return self.data[index].clone();
+    }
 
-        return true;
+    pub fn _get_data(&self) -> &Vec<E> {
+        return &self.data;
     }
 }

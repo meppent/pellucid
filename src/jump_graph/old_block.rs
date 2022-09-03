@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 
 use crate::bytecode_reader::opcode::Opcode;
-use crate::bytecode_reader:: vopcode::Vopcode;
+use crate::bytecode_reader::vopcode::Vopcode;
 use crate::evm::context::Context;
-use crate::evm::expression::Expression;
+use crate::evm::optional_push::Expression;
 use crate::evm::state::ExecutionState;
-use crate::utils:: usize_to_hex;
+use crate::utils::usize_to_hex;
 
 #[derive(Clone, Copy, Hash, Eq, PartialEq)]
 pub enum Position {
@@ -58,23 +58,23 @@ impl<'a> Block<'a> {
             delta_min,
         };
     }
-    
+
     pub fn get_pc_start(&self) -> usize {
         return self.code[0].pc;
     }
-    
+
     pub fn get_pc_end(&self) -> usize {
         return self.code[self.code.len() - 1].pc;
     }
-    
+
     pub fn get_last_vopcode(&self) -> Vopcode {
         return self.code[self.code.len() - 1];
     }
-    
+
     pub fn get_first_vopcode(&self) -> Vopcode {
         return self.code[0];
     }
-    
+
     pub fn get_input_size(&self) -> isize {
         return self.delta_min;
     }
@@ -82,7 +82,7 @@ impl<'a> Block<'a> {
     pub fn get_output_size(&self) -> isize {
         return self.delta - self.delta_min;
     }
-    
+
     pub fn get_n_initial_contexts(&self) -> usize {
         return self.contexts.len();
     }
@@ -105,11 +105,11 @@ impl<'a> Block<'a> {
     pub fn get_next_dests(&self, final_state: &ExecutionState) -> Vec<usize> {
         let mut next_jump_dests: Vec<usize> = vec![];
         match final_state {
-            ExecutionState::JUMP(Expression::VALUE(jump_dest)) => {
+            ExecutionState::JUMP(Expression::PUSH(jump_dest)) => {
                 next_jump_dests.push(jump_dest.as_usize());
             }
             ExecutionState::JUMPI(dest_expr, _) => {
-                if let Expression::VALUE(jump_dest) = dest_expr {
+                if let Expression::PUSH(jump_dest) = dest_expr {
                     next_jump_dests.push(jump_dest.as_usize());
                 }
                 next_jump_dests.push(self.get_pc_end() + 1); // TODO handle when JUMPI is the last opcode of the whole bytecode
