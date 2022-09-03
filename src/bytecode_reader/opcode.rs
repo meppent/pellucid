@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, PartialEq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum Opcode {
     // 0x0 range - arithmetic ops.
     STOP,
@@ -135,57 +135,57 @@ impl Opcode {
             },
             Opcode::SUB => OpcodeInfo {
                 code: 0x03,
-                name : "SUB".to_owned(),
+                name: "SUB".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::DIV => OpcodeInfo {
                 code: 0x04,
-                name : "DIV".to_owned(),
+                name: "DIV".to_owned(),
 
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::SDIV => OpcodeInfo {
                 code: 0x05,
-                name : "SDIV".to_owned(),
+                name: "SDIV".to_owned(),
 
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::MOD => OpcodeInfo {
                 code: 0x06,
-                name : "MOD".to_owned(),
+                name: "MOD".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::SMOD => OpcodeInfo {
                 code: 0x07,
-                name : "SMOD".to_owned(),
+                name: "SMOD".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::ADDMOD => OpcodeInfo {
                 code: 0x08,
-                name : "ADDMOD".to_owned(),
+                name: "ADDMOD".to_owned(),
                 stack_input: 3,
                 stack_output: 1,
             },
             Opcode::MULMOD => OpcodeInfo {
                 code: 0x09,
-                name : "MULMOD".to_owned(),
+                name: "MULMOD".to_owned(),
                 stack_input: 3,
                 stack_output: 1,
             },
             Opcode::EXP => OpcodeInfo {
                 code: 0x0a,
-                name : "EXP".to_owned(),
+                name: "EXP".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::SIGNEXTEND => OpcodeInfo {
                 code: 0x0b,
-                name : "SIGNEXTEND".to_owned(),
+                name: "SIGNEXTEND".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
@@ -193,85 +193,85 @@ impl Opcode {
             // 0x10 range - comparison ops.
             Opcode::LT => OpcodeInfo {
                 code: 0x10,
-                name : "LT".to_owned(),
+                name: "LT".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::GT => OpcodeInfo {
                 code: 0x11,
-                name : "GT".to_owned(),
+                name: "GT".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::SLT => OpcodeInfo {
                 code: 0x12,
-                name : "SLT".to_owned(),
+                name: "SLT".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::SGT => OpcodeInfo {
                 code: 0x13,
-                name : "SGT".to_owned(),
+                name: "SGT".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::EQ => OpcodeInfo {
                 code: 0x14,
-                name : "EQ".to_owned(),
+                name: "EQ".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::ISZERO => OpcodeInfo {
                 code: 0x15,
-                name : "ISZERO".to_owned(),
+                name: "ISZERO".to_owned(),
                 stack_input: 1,
                 stack_output: 1,
             },
             Opcode::AND => OpcodeInfo {
                 code: 0x16,
-                name : "AND".to_owned(),
+                name: "AND".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::OR => OpcodeInfo {
                 code: 0x17,
-                name : "OR".to_owned(),
+                name: "OR".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::XOR => OpcodeInfo {
                 code: 0x17,
-                name : "XOR".to_owned(),
+                name: "XOR".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::NOT => OpcodeInfo {
                 code: 0x19,
-                name : "NOT".to_owned(),
+                name: "NOT".to_owned(),
                 stack_input: 1,
                 stack_output: 1,
             },
             Opcode::BYTE => OpcodeInfo {
                 code: 0x1a,
-                name : "BYTE".to_owned(),
+                name: "BYTE".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::SHL => OpcodeInfo {
                 code: 0x1b,
-                name : "SHL".to_owned(),
+                name: "SHL".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::SHR => OpcodeInfo {
                 code: 0x1c,
-                name : "SHR".to_owned(),
+                name: "SHR".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::SAR => OpcodeInfo {
                 code: 0x1d,
-                name : "SAR".to_owned(),
+                name: "SAR".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
@@ -279,7 +279,7 @@ impl Opcode {
             // 0x20 range - crypto.
             Opcode::SHA3 => OpcodeInfo {
                 code: 0x20,
-                name : "SHA3".to_owned(),
+                name: "SHA3".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
@@ -287,97 +287,97 @@ impl Opcode {
             // 0x30 range - closure state.
             Opcode::ADDRESS => OpcodeInfo {
                 code: 0x20,
-                name : "ADDRESS".to_owned(),
+                name: "ADDRESS".to_owned(),
                 stack_input: 2,
                 stack_output: 1,
             },
             Opcode::BALANCE => OpcodeInfo {
                 code: 0x31,
-                name : "BALANCE".to_owned(),
+                name: "BALANCE".to_owned(),
                 stack_input: 1,
                 stack_output: 1,
             },
             Opcode::ORIGIN => OpcodeInfo {
                 code: 0x32,
-                name : "ORIGIN".to_owned(),
+                name: "ORIGIN".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::CALLER => OpcodeInfo {
                 code: 0x33,
-                name : "CALLER".to_owned(),
+                name: "CALLER".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::CALLVALUE => OpcodeInfo {
                 code: 0x34,
-                name : "CALLVALUE".to_owned(),
+                name: "CALLVALUE".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::CALLDATALOAD => OpcodeInfo {
                 code: 0x35,
-                name : "CALLDATALOAD".to_owned(),
+                name: "CALLDATALOAD".to_owned(),
                 stack_input: 1,
                 stack_output: 1,
             },
             Opcode::CALLDATASIZE => OpcodeInfo {
                 code: 0x36,
-                name : "CALLDATASIZE".to_owned(),
+                name: "CALLDATASIZE".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::CALLDATACOPY => OpcodeInfo {
                 code: 0x37,
-                name : "CALLDATACOPY".to_owned(),
+                name: "CALLDATACOPY".to_owned(),
                 stack_input: 3,
                 stack_output: 0,
             },
             Opcode::CODESIZE => OpcodeInfo {
                 code: 0x38,
-                name : "CODESIZE".to_owned(),
+                name: "CODESIZE".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::CODECOPY => OpcodeInfo {
                 code: 0x39,
-                name : "CODECOPY".to_owned(),
+                name: "CODECOPY".to_owned(),
                 stack_input: 3,
                 stack_output: 0,
             },
             Opcode::GASPRICE => OpcodeInfo {
                 code: 0x3a,
-                name : "GASPRICE".to_owned(),
+                name: "GASPRICE".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::EXTCODESIZE => OpcodeInfo {
                 code: 0x3b,
-                name : "EXTCODESIZE".to_owned(),
+                name: "EXTCODESIZE".to_owned(),
                 stack_input: 1,
                 stack_output: 1,
             },
             Opcode::EXTCODECOPY => OpcodeInfo {
                 code: 0x3c,
-                name : "EXTCODECOPY".to_owned(),
+                name: "EXTCODECOPY".to_owned(),
                 stack_input: 4,
                 stack_output: 0,
             },
             Opcode::RETURNDATASIZE => OpcodeInfo {
                 code: 0x3d,
-                name : "RETURNDATASIZE".to_owned(),
+                name: "RETURNDATASIZE".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::RETURNDATACOPY => OpcodeInfo {
                 code: 0x3e,
-                name : "RETURNDATACOPY".to_owned(),
+                name: "RETURNDATACOPY".to_owned(),
                 stack_input: 3,
                 stack_output: 0,
             },
             Opcode::EXTCODEHASH => OpcodeInfo {
                 code: 0x3f,
-                name : "EXTCODEHASH".to_owned(),
+                name: "EXTCODEHASH".to_owned(),
                 stack_input: 1,
                 stack_output: 1,
             },
@@ -385,55 +385,55 @@ impl Opcode {
             // 0x40 range - block operations.
             Opcode::BLOCKHASH => OpcodeInfo {
                 code: 0x40,
-                name : "BLOCKHASH".to_owned(),
+                name: "BLOCKHASH".to_owned(),
                 stack_input: 1,
                 stack_output: 1,
             },
             Opcode::COINBASE => OpcodeInfo {
                 code: 0x41,
-                name : "COINBASE".to_owned(),
+                name: "COINBASE".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::TIMESTAMP => OpcodeInfo {
                 code: 0x42,
-                name : "TIMESTAMP".to_owned(),
+                name: "TIMESTAMP".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::NUMBER => OpcodeInfo {
                 code: 0x43,
-                name : "NUMBER".to_owned(),
+                name: "NUMBER".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::DIFFICULTY => OpcodeInfo {
                 code: 0x44,
-                name : "DIFFICULTY".to_owned(),
+                name: "DIFFICULTY".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::GASLIMIT => OpcodeInfo {
                 code: 0x45,
-                name : "GASLIMIT".to_owned(),
+                name: "GASLIMIT".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::CHAINID => OpcodeInfo {
                 code: 0x46,
-                name : "CHAINID".to_owned(),
+                name: "CHAINID".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::SELFBALANCE => OpcodeInfo {
                 code: 0x47,
-                name : "SELFBALANCE".to_owned(),
+                name: "SELFBALANCE".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::BASEFEE => OpcodeInfo {
                 code: 0x48,
-                name : "BASEFEE".to_owned(),
+                name: "BASEFEE".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
@@ -441,73 +441,73 @@ impl Opcode {
             // 0x50 range - 'storage' and execution.
             Opcode::POP => OpcodeInfo {
                 code: 0x50,
-                name : "POP".to_owned(),
+                name: "POP".to_owned(),
                 stack_input: 1,
                 stack_output: 0,
             },
             Opcode::MLOAD => OpcodeInfo {
                 code: 0x51,
-                name : "MLOAD".to_owned(),
+                name: "MLOAD".to_owned(),
                 stack_input: 1,
                 stack_output: 1,
             },
             Opcode::MSTORE => OpcodeInfo {
                 code: 0x52,
-                name : "MSTORE".to_owned(),
+                name: "MSTORE".to_owned(),
                 stack_input: 2,
                 stack_output: 0,
             },
             Opcode::MSTORE8 => OpcodeInfo {
                 code: 0x53,
-                name : "MSTORE8".to_owned(),
+                name: "MSTORE8".to_owned(),
                 stack_input: 2,
                 stack_output: 0,
             },
             Opcode::SLOAD => OpcodeInfo {
                 code: 0x54,
-                name : "SLOAD".to_owned(),
+                name: "SLOAD".to_owned(),
                 stack_input: 1,
                 stack_output: 1,
             },
             Opcode::SSTORE => OpcodeInfo {
                 code: 0x55,
-                name : "SSTORE".to_owned(),
+                name: "SSTORE".to_owned(),
                 stack_input: 2,
                 stack_output: 0,
             },
             Opcode::JUMP => OpcodeInfo {
                 code: 0x56,
-                name : "JUMP".to_owned(),
+                name: "JUMP".to_owned(),
                 stack_input: 1,
                 stack_output: 0,
             },
             Opcode::JUMPI => OpcodeInfo {
                 code: 0x57,
-                name : "JUMPI".to_owned(),
+                name: "JUMPI".to_owned(),
                 stack_input: 2,
                 stack_output: 0,
             },
             Opcode::PC => OpcodeInfo {
                 code: 0x58,
-                name : "PC".to_owned(),
+                name: "PC".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::MSIZE => OpcodeInfo {
                 code: 0x59,
-                name : "MSIZE".to_owned(),
+                name: "MSIZE".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::GAS => OpcodeInfo {
                 code: 0x5a,
-                name : "GAS".to_owned(),
+                name: "GAS".to_owned(),
                 stack_input: 0,
                 stack_output: 1,
             },
             Opcode::JUMPDEST => OpcodeInfo {
                 code: 0x5b,
-                name : "JUMPDEST".to_owned(),
+                name: "JUMPDEST".to_owned(),
                 stack_input: 0,
                 stack_output: 0,
             },
@@ -522,7 +522,7 @@ impl Opcode {
                     stack_input: 0,
                     stack_output: 1,
                 }
-            },
+            }
 
             // 0x80 range - dups.
             Opcode::DUP { depth } => {
@@ -534,7 +534,7 @@ impl Opcode {
                     stack_input: *depth,
                     stack_output: depth + 1,
                 }
-            },
+            }
 
             // 0x90 range - swaps.
             Opcode::SWAP { depth } => {
@@ -546,7 +546,7 @@ impl Opcode {
                     stack_input: *depth,
                     stack_output: *depth,
                 }
-            },
+            }
 
             // 0xa0 range - logging ops.
             Opcode::LOG { topic_count } => {
@@ -558,67 +558,67 @@ impl Opcode {
                     stack_input: topic_count + 2,
                     stack_output: 0,
                 }
-            },
+            }
 
             // 0xf0 range - closures.
             Opcode::CREATE => OpcodeInfo {
                 code: 0xf0,
-                name : "CREATE".to_owned(),
+                name: "CREATE".to_owned(),
                 stack_input: 3,
                 stack_output: 1,
             },
 
             Opcode::CALL => OpcodeInfo {
                 code: 0xf1,
-                name : "CALL".to_owned(),
+                name: "CALL".to_owned(),
                 stack_input: 7,
                 stack_output: 1,
             },
             Opcode::CALLCODE => OpcodeInfo {
                 code: 0xf2,
-                name : "CALLCODE".to_owned(),
+                name: "CALLCODE".to_owned(),
                 stack_input: 7,
                 stack_output: 1,
             },
             Opcode::RETURN => OpcodeInfo {
                 code: 0xf3,
-                name : "RETURN".to_owned(),
+                name: "RETURN".to_owned(),
                 stack_input: 2,
                 stack_output: 0,
             },
             Opcode::DELEGATECALL => OpcodeInfo {
                 code: 0xf4,
-                name : "DELEGATECALL".to_owned(),
+                name: "DELEGATECALL".to_owned(),
                 stack_input: 6,
                 stack_output: 0,
             },
             Opcode::CREATE2 => OpcodeInfo {
                 code: 0xf5,
-                name : "CREATE2".to_owned(),
+                name: "CREATE2".to_owned(),
                 stack_input: 4,
                 stack_output: 1,
             },
             Opcode::STATICCALL => OpcodeInfo {
                 code: 0xfa,
-                name : "STATICCALL".to_owned(),
+                name: "STATICCALL".to_owned(),
                 stack_input: 6,
                 stack_output: 1,
             },
             Opcode::REVERT => OpcodeInfo {
                 code: 0xfd,
-                name : "REVERT".to_owned(),
+                name: "REVERT".to_owned(),
                 stack_input: 2,
                 stack_output: 0,
             },
             Opcode::SELFDESTRUCT => OpcodeInfo {
                 code: 0xff,
-                name : "SELFDESTRUCT".to_owned(),
+                name: "SELFDESTRUCT".to_owned(),
                 stack_input: 1,
                 stack_output: 0,
             },
             Opcode::INVALID { code } => OpcodeInfo {
                 code: *code,
-                name : "INVALID".to_owned(),
+                name: "INVALID".to_owned(),
                 stack_input: 0,
                 stack_output: 0,
             },
@@ -660,7 +660,7 @@ impl Opcode {
             _ => false,
         }
     }
-    
+
     pub fn is_dup(&self) -> bool {
         match self {
             Self::DUP { depth: _ } => true,
@@ -674,7 +674,7 @@ impl Opcode {
             _ => false,
         }
     }
-    
+
     pub fn is_invalid(&self) -> bool {
         match self {
             Self::INVALID { code: _ } => true,
@@ -697,7 +697,7 @@ impl Opcode {
     }
 
     pub fn delta(&self) -> isize {
-        return self.stack_output() as isize- self.stack_input() as isize;
+        return self.stack_output() as isize - self.stack_input() as isize;
     }
 
     pub fn from(code: u8) -> Opcode {

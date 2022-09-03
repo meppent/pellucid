@@ -89,15 +89,15 @@ impl SymbolicStack {
         self.inner.len()
     }
 
-    pub fn peek(&self) -> &SymbolicExpression {
+    pub fn peek(&self) -> &StackExpression {
         self.inner.peek()
     }
 
-    pub fn pop(&mut self) -> SymbolicExpression {
+    pub fn pop(&mut self) -> StackExpression {
         self.inner.pop()
     }
 
-    pub fn push(&mut self, expr: SymbolicExpression) {
+    pub fn push(&mut self, expr: StackExpression) {
         self.inner.push(expr)
     }
 

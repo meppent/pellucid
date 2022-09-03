@@ -1,9 +1,22 @@
 use std::collections::HashMap;
 
-use crate::bytecode_reader::{bytecode::Bytecode, opcode::Opcode};
+use crate::{
+    bytecode_reader::{bytecode::Bytecode, opcode::Opcode},
+    create_graph::block::Block,
+};
 
-fn find_blocks(bytecode: &Bytecode) {
-    let blocks: HashMap<usize, Block<'a>> = HashMap::new();
+fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
+    let mut blocks: HashMap<usize, Block<'a>> = HashMap::new();
+
+    let mut insert_block =
+        |pc_start: usize, pc_end: usize, delta: &mut isize, delta_min: &mut isize| {
+            blocks.insert(
+                pc_start,
+                Block::new(bytecode.slice_code(pc_start, pc_end), *delta, *delta_min),
+            );
+            (*delta, *delta_min) = (0, 0);
+        };
+
     let mut pc_start: Option<usize> = Some(0);
     let mut previous_pc: usize = 0;
     let mut delta: isize = 0;
@@ -22,31 +35,14 @@ fn find_blocks(bytecode: &Bytecode) {
                 delta_min = delta_min.min(delta);
 
                 if vopcode.is_last || opcode.is_exiting() || opcode == Opcode::JUMP {
-                    self.insert_connected_block(
-                        bytecode,
-                        pc_start_,
-                        pc,
-                        &mut delta,
-                        &mut delta_min,
-                    );
+                    //blocks.insert(pc_start_, Block::new(code, delta, delta_min))
+                    insert_block(pc_start_, pc, &mut delta, &mut delta_min);
                     pc_start = None;
                 } else if opcode == Opcode::JUMPI {
-                    self.insert_connected_block(
-                        bytecode,
-                        pc_start_,
-                        pc,
-                        &mut delta,
-                        &mut delta_min,
-                    );
+                    insert_block(pc_start_, pc, &mut delta, &mut delta_min);
                     pc_start = Some(pc + 1);
                 } else if opcode == Opcode::JUMPDEST {
-                    self.insert_connected_block(
-                        bytecode,
-                        pc_start_,
-                        previous_pc,
-                        &mut delta,
-                        &mut delta_min,
-                    );
+                    insert_block(pc_start_, previous_pc, &mut delta, &mut delta_min);
                     pc_start = Some(pc);
                 }
             }
@@ -59,4 +55,5 @@ fn find_blocks(bytecode: &Bytecode) {
         };
         previous_pc = pc;
     }
+    return blocks;
 }
