@@ -82,29 +82,30 @@ impl SymbolicBlock {
             Opcode::SWAP { depth } => self.swap(depth),
 
             opcode => {
+                
+                let n_args = opcode.stack_input();
+                let initial_len = self.len();
+                let local_delta = if n_args > self.len() {n_args - initial_len} else { 0 };
+                let mut symbolic_expressions: Vec<SymbolicExpression> = Vec::new();
 
+                for i in 0..n_args {
+                    if i < initial_len {
+                        symbolic_expressions.push(self.pop());
+                    } else {
+                        symbolic_expressions.push(SymbolicExpression::new_arg(self.n_args + i - initial_len + 1, None))
+                    }
+                }
+                self.n_args += local_delta;
+                
                 let effect: Option<Rc<Effect>> = if opcode.has_effect(){
                     Effect::COMPOSE(opcode, ())
                 }else{
                     None
                 };
-                if opcode.stack_output() > 0 {
-                    let n_args = opcode.stack_input();
-                    let initial_len = self.len();
-                    let local_delta = if n_args > self.len() {n_args - initial_len} else { 0 };
-                    let mut symbolic_expressions: Vec<SymbolicExpression> = Vec::new();
 
-                    for i in 0..n_args {
-                        if i < initial_len {
-                            symbolic_expressions.push(self.pop());
-                        } else {
-                            symbolic_expressions.push(SymbolicExpression::new_arg(self.n_args + i - initial_len + 1, None))
-                        }
-                    }
-                    self.n_args += local_delta;
-                    if opcode.stack_output() > 0 {
-                        self.push(SymbolicExpression::new_compose(opcode, symbolic_expressions, effect))
-                    }
+                if opcode.stack_output() > 0 {
+                    self.push(SymbolicExpression::new_compose(opcode, symbolic_expressions, effect))
+                }
                 }
             }
         }
