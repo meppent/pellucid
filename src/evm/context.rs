@@ -1,9 +1,8 @@
-use super::expression::Expression;
+use super::expressions::expression::Expression;
 use super::stack::Stack;
-use super::state::ExecutionState;
-use crate::bytecode_reader::{opcode::Opcode, vopcode::Vopcode};
+use super::execution_state::ExecutionState;
 use core::fmt::Debug;
-use std::{hash::Hash, vec};
+use std::hash::Hash;
 
 #[derive(Clone, Debug, Hash)]
 pub struct Context<Expr: Expression + Hash + Debug + Clone> {

@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
-use super::expression::Expression;
+use super::expressions::expression::Expression;
+
 
 #[derive(PartialEq, Clone, Debug, Hash)]
 pub enum ExecutionState<Expr: Expression> {
