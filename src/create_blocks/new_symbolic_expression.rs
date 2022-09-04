@@ -50,7 +50,7 @@ pub enum Effect {
 }
 #[derive(Debug)]
 pub struct SymbolicBlock {
-    symbolic_expressions: Stack<SymbolicExpression>,
+    stack: Stack<SymbolicExpression>,
     effects: Vec<Rc<Effect>>,
     impact: SymbolicExpression,
     n_args: usize,
@@ -60,7 +60,7 @@ pub struct SymbolicBlock {
 impl SymbolicBlock {
     pub fn from(code: &[Vopcode]) -> Self {
         let mut symbolic_block: SymbolicBlock = SymbolicBlock {
-            symbolic_expressions: Stack::new(),
+            stack: Stack::new(),
             effects: Vec::new(),
             impact: SymbolicExpression::new(StackExpression::BYTES(U256::zero()), None),
             n_args: 0,
@@ -95,7 +95,7 @@ impl SymbolicBlock {
     pub fn add_vopcode(&mut self, vopcode: &Vopcode) {
         match vopcode.opcode {
             Opcode::PUSH { item_size: _ } => {
-                self.symbolic_expressions
+                self.stack
                     .push(SymbolicExpression::new_bytes(vopcode.value.unwrap(), None));
             }
 
@@ -160,35 +160,35 @@ impl SymbolicBlock {
     
 
     pub fn len(&self) -> usize {
-        return self.symbolic_expressions.len();
+        return self.stack.len();
     }
 
     pub fn pop(&mut self) -> SymbolicExpression {
-        return self.symbolic_expressions.pop();
+        return self.stack.pop();
     }
 
     pub fn push(&mut self, symbolic_expression: SymbolicExpression) {
-        self.symbolic_expressions.push(symbolic_expression);
+        self.stack.push(symbolic_expression);
     }
 
     pub fn _down_push(&mut self, symbolic_expression: SymbolicExpression) {
         // add an element at the beginning of the stack of symbolic_expressions
-        self.symbolic_expressions._down_push(symbolic_expression);
+        self.stack._down_push(symbolic_expression);
     }
 
     pub fn peek(&self) -> &SymbolicExpression {
-        return self.symbolic_expressions.peek();
+        return self.stack.peek();
     }
 
     pub fn swap(&mut self, depth: usize) {
-        self.symbolic_expressions.swap(depth);
+        self.stack.swap(depth);
     }
 
     pub fn dup(&mut self, depth: usize) {
-        self.symbolic_expressions.dup(depth);
-        let mut to_change = self.symbolic_expressions.pop();
+        self.stack.dup(depth);
+        let mut to_change = self.stack.pop();
         to_change.effect = None;
-        self.symbolic_expressions.push(to_change);
+        self.stack.push(to_change);
     }
 }
 
