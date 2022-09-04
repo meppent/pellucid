@@ -1,7 +1,7 @@
 use core::fmt::Debug;
-use std::hash::Hash;
+use std::{hash::Hash, default};
 
-#[derive(Clone, Debug, Hash)]
+#[derive(Clone, Debug, Hash, Default)]
 pub struct Stack<E: Clone + Debug + Hash + PartialEq> {
     data: Vec<E>,
 }

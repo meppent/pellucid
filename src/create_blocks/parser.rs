@@ -1,59 +1,72 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, cell::RefCell};
 
 use crate::{
     bytecode_reader::{bytecode::Bytecode, opcode::Opcode},
     create_graph::block::Block,
 };
 
+use super::symbolic_block::SymbolicBlock;
+
 fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
     let mut blocks: HashMap<usize, Block<'a>> = HashMap::new();
 
-    let mut insert_block =
-        |pc_start: usize, pc_end: usize, delta: &mut isize, delta_min: &mut isize| {
+    let mut vopcode_iterator = bytecode.iter(0, bytecode.get_last_pc()).peekable();
+    'new_block: while let Some(vopcode_start) = vopcode_iterator.next() {
+        let mut current_vopcode = vopcode_start;
+        let symbolic_block: RefCell<SymbolicBlock> = RefCell::new(SymbolicBlock::new());
+
+        let mut insert_block = || {
+            let pc_start = vopcode_start.pc;
+            let mut block_to_add = Block::new(bytecode.slice_code(pc_start, current_vopcode.pc));
+            block_to_add.attach_symbolic_block(symbolic_block.take());
             blocks.insert(
                 pc_start,
-                Block::new(bytecode.slice_code(pc_start, pc_end), *delta, *delta_min),
+                block_to_add
             );
-            (*delta, *delta_min) = (0, 0);
         };
 
-    let mut pc_start: Option<usize> = Some(0);
-    let mut previous_pc: usize = 0;
-    let mut delta: isize = 0;
-    let mut delta_min: isize = 0;
+        // We are in a block, we search for the end
+        'same_block: loop {
 
-    for vopcode in bytecode.iter(0, bytecode.get_last_pc()) {
-        let opcode: Opcode = vopcode.opcode;
-        let pc: usize = vopcode.pc;
+            RefCell::borrow_mut(&symbolic_block).add_vopcode(current_vopcode);
 
-        match pc_start {
-            Some(pc_start_) => {
-                // we are in a block, we search for the end
+            if current_vopcode.is_last || current_vopcode.opcode.is_exiting() || current_vopcode.opcode == Opcode::JUMP {
+                insert_block();
+                break 'same_block;
+            } else if current_vopcode.opcode == Opcode::JUMPI {
+                insert_block();
+                continue 'new_block;
+            } 
 
-                // correct because the JUMPDEST delta is 0, todo: find a better way to do this
-                delta += opcode.delta();
-                delta_min = delta_min.min(delta);
-
-                if vopcode.is_last || opcode.is_exiting() || opcode == Opcode::JUMP {
-                    //blocks.insert(pc_start_, Block::new(code, delta, delta_min))
-                    insert_block(pc_start_, pc, &mut delta, &mut delta_min);
-                    pc_start = None;
-                } else if opcode == Opcode::JUMPI {
-                    insert_block(pc_start_, pc, &mut delta, &mut delta_min);
-                    pc_start = Some(pc + 1);
-                } else if opcode == Opcode::JUMPDEST {
-                    insert_block(pc_start_, previous_pc, &mut delta, &mut delta_min);
-                    pc_start = Some(pc);
-                }
+            match vopcode_iterator.peek() {
+                Some(next_vopcode) if next_vopcode.opcode == Opcode::JUMPDEST => {
+                    insert_block();
+                    continue 'new_block;
+                },
+                _ => (),
             }
-            None => {
-                // we are not in a block, we search for a new block
-                if opcode == Opcode::JUMPDEST {
-                    pc_start = Some(pc);
+
+            match vopcode_iterator.next() {
+                Some(vopcode) => {
+                    current_vopcode = vopcode;
+                    continue 'same_block;
                 }
+                None => break 'new_block,
             }
-        };
-        previous_pc = pc;
+
+        }
+
+        // We are not in a block, we search for a new block
+        'no_block: loop {
+            match vopcode_iterator.peek() {
+                Some(vopcode)  if vopcode.opcode == Opcode::JUMPDEST=> break 'no_block,
+                None => break 'no_block,
+                _ => {
+                    vopcode_iterator.next();
+                },
+            }
+        }
+        
     }
     return blocks;
 }

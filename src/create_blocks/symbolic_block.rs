@@ -1,68 +1,41 @@
-use std::{rc::Rc, fs};
+use crate::bytecode_reader::{vopcode::Vopcode, opcode::Opcode};
+use std::rc::Rc;
 
-use primitive_types::U256;
+use crate::tools::stack::Stack;
 
-use crate::{
-    bytecode_reader::{
-        opcode::{Opcode, self},
-        vopcode::Vopcode, bytecode::Bytecode,
-    },
-    tools::stack::Stack,
-};
+use super::symbolic_expression::{SymbolicExpression, Effect};
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct SymbolicExpression {
-    stack_expression: StackExpression,
-    effect: Option<Rc<Effect>>,
-}
-
-impl SymbolicExpression {
-    pub fn new(stack_expression: StackExpression, effect: Option<Rc<Effect>>) -> Self {
-        return SymbolicExpression {
-            stack_expression,
-            effect,
-        };
-    }
-
-    pub fn new_bytes(value: U256, effect: Option<Rc<Effect>>) -> Self {
-        return SymbolicExpression::new(StackExpression::BYTES(value), effect);
-    }
-
-    pub fn new_compose(opcode: Opcode, args: Vec<SymbolicExpression>, effect: Option<Rc<Effect>>) -> Self {
-        return SymbolicExpression::new(StackExpression::COMPOSE(opcode, args), effect);
-    }
-
-    pub fn new_arg(index: usize, effect: Option<Rc<Effect>>) -> Self {
-        return SymbolicExpression::new(StackExpression::ARG(index), effect);
-    }
-}
-
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub enum StackExpression {
-    BYTES(U256),
-    COMPOSE(Opcode, Vec<SymbolicExpression>),
-    ARG(usize),
-}
-
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub enum Effect {
-    COMPOSE(Opcode, Vec<SymbolicExpression>),
-}
 #[derive(Debug)]
 pub struct SymbolicBlock {
     stack: Stack<SymbolicExpression>,
     effects: Vec<Rc<Effect>>,
-    impact: SymbolicExpression,
+    impact: Option<SymbolicExpression>,
     n_args: usize,
     n_outputs: usize,
 }
 
+impl Default for SymbolicBlock {
+    fn default() -> Self { 
+        SymbolicBlock::new()
+     }
+}
+
 impl SymbolicBlock {
+    pub fn new() -> Self {
+        return SymbolicBlock {
+            stack: Stack::new(),
+            effects: Vec::new(),
+            impact: None,
+            n_args: 0,
+            n_outputs: 0,
+        };
+    }
+
     pub fn from(code: &[Vopcode]) -> Self {
         let mut symbolic_block: SymbolicBlock = SymbolicBlock {
             stack: Stack::new(),
             effects: Vec::new(),
-            impact: SymbolicExpression::new(StackExpression::BYTES(U256::zero()), None),
+            impact: None,
             n_args: 0,
             n_outputs: 0,
         };
@@ -152,7 +125,7 @@ impl SymbolicBlock {
                 }
                 //not 100% sure it's an else
                 else if opcode.is_exiting() || opcode.is_jump() {
-                    self.impact = SymbolicExpression::new_compose(opcode, symbolic_expressions, effect);
+                    self.impact = Some(SymbolicExpression::new_compose(opcode, symbolic_expressions, effect));
                 }
             }
         }
@@ -191,18 +164,3 @@ impl SymbolicBlock {
         self.stack.push(to_change);
     }
 }
-
-
-#[test]
-pub fn test(){
-    let bytecode_string: String =
-            fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt")
-                .expect("Unable to read file.");
-    let bytecode: Bytecode = Bytecode::from(&bytecode_string);
-    let vopcodes = bytecode.slice_code(16, 25);
-    //dbg!(vopcodes);
-    let block = SymbolicBlock::from(vopcodes);
-    dbg!(block);
-    
-}
-
