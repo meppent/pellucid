@@ -40,7 +40,7 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
             } else if current_vopcode.opcode == Opcode::JUMPI {
                 insert_block(current_vopcode.pc);
                 continue 'new_block;
-            } 
+            }
 
             match vopcode_iterator.peek() {
                 // It's the end of the block, and there is a new block after
