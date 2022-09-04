@@ -11,6 +11,8 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
     let mut blocks: HashMap<usize, Block<'a>> = HashMap::new();
 
     let mut vopcode_iterator = bytecode.iter(0, bytecode.get_last_pc()).peekable();
+
+    // Invariant: When we enter this loop, we are at the begning of a block
     'new_block: while let Some(vopcode_start) = vopcode_iterator.next() {
         let mut current_vopcode = vopcode_start;
         let symbolic_block: RefCell<SymbolicBlock> = RefCell::new(SymbolicBlock::new());
@@ -25,14 +27,16 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
             );
         };
 
-        // We are in a block, we search for the end
+        // Invariant: When we exit this loop, it is at the end of a block
         'same_block: loop {
-
+            // We are in a block, we modify the symbolic stack, and we search for the end of the block
             RefCell::borrow_mut(&symbolic_block).apply_vopcode(current_vopcode);
 
+            // It's the end of a block, and there is no block after
             if current_vopcode.is_last || current_vopcode.opcode.is_exiting() || current_vopcode.opcode == Opcode::JUMP {
                 insert_block();
                 break 'same_block;
+            // It's the end of a block, and there is a new block after
             } else if current_vopcode.opcode == Opcode::JUMPI {
                 insert_block();
                 continue 'new_block;
@@ -55,7 +59,7 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
             }
         }
 
-        // We are not in a block, we search for a new block
+        // Invariant: When we are in this loop, we are not in a block
         'no_block: loop {
             match vopcode_iterator.peek() {
                 Some(vopcode)  if vopcode.opcode == Opcode::JUMPDEST=> break 'no_block,
@@ -68,4 +72,27 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
         
     }
     return blocks;
+}
+
+
+#[cfg(test)]
+mod tests {
+
+    use std::fs;
+
+    use super::*;
+
+    #[test]
+    pub fn test_parser(){
+        let bytecode_string: String =
+                fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt")
+                    .expect("Unable to read file.");
+        let bytecode: Bytecode = Bytecode::from(&bytecode_string);
+        //let vopcodes = bytecode.slice_code(16, 25);
+        //dbg!(vopcodes);
+        //let block = SymbolicBlock::from(vopcodes);
+        let blocks = find_blocks(&bytecode);
+        dbg!(blocks);
+        
+    }
 }

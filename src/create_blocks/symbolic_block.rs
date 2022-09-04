@@ -79,16 +79,15 @@ impl SymbolicBlock {
                 } else {
                     effect = None;
                 };
-
-                if opcode.stack_output() > 0 {
-                    self.stack.push(SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions.clone(), effect))
-                }
                 
-                //not 100% sure it's an else
-                else if opcode.is_exiting() || opcode.is_jump() {
+                if opcode.is_exiting() || opcode.is_jump() {
                     self.impact = Some(SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions, effect));
+                } else if opcode.stack_output() > 0 {
+                    self.stack.push(SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions.clone(), effect))
                 }
             }
         }
     }
 }
+
+

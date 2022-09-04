@@ -1,4 +1,4 @@
-use std::{rc::Rc, fs};
+use std::rc::Rc;
 
 use primitive_types::U256;
 
@@ -47,16 +47,5 @@ impl SymbolicExpression {
 
 
 
-// #[test]
-// pub fn test(){
-//     let bytecode_string: String =
-//             fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt")
-//                 .expect("Unable to read file.");
-//     let bytecode: Bytecode = Bytecode::from(&bytecode_string);
-//     let vopcodes = bytecode.slice_code(16, 25);
-//     //dbg!(vopcodes);
-//     let block = SymbolicBlock::from(vopcodes);
-//     dbg!(block);
-    
-// }
+
 
