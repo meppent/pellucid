@@ -1,11 +1,11 @@
 use serde::{Serialize, Deserialize};
 
-use crate::bytecode_reader::{vopcode::Vopcode, opcode::Opcode};
+use crate::{bytecode_reader::{vopcode::Vopcode, opcode::Opcode}, create_graph::simple_stack::{SimpleStack, SimpleStackExpression}};
 use std::{rc::Rc, borrow::Borrow};
 
 use crate::tools::stack::Stack;
 
-use super::symbolic_expression::{SymbolicExpression, Effect};
+use super::symbolic_expression::{SymbolicExpression, Effect, StackExpression};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct SymbolicBlock {
@@ -103,6 +103,24 @@ impl SymbolicBlock {
                 }
             }
         }
+    }
+
+
+
+    pub fn apply_on_simple_stack(&self, simple_stack: &SimpleStack) -> SimpleStack {
+        let mut result: SimpleStack = simple_stack.clone();
+        let mut args: Vec<SimpleStackExpression> = vec![];
+        for _ in 0..self.n_args{
+            args.push(result.pop());
+        }
+        for symbolic_expr in self.stack.iter(){
+            match symbolic_expr.stack_expression {
+                StackExpression::BYTES(value) => result.push(SimpleStackExpression::BYTES(value)),
+                StackExpression::COMPOSE(_,_) => result.push(SimpleStackExpression::OTHER),
+                StackExpression::ARG(index) => result.push(args[index - 1].clone())
+            }
+        }
+        return result;
     }
 }
 

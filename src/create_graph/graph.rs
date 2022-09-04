@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use itertools::Itertools;
 
 use crate::bytecode_reader::bytecode::Bytecode;
-use crate::create_blocks::parser::find_blocks;
+use crate::create_blocks::parser;
 
 use super::block::{BlockRef, Block, self};
 use super::node::NodeRef;
@@ -16,16 +16,10 @@ impl<'a> Graph<'a> {
         return Graph { blocks: HashMap::new() };
     }
     pub fn from(bytecode: &'a Bytecode) -> Self {
-        let mut blocks: HashMap<usize, BlockRef<'a>> = HashMap::new();
-        let mut _blocks = find_blocks(&bytecode);
-        let pc_starts: Vec<usize> = _blocks.keys().into_iter().map(|pc|*pc).collect_vec();
-        // for pc_start in pc_starts{
-        //     blocks.insert(pc_start, BlockRef{inner});
-        // }
-        
-        return Graph {
-            blocks: todo!(),
-        };
+        let blocks: HashMap<usize, BlockRef<'a>> = parser::find_blocks(&bytecode);
+
+
+        return Graph {blocks};
     }
 
     pub fn add_block(&mut self, block: BlockRef<'a>) {
