@@ -9,7 +9,7 @@ use std::{cell::RefCell, rc::Rc};
 pub struct Block<'a> {
     code: &'a [Vopcode],
     nodes: Vec<Rc<RefCell<Node<'a>>>>,
-    symbolic_block: SymbolicBlock,
+    pub symbolic_block: SymbolicBlock,
 }
 
 impl<'a> Block<'a> {

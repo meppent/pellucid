@@ -16,8 +16,9 @@ env_logger = "*"
 itertools="*"
 ctor="*"
 queues = "1.0.2"
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "*", features = ["derive", "rc"] }
 serde_json = "*"
+
 
 [dev-dependencies]
 regex="1.6.0"

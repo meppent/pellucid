@@ -1,22 +1,23 @@
 use std::rc::Rc;
 
 use primitive_types::U256;
+use serde::{Serialize, Deserialize};
 
 use crate::bytecode_reader::opcode::Opcode;
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StackExpression {
     BYTES(U256),
     COMPOSE(Opcode, Vec<SymbolicExpression>),
     ARG(usize),
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Effect {
     COMPOSE(Opcode, Vec<SymbolicExpression>),
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SymbolicExpression {
     pub stack_expression: StackExpression,
     pub origin_effect: Option<Rc<Effect>>,

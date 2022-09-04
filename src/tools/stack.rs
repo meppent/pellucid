@@ -1,7 +1,9 @@
 use core::fmt::Debug;
 use std::hash::Hash;
 
-#[derive(Clone, Debug, Hash, Default)]
+use serde::{Serialize, Deserialize};
+
+#[derive(Clone, Debug, Hash, Default, Serialize, Deserialize)]
 pub struct Stack<E: Clone + Debug + Hash + PartialEq> {
     data: Vec<E>,
 }

@@ -1,3 +1,5 @@
+use serde::{Serialize, Deserialize};
+
 use crate::bytecode_reader::{vopcode::Vopcode, opcode::Opcode};
 use std::rc::Rc;
 
@@ -5,7 +7,7 @@ use crate::tools::stack::Stack;
 
 use super::symbolic_expression::{SymbolicExpression, Effect};
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct SymbolicBlock {
     stack: Stack<SymbolicExpression>,
     effects: Vec<Rc<Effect>>,
