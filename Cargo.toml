@@ -7,7 +7,7 @@ edition = "2021"
 const-decoder="*"
 strum="*"
 strum_macros="*"
-primitive-types = "*"
+primitive-types = { version = "*", features = ["serde"] }
 hex = "0.4"
 cbor = "0.4"
 multibase = "0.9"
@@ -15,8 +15,12 @@ log = "*"
 env_logger = "*"
 itertools="*"
 ctor="*"
+queues = "1.0.2"
+serde = { version = "*", features = ["derive", "rc"] }
+serde_json = "*"
 
 
 [dev-dependencies]
 regex="1.6.0"
 rand="0.8.5"
+lazy_static="1.4.0"

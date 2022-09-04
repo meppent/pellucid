@@ -1,6 +1,6 @@
 use crate::bytecode_reader::bytecode::stringify_vopcodes;
 
-use super::{block_set::{ BlockSet}, block::Block};
+use super::{block_set::{ BlockSet}, old_block::Block};
 
 pub fn to_gml(block_set: & BlockSet) -> String {
     let mut gml: String = String::new();

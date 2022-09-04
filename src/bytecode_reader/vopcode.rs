@@ -1,43 +1,27 @@
-use super::opcode::Opcode;
-use crate::utils::u256_to_hex;
-use primitive_types::U256;
-use std::fmt;
+use crate::tools::utils::u256_to_hex;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+use super::opcode::Opcode;
+use primitive_types::U256;
+use serde::{Deserialize, Serialize};
+use std::fmt;
+#[derive(Debug, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct Vopcode {
     // an opcode with a value, used when it's a PUSH
     pub opcode: Opcode,
     pub value: Option<U256>,
     pub pc: usize,
-    pub is_last: bool, // is it the last opcode of the bytecode ?
 }
 
 impl Vopcode {
-    pub fn new(opcode: Opcode, value: Option<U256>, pc: usize, is_last: bool) -> Self {
+    pub fn new(opcode: Opcode, value: Option<U256>, pc: usize) -> Self {
         Vopcode::sanity_check(opcode, value);
         return Self {
             opcode,
             value,
             pc,
-            is_last,
         };
     }
 
-    pub fn get_next_pc(&self) -> Option<usize> {
-        if self.is_last {
-            None
-        } else {
-            Some(
-                self.pc
-                    + 1
-                    + if let Opcode::PUSH { item_size } = self.opcode {
-                        item_size
-                    } else {
-                        0
-                    },
-            )
-        }
-    }
     fn sanity_check(opcode: Opcode, value: Option<U256>) {
         if let Some(v) = value {
             if let Opcode::PUSH { item_size: n_bytes } = opcode {
@@ -87,8 +71,6 @@ impl fmt::Display for Vopcode {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         let mut res: String = String::from("Vopcode: ");
         res.push_str(&self.to_string());
-        res.push_str(" is_last_line: ");
-        res.push_str(&self.is_last.to_string());
         formatter.write_str(&res)?;
         Ok(())
     }
@@ -98,11 +80,14 @@ impl fmt::Display for Vopcode {
 mod tests {
     use super::*;
     use regex::Regex;
+    use lazy_static::lazy_static;
 
     impl Vopcode {
         pub fn from_string(vopcode_str: &str) -> Option<Vopcode> {
-            let re = Regex::new(r"([A-Fa-f0-9]+)[^\w\d]+([A-Fa-f0-9]{1, 2})[^\w\d]+([\w\d]+)(?:[^\w\d]*(?:0x|)?([A-Fa-f0-9]*))?").unwrap();
-            if let Some(caps) = re.captures(vopcode_str) {
+            lazy_static! {
+                static ref RE: Regex = Regex::new(r"([A-Fa-f0-9]+)[^\w\d]+([A-Fa-f0-9]{1, 2})[^\w\d]+([\w\d]+)(?:[^\w\d]*(?:0x|)?([A-Fa-f0-9]*))?").unwrap();
+            }
+            if let Some(caps) = RE.captures(vopcode_str) {
                 match (caps.get(1), caps.get(2), caps.get(3)) {
                     (Some(pc), Some(code), Some(name)) => {
                         let opcode: Opcode = Opcode::from(hex::decode(code.as_str()).unwrap()[0]);
@@ -127,8 +112,7 @@ mod tests {
                             return Some(Vopcode::new(
                                 Opcode::from(u8::from_str_radix(code.as_str(), 16).unwrap()),
                                 item,
-                                usize::from_str_radix(pc.as_str(), 16).unwrap(),
-                                false,
+                                usize::from_str_radix(pc.as_str(), 16).unwrap()
                             ));
                         }
                     }
@@ -136,6 +120,31 @@ mod tests {
                 };
             }
             return None;
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    pub fn test_serialize_vopcode() {
+        for vopcode in [
+            Vopcode {
+                opcode: Opcode::PUSH { item_size: 2 },
+                value: Some(U256::from("0x11aa")),
+                pc: 5,
+            },
+            Vopcode {
+                opcode: Opcode::ADD,
+                value: None,
+                pc: 10,
+            },
+        ] {
+            let json: &String = &serde_json::to_string(&vopcode).unwrap();
+            let deserialized_vopcode: Vopcode = serde_json::from_str(&json).unwrap();
+            assert!(vopcode == deserialized_vopcode);
         }
     }
 }
