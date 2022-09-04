@@ -1,14 +1,14 @@
-use std::{collections::HashMap, cell::RefCell};
+use std::{collections::HashMap, cell::RefCell, rc::Rc};
 
 use crate::{
     bytecode_reader::{bytecode::Bytecode, opcode::Opcode},
-    create_graph::block::Block,
+    create_graph::block::{Block, BlockRef},
 };
 
 use super::symbolic_block::SymbolicBlock;
 
-fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
-    let mut blocks: HashMap<usize, Block<'a>> = HashMap::new();
+pub fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, BlockRef<'a>> {
+    let mut blocks: HashMap<usize, BlockRef<'a>> = HashMap::new();
 
     let mut vopcode_iterator = bytecode.iter(0, bytecode.get_last_pc()).peekable();
 
@@ -20,10 +20,10 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
         let mut insert_block = |pc_end: usize| {
             let pc_start = vopcode_start.pc;
             let mut block_to_add = Block::new(bytecode.slice_code(pc_start, pc_end));
-            block_to_add.attach_symbolic_block(symbolic_block.take());
+            block_to_add.attach_symbolic_block(Rc::new(symbolic_block.take()));
             blocks.insert(
                 pc_start,
-                block_to_add
+                BlockRef::from_block(block_to_add)
             );
         };
 
@@ -84,7 +84,7 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
 #[cfg(test)]
 mod tests {
 
-    use std::fs;
+    use std::{fs, rc::Rc};
     use itertools::Itertools;
     use crate::{tools::utils::read_file, bytecode_reader::vopcode::Vopcode};
     use super::*;
@@ -95,13 +95,13 @@ mod tests {
                 fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt")
                     .expect("Unable to read file.");
         let bytecode: Bytecode = Bytecode::from(&bytecode_string);
-        let mut blocks: HashMap<usize, Block> = find_blocks(&bytecode);
-        let mut symbolic_blocks: HashMap<usize, SymbolicBlock> = HashMap::new();
+        let mut blocks: HashMap<usize, BlockRef> = find_blocks(&bytecode);
+        let mut symbolic_blocks: HashMap<usize, Rc<SymbolicBlock>> = HashMap::new();
         let pc_starts: Vec<usize> = blocks.keys().into_iter().map(|pc|*pc).collect_vec();
         for pc_start in &pc_starts{
-            symbolic_blocks.insert(*pc_start, blocks.remove(pc_start).unwrap().symbolic_block);
+            symbolic_blocks.insert(*pc_start, blocks.remove(pc_start).unwrap().get_symbolic_block());
         }
-        let target_symbolic_blocks: HashMap<usize, SymbolicBlock> = serde_json::from_str(&read_file("./assets/contracts/simple_contract/symbolic_blocks.json")).unwrap();
+        let target_symbolic_blocks: HashMap<usize, Rc<SymbolicBlock>> = serde_json::from_str(&read_file("./assets/contracts/simple_contract/symbolic_blocks.json")).unwrap();
         assert!(target_symbolic_blocks == symbolic_blocks);
 
         // to overwrite the dest json:
@@ -114,11 +114,11 @@ mod tests {
                 fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt")
                     .expect("Unable to read file.");
         let bytecode: Bytecode = Bytecode::from(&bytecode_string);
-        let mut blocks: HashMap<usize, Block> = find_blocks(&bytecode);
+        let mut blocks: HashMap<usize, BlockRef> = find_blocks(&bytecode);
         let mut block_bytecodes: HashMap<usize, Vec<Vopcode>> = HashMap::new();
         let pc_starts: Vec<usize> = blocks.keys().into_iter().map(|pc|*pc).collect_vec();
         for pc_start in &pc_starts{
-            block_bytecodes.insert(*pc_start, blocks.remove(pc_start).unwrap().code.to_vec());
+            block_bytecodes.insert(*pc_start, blocks.remove(pc_start).unwrap().get_code().to_vec());
         }
         let target_block_bytecodes: HashMap<usize, Vec<Vopcode>> = serde_json::from_str(&read_file("./assets/contracts/simple_contract/block_bytecodes.json")).unwrap();
         assert!(target_block_bytecodes == block_bytecodes);

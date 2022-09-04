@@ -1,16 +1,30 @@
 use std::collections::{HashMap, HashSet};
-extern crate queues;
-use super::block::BlockRef;
+use itertools::Itertools;
+
+use crate::bytecode_reader::bytecode::Bytecode;
+use crate::create_blocks::parser::find_blocks;
+
+use super::block::{BlockRef, Block, self};
 use super::node::NodeRef;
 
-struct Graph<'a> {
+pub struct Graph<'a> {
     pub blocks: HashMap<usize, BlockRef<'a>>,
 }
 
 impl<'a> Graph<'a> {
-    pub fn new() -> Self {
+    pub fn new()->Self{
+        return Graph { blocks: HashMap::new() };
+    }
+    pub fn from(bytecode: &'a Bytecode) -> Self {
+        let mut blocks: HashMap<usize, BlockRef<'a>> = HashMap::new();
+        let mut _blocks = find_blocks(&bytecode);
+        let pc_starts: Vec<usize> = _blocks.keys().into_iter().map(|pc|*pc).collect_vec();
+        // for pc_start in pc_starts{
+        //     blocks.insert(pc_start, BlockRef{inner});
+        // }
+        
         return Graph {
-            blocks: HashMap::new(),
+            blocks: todo!(),
         };
     }
 

@@ -4,12 +4,11 @@ use crate::{
     tools::stack::Stack, create_blocks::{symbolic_block::SymbolicBlock}, evm_old::simple_expression::SimpleExpression,
 };
 use std::{cell::RefCell, rc::Rc};
-
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Block<'a> {
     pub code: &'a [Vopcode],
     nodes: Vec<Rc<RefCell<Node<'a>>>>,
-    pub symbolic_block: SymbolicBlock,
+    pub symbolic_block: Rc<SymbolicBlock>,
 }
 
 impl<'a> Block<'a> {
@@ -17,11 +16,11 @@ impl<'a> Block<'a> {
         return Block {
             code,
             nodes: vec![],
-            symbolic_block: SymbolicBlock::new(),
+            symbolic_block: Rc::new(SymbolicBlock::new()),
         };
     }
 
-    pub fn attach_symbolic_block(&mut self, symbolic_block: SymbolicBlock) {
+    pub fn attach_symbolic_block(&mut self, symbolic_block: Rc<SymbolicBlock>) {
         self.symbolic_block = symbolic_block;
     }
 }
@@ -53,6 +52,10 @@ impl<'a> BlockRef<'a> {
         };
     }
 
+    pub fn from_block(block: Block)->BlockRef{
+        return BlockRef { inner: Rc::new(RefCell::new(block)) };
+    }
+
     pub fn clone(&self) -> Self {
         return BlockRef {
             inner: self.inner.clone(),
@@ -63,8 +66,12 @@ impl<'a> BlockRef<'a> {
         self.inner.borrow_mut().nodes.push(node.inner);
     }
 
+    pub fn get_symbolic_block(&mut self)->Rc<SymbolicBlock>{
+        return self.inner.borrow().symbolic_block.clone();
+    }
+
     pub fn nodes_count(&self) -> usize {
-        return self.inner.borrow().nodes.len();
+        return RefCell::borrow(&self.inner).nodes.len();
     }
 
     pub fn contains_initial_stack(&self, initial_stack: &Stack<SimpleExpression>) -> bool {
@@ -77,25 +84,15 @@ impl<'a> BlockRef<'a> {
     }
 
     pub fn get_code(&self) -> &'a [Vopcode] {
-        return self.inner.borrow().code;
+        return RefCell::borrow(&self.inner).code;
     }
 
     pub fn get_pc_start(&self) -> usize {
         return self.get_code()[0].pc;
     }
 
-    // pub fn get_delta(&self) -> isize {
-    //     return self.inner.borrow().delta;
-    // }
-
-    // pub fn get_delta_min(&self) -> isize {
-    //     return self.inner.borrow().delta_min;
-    // }
-
     pub fn get_nodes(&self) -> Vec<NodeRef<'a>> {
-        return self
-            .inner
-            .borrow()
+        return RefCell::borrow(&self.inner)
             .nodes
             .iter()
             .map(|inner: &Rc<RefCell<Node<'a>>>| NodeRef {
