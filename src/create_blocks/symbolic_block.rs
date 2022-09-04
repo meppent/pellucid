@@ -194,7 +194,6 @@ mod tests {
         assert_eq!(block.final_state(), None);
         let symbolic_expr = block.stack.peek();
         assert_eq!(*symbolic_expr.origin_effect.as_ref().unwrap(), block.effects[0]);
-    
     }
 
     #[test]
@@ -213,9 +212,27 @@ mod tests {
             _ => panic!("Unexpected stack expression"),
         }
         assert_eq!(block.final_state().unwrap(), block.effects[0]);
+    }
 
-
-    
+    #[test]
+    pub fn test_apply_mstore() {
+        let bytecode = Bytecode::from("52");
+        let mut block = SymbolicBlock::new();
+        block.apply_vopcode(&bytecode.get_vopcode_at(0));
+        assert_eq!(block.n_outputs(), 0);
+        assert_eq!(block.delta(), -2);
+        assert_eq!(block.n_args, 2);
+        assert_eq!(block.final_state(), None);
+        assert_eq!(block.stack.len(), 0);
+        assert_eq!(block.effects.len(), 1);
+        let effect = (*block.effects[0]).borrow();
+        match effect {
+            Effect::COMPOSE(opcode, consumed_symbolic_expressions) => {
+                assert_eq!(*opcode, Opcode::MSTORE);
+                assert_eq!(*consumed_symbolic_expressions, vec![SymbolicExpression::new_arg(1, None), SymbolicExpression::new_arg(2, None)]);
+            },
+            _ => panic!("Unexpected stack expression"),
+        }
     }
 
     #[test]
