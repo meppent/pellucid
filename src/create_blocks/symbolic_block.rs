@@ -72,7 +72,7 @@ impl SymbolicBlock {
 
                 let effect: Option<Rc<Effect>>;
 
-                if opcode.has_effect(){
+                if opcode.has_effect() {
                     let effect_ref = Rc::new(Effect::COMPOSE(opcode, consumed_symbolic_expressions.clone()));
                     effect = Some(Rc::clone(&effect_ref));
                     self.effects.push(Rc::clone(&effect_ref));
@@ -91,5 +91,16 @@ impl SymbolicBlock {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use super::*;
+
+    #[test]
+    pub fn test1() {
+
     }
 }
