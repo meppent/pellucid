@@ -49,13 +49,10 @@ impl SymbolicBlock {
             }
 
             Opcode::DUP { depth } => {
-                if self.stack.len() == 0 {
+                while self.stack.len() < depth {
                     self.add_place_holder_on_stack();
-                } 
+                }
                 self.stack.dup(depth);
-                let mut to_change = self.stack.pop();
-                to_change.effect = None;
-                self.stack.push(to_change);
             },
 
             Opcode::SWAP { depth } => {
