@@ -12,7 +12,7 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
 
     let mut vopcode_iterator = bytecode.iter(0, bytecode.get_last_pc()).peekable();
 
-    // Invariant: When we enter this loop, we are at the begning of a block
+    // Invariant: When we enter this loop, we are at the beginning of a block
     'new_block: while let Some(vopcode_start) = vopcode_iterator.next() {
         let mut current_vopcode = vopcode_start;
         let symbolic_block: RefCell<SymbolicBlock> = RefCell::new(SymbolicBlock::new());
@@ -32,17 +32,18 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
             // We are in a block, we modify the symbolic stack, and we search for the end of the block
             RefCell::borrow_mut(&symbolic_block).apply_vopcode(current_vopcode);
 
-            // It's the end of a block, and there is no block after
-            if current_vopcode.is_last || current_vopcode.opcode.is_exiting() || current_vopcode.opcode == Opcode::JUMP {
+            // It's the end of the block, and there is no block after
+            if vopcode_iterator.peek() == None || current_vopcode.opcode.is_exiting() || current_vopcode.opcode == Opcode::JUMP {
                 insert_block();
                 break 'same_block;
-            // It's the end of a block, and there is a new block after
+            // It's the end of the block, and there is a new block after
             } else if current_vopcode.opcode == Opcode::JUMPI {
                 insert_block();
                 continue 'new_block;
             } 
 
             match vopcode_iterator.peek() {
+                // It's the end of the block, and there is a new block after
                 Some(next_vopcode) if next_vopcode.opcode == Opcode::JUMPDEST => {
                     insert_block();
                     continue 'new_block;
@@ -51,18 +52,20 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
             }
 
             match vopcode_iterator.next() {
+                // It's not the end of the block
                 Some(vopcode) => {
                     current_vopcode = vopcode;
                     continue 'same_block;
                 }
-                None => break 'new_block,
+                // We already checked that the next one is not None
+                _ => unreachable!()
             }
         }
 
         // Invariant: When we are in this loop, we are not in a block
         'no_block: loop {
             match vopcode_iterator.peek() {
-                Some(vopcode)  if vopcode.opcode == Opcode::JUMPDEST=> break 'no_block,
+                Some(vopcode) if vopcode.opcode == Opcode::JUMPDEST=> break 'no_block,
                 None => break 'no_block,
                 _ => {
                     vopcode_iterator.next();

@@ -10,35 +10,18 @@ pub struct Vopcode {
     pub opcode: Opcode,
     pub value: Option<U256>,
     pub pc: usize,
-    pub is_last: bool, // is it the last opcode of the bytecode ?
 }
 
 impl Vopcode {
-    pub fn new(opcode: Opcode, value: Option<U256>, pc: usize, is_last: bool) -> Self {
+    pub fn new(opcode: Opcode, value: Option<U256>, pc: usize) -> Self {
         Vopcode::sanity_check(opcode, value);
         return Self {
             opcode,
             value,
             pc,
-            is_last,
         };
     }
 
-    pub fn get_next_pc(&self) -> Option<usize> {
-        if self.is_last {
-            None
-        } else {
-            Some(
-                self.pc
-                    + 1
-                    + if let Opcode::PUSH { item_size } = self.opcode {
-                        item_size
-                    } else {
-                        0
-                    },
-            )
-        }
-    }
     fn sanity_check(opcode: Opcode, value: Option<U256>) {
         if let Some(v) = value {
             if let Opcode::PUSH { item_size: n_bytes } = opcode {
@@ -88,8 +71,6 @@ impl fmt::Display for Vopcode {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         let mut res: String = String::from("Vopcode: ");
         res.push_str(&self.to_string());
-        res.push_str(" is_last_line: ");
-        res.push_str(&self.is_last.to_string());
         formatter.write_str(&res)?;
         Ok(())
     }
@@ -128,8 +109,7 @@ mod tests {
                             return Some(Vopcode::new(
                                 Opcode::from(u8::from_str_radix(code.as_str(), 16).unwrap()),
                                 item,
-                                usize::from_str_radix(pc.as_str(), 16).unwrap(),
-                                false,
+                                usize::from_str_radix(pc.as_str(), 16).unwrap()
                             ));
                         }
                     }

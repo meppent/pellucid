@@ -57,8 +57,7 @@ impl Bytecode {
             bytecode.insert_vopcode(Vopcode::new(
                 opcode,
                 item,
-                origin_line,
-                pc >= bytecode_length,
+                origin_line
             ));
         }
 
@@ -110,8 +109,6 @@ mod tests {
                 bytecode.insert_vopcode(vopcode);
             }
         }
-        let vopcode_count = bytecode.vopcodes.len();
-        bytecode.vopcodes[vopcode_count - 1].is_last = true;
         return bytecode;
     }
 
