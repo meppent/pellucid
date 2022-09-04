@@ -1,5 +1,5 @@
 use crate::bytecode_reader::{vopcode::Vopcode, opcode::Opcode};
-use std::rc::Rc;
+use std::{rc::Rc, borrow::Borrow};
 
 use crate::tools::stack::Stack;
 
@@ -9,7 +9,6 @@ use super::symbolic_expression::{SymbolicExpression, Effect};
 pub struct SymbolicBlock {
     stack: Stack<SymbolicExpression>,
     effects: Vec<Rc<Effect>>,
-    impact: Option<SymbolicExpression>,
     n_args: usize,
 }
 
@@ -24,13 +23,28 @@ impl SymbolicBlock {
         return SymbolicBlock {
             stack: Stack::new(),
             effects: Vec::new(),
-            impact: None,
             n_args: 0,
         };
     }
 
     pub fn delta(&self) -> isize {
         return self.n_outputs() as isize - self.n_args as isize;
+    }
+
+    pub fn final_state(&self) -> Option<Rc<Effect>> {
+        let length = self.effects.len();
+        if length > 0 {
+            match self.effects[length - 1].borrow() {
+                Effect::COMPOSE(opcode, _) 
+                if opcode.is_exiting() || opcode.is_jump() => {
+                    return Some(Rc::clone(&self.effects[length - 1]));
+                },
+                _ => return None
+            }
+        } else {
+            return None
+        }
+        
     }
 
     pub fn n_outputs(&self) -> usize {
@@ -80,11 +94,7 @@ impl SymbolicBlock {
                     effect = None;
                 };
                 
-                if opcode.is_exiting() || opcode.is_jump() {
-                    self.impact = Some(
-                        SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions, effect)
-                    );
-                } else if opcode.stack_output() > 0 {
+                if opcode.stack_output() > 0 {
                     self.stack.push(
                         SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions, effect)
                     )
@@ -113,7 +123,7 @@ mod tests {
         assert_eq!(block.delta(), -1);
         assert_eq!(block.n_args, 2);
         assert_eq!(block.effects, []);
-        assert_eq!(block.impact, None);
+        assert_eq!(block.final_state(), None);
         let symbolic_expression = block.stack.peek();
         assert_eq!(symbolic_expression.origin_effect, None);
         match &symbolic_expression.stack_expression {
@@ -137,7 +147,7 @@ mod tests {
         assert_eq!(block.delta(), 0);
         assert_eq!(block.n_args, 5);
         assert_eq!(block.effects, []);
-        assert_eq!(block.impact, None);
+        assert_eq!(block.final_state(), None);
         for i in 0..5 {
             let last_expr = block.stack.pop();
             if i == 0 || i == 4 {
@@ -159,7 +169,7 @@ mod tests {
         assert_eq!(block.delta(), 1);
         assert_eq!(block.n_args, 4);
         assert_eq!(block.effects, []);
-        assert_eq!(block.impact, None);
+        assert_eq!(block.final_state(), None);
 
         for i in 0..5 {
             let last_expr = block.stack.pop();
@@ -181,7 +191,7 @@ mod tests {
         assert_eq!(block.n_outputs(), 1);
         assert_eq!(block.delta(), -6);
         assert_eq!(block.n_args, 7);
-        assert_eq!(block.impact, None);
+        assert_eq!(block.final_state(), None);
         let symbolic_expr = block.stack.peek();
         assert_eq!(*symbolic_expr.origin_effect.as_ref().unwrap(), block.effects[0]);
     
@@ -195,8 +205,16 @@ mod tests {
         assert_eq!(block.n_outputs(), 0);
         assert_eq!(block.delta(), -2);
         assert_eq!(block.n_args, 2);
-        assert_ne!(block.impact, None);
-        dbg!(block);
+        assert_ne!(block.final_state(), None);
+        match (*block.final_state().unwrap()).borrow() {
+            Effect::COMPOSE(opcode, _consumed_symbolic_expressions) => {
+                assert_eq!(*opcode, Opcode::REVERT);
+            },
+            _ => panic!("Unexpected stack expression"),
+        }
+        assert_eq!(block.final_state().unwrap(), block.effects[0]);
+
+
     
     }
 
