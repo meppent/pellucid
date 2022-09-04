@@ -253,4 +253,19 @@ mod tests {
         }
     }
 
+    #[test]
+    pub fn test_apply_multiple_no_effect() {
+        let bytecode = Bytecode::from("01010150");
+        let mut block = SymbolicBlock::new();
+        for vopcode in bytecode.get_vopcodes() {
+            block.apply_vopcode(&vopcode);
+        }
+        assert_eq!(block.n_outputs(), 0);
+        assert_eq!(block.delta(), -4);
+        assert_eq!(block.n_args, 4);
+        assert_eq!(block.final_state(), None);
+        assert_eq!(block.effects.len(), 0);
+        assert_eq!(block.stack.len(), 0);
+    }
+
 }
