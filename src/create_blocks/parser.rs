@@ -28,7 +28,7 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
         // We are in a block, we search for the end
         'same_block: loop {
 
-            RefCell::borrow_mut(&symbolic_block).add_vopcode(current_vopcode);
+            RefCell::borrow_mut(&symbolic_block).apply_vopcode(current_vopcode);
 
             if current_vopcode.is_last || current_vopcode.opcode.is_exiting() || current_vopcode.opcode == Opcode::JUMP {
                 insert_block();

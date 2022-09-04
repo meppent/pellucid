@@ -11,7 +11,6 @@ pub struct SymbolicBlock {
     effects: Vec<Rc<Effect>>,
     impact: Option<SymbolicExpression>,
     n_args: usize,
-    n_outputs: usize,
 }
 
 impl Default for SymbolicBlock {
@@ -27,74 +26,54 @@ impl SymbolicBlock {
             effects: Vec::new(),
             impact: None,
             n_args: 0,
-            n_outputs: 0,
         };
     }
 
     pub fn delta(&self) -> isize {
-        return self.n_outputs as isize - self.n_args as isize;
+        return self.n_outputs() as isize - self.n_args as isize;
     }
 
-    pub fn add_place_holder_on_stack(&mut self){
-        self.stack._down_push(SymbolicExpression::new_arg(self.n_args + 1, None));
-        self.n_args += 1;
+    pub fn n_outputs(&self) -> usize {
+        return self.stack.len();
     }
 
-    pub fn add_vopcode(&mut self, vopcode: &Vopcode) {
+    pub fn fill_stack_with_place_holders(&mut self, required_input_count: usize) {
+        while self.stack.len() < required_input_count {
+            self.stack._down_push(
+                SymbolicExpression::new_arg(self.n_args + 1, None)
+            );
+            self.n_args += 1;
+        }
+    }
+
+    pub fn apply_vopcode(&mut self, vopcode: &Vopcode) {
+        self.fill_stack_with_place_holders(vopcode.opcode.stack_input());
+        
         match vopcode.opcode {
             Opcode::PUSH { item_size: _ } => {
                 self.stack.push(
                     SymbolicExpression::new_bytes(vopcode.value.unwrap(), None)
                 );
-            }
-
-            Opcode::DUP { depth } => {
-                while self.stack.len() < depth {
-                    self.add_place_holder_on_stack();
-                }
-                self.stack.dup(depth);
             },
 
-            Opcode::SWAP { depth } => {
-                while self.stack.len() < depth + 1 {
-                    self.add_place_holder_on_stack();
-                }
-                self.stack.swap(depth)
-            },
-
+            Opcode::DUP { depth } => self.stack.dup(depth),
+            Opcode::SWAP { depth } => self.stack.swap(depth),
             Opcode::POP => {
-                if self.stack.len() == 0 {
-                    self.add_place_holder_on_stack();
-                } 
                 self.stack.pop();
             },
 
             opcode => {
-                
-                let opcode_n_args = opcode.stack_input();
-                let initial_len = self.stack.len();
-                let local_delta = if opcode_n_args > initial_len {
-                    opcode_n_args - initial_len
-                } else {
-                    0
-                };
+                                
+                let mut consumed_symbolic_expressions: Vec<SymbolicExpression> = Vec::new();
 
-                let mut symbolic_expressions: Vec<SymbolicExpression> = Vec::new();
-
-                // IDEA ? use add_place_holder_on_stack here, to avoid complicated maths (self.n_args + i - initial_len + 1, and self.n_args += local_delta;)
-                for i in 0..opcode_n_args {
-                    if i < initial_len {
-                        symbolic_expressions.push(self.stack.pop());
-                    } else {
-                        symbolic_expressions.push(SymbolicExpression::new_arg(self.n_args + i - initial_len + 1, None))
-                    }
+                for _ in 0..opcode.stack_input() {
+                    consumed_symbolic_expressions.push(self.stack.pop());
                 }
-                self.n_args += local_delta;
 
                 let effect: Option<Rc<Effect>>;
 
                 if opcode.has_effect(){
-                    let effect_ref = Rc::new(Effect::COMPOSE(opcode, symbolic_expressions.clone()));
+                    let effect_ref = Rc::new(Effect::COMPOSE(opcode, consumed_symbolic_expressions.clone()));
                     effect = Some(Rc::clone(&effect_ref));
                     self.effects.push(Rc::clone(&effect_ref));
                 } else {
@@ -102,11 +81,12 @@ impl SymbolicBlock {
                 };
 
                 if opcode.stack_output() > 0 {
-                    self.stack.push(SymbolicExpression::new_compose(opcode, symbolic_expressions.clone(), effect))
+                    self.stack.push(SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions.clone(), effect))
                 }
+                
                 //not 100% sure it's an else
                 else if opcode.is_exiting() || opcode.is_jump() {
-                    self.impact = Some(SymbolicExpression::new_compose(opcode, symbolic_expressions, effect));
+                    self.impact = Some(SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions, effect));
                 }
             }
         }
