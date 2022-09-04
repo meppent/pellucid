@@ -2,9 +2,9 @@ use crate::tools::utils::u256_to_hex;
 
 use super::opcode::Opcode;
 use primitive_types::U256;
+use serde::{Deserialize, Serialize};
 use std::fmt;
-
-#[derive(Debug, PartialEq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Clone, Copy, Hash, Serialize, Deserialize)]
 pub struct Vopcode {
     // an opcode with a value, used when it's a PUSH
     pub opcode: Opcode,
@@ -117,6 +117,31 @@ mod tests {
                 };
             }
             return None;
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    pub fn test_serialize_vopcode() {
+        for vopcode in [
+            Vopcode {
+                opcode: Opcode::PUSH { item_size: 2 },
+                value: Some(U256::from("0x11aa")),
+                pc: 5,
+            },
+            Vopcode {
+                opcode: Opcode::ADD,
+                value: None,
+                pc: 10,
+            },
+        ] {
+            let json: &String = &serde_json::to_string(&vopcode).unwrap();
+            let deserialized_vopcode: Vopcode = serde_json::from_str(&json).unwrap();
+            assert!(vopcode == deserialized_vopcode);
         }
     }
 }
