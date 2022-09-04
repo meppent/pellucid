@@ -37,7 +37,7 @@ impl SymbolicBlock {
         return self.stack.len();
     }
 
-    pub fn fill_stack_with_place_holders(&mut self, required_input_count: usize) {
+    fn fill_stack_with_place_holders(&mut self, required_input_count: usize) {
         while self.stack.len() < required_input_count {
             self.stack._down_push(
                 SymbolicExpression::new_arg(self.n_args + 1, None)
@@ -97,10 +97,45 @@ impl SymbolicBlock {
 #[cfg(test)]
 mod tests {
 
+    use primitive_types::U256;
+
+    use crate::create_blocks::symbolic_expression::StackExpression;
+
     use super::*;
 
     #[test]
-    pub fn test1() {
-
+    pub fn test_fill_stack_with_place_holders1() {
+        let mut symbolic_block = SymbolicBlock::new();
+        symbolic_block.fill_stack_with_place_holders(3);
+        assert_eq!(symbolic_block.n_args, 3);
+        assert_eq!(symbolic_block.effects.len(), 0);
+        assert_eq!(symbolic_block.stack.len(), 3);
+        for i in 1..4 {
+            assert_eq!(
+                symbolic_block.stack.pop(),
+                SymbolicExpression::new_arg(i, None)
+            );
+        }
     }
+
+    #[test]
+    pub fn test_fill_stack_with_place_holders2() {
+        let mut symbolic_block = SymbolicBlock::new();
+        symbolic_block.stack.push(SymbolicExpression::new_bytes(U256::from(5), None));
+        symbolic_block.fill_stack_with_place_holders(3);
+        assert_eq!(symbolic_block.n_args, 2);
+        assert_eq!(symbolic_block.effects.len(), 0);
+        assert_eq!(symbolic_block.stack.len(), 3);
+        assert_eq!(
+            symbolic_block.stack.pop(),
+            SymbolicExpression::new_bytes(U256::from(5), None)
+        );
+        for i in 1..3 {
+            assert_eq!(
+                symbolic_block.stack.pop(),
+                SymbolicExpression::new_arg(i, None)
+            );
+        }
+    }
+        
 }
