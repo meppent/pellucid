@@ -20,32 +20,26 @@ pub enum Effect {
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct SymbolicExpression {
     pub stack_expression: StackExpression,
-    pub effect: Option<Rc<Effect>>,
+    pub origin_effect: Option<Rc<Effect>>,
 }
 
 impl SymbolicExpression {
-    pub fn new(stack_expression: StackExpression, effect: Option<Rc<Effect>>) -> Self {
+    pub fn new(stack_expression: StackExpression, origin_effect: Option<Rc<Effect>>) -> Self {
         return SymbolicExpression {
             stack_expression,
-            effect,
+            origin_effect,
         };
     }
 
-    pub fn new_bytes(value: U256, effect: Option<Rc<Effect>>) -> Self {
-        return SymbolicExpression::new(StackExpression::BYTES(value), effect);
+    pub fn new_bytes(value: U256, origin_effect: Option<Rc<Effect>>) -> Self {
+        return SymbolicExpression::new(StackExpression::BYTES(value), origin_effect);
     }
 
-    pub fn new_compose(opcode: Opcode, args: Vec<SymbolicExpression>, effect: Option<Rc<Effect>>) -> Self {
-        return SymbolicExpression::new(StackExpression::COMPOSE(opcode, args), effect);
+    pub fn new_compose(opcode: Opcode, args: Vec<SymbolicExpression>, origin_effect: Option<Rc<Effect>>) -> Self {
+        return SymbolicExpression::new(StackExpression::COMPOSE(opcode, args), origin_effect);
     }
 
-    pub fn new_arg(index: usize, effect: Option<Rc<Effect>>) -> Self {
-        return SymbolicExpression::new(StackExpression::ARG(index), effect);
+    pub fn new_arg(index: usize, origin_effect: Option<Rc<Effect>>) -> Self {
+        return SymbolicExpression::new(StackExpression::ARG(index), origin_effect);
     }
 }
-
-
-
-
-
-

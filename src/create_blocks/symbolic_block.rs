@@ -81,13 +81,15 @@ impl SymbolicBlock {
                 };
                 
                 if opcode.is_exiting() || opcode.is_jump() {
-                    self.impact = Some(SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions, effect));
+                    self.impact = Some(
+                        SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions, effect)
+                    );
                 } else if opcode.stack_output() > 0 {
-                    self.stack.push(SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions.clone(), effect))
+                    self.stack.push(
+                        SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions.clone(), effect)
+                    )
                 }
             }
         }
     }
 }
-
-
