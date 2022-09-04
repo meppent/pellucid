@@ -80,11 +80,14 @@ impl fmt::Display for Vopcode {
 mod tests {
     use super::*;
     use regex::Regex;
+    use lazy_static::lazy_static;
 
     impl Vopcode {
         pub fn from_string(vopcode_str: &str) -> Option<Vopcode> {
-            let re = Regex::new(r"([A-Fa-f0-9]+)[^\w\d]+([A-Fa-f0-9]{1, 2})[^\w\d]+([\w\d]+)(?:[^\w\d]*(?:0x|)?([A-Fa-f0-9]*))?").unwrap();
-            if let Some(caps) = re.captures(vopcode_str) {
+            lazy_static! {
+                static ref RE: Regex = Regex::new(r"([A-Fa-f0-9]+)[^\w\d]+([A-Fa-f0-9]{1, 2})[^\w\d]+([\w\d]+)(?:[^\w\d]*(?:0x|)?([A-Fa-f0-9]*))?").unwrap();
+            }
+            if let Some(caps) = RE.captures(vopcode_str) {
                 match (caps.get(1), caps.get(2), caps.get(3)) {
                     (Some(pc), Some(code), Some(name)) => {
                         let opcode: Opcode = Opcode::from(hex::decode(code.as_str()).unwrap()[0]);
