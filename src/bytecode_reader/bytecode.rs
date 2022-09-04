@@ -73,6 +73,10 @@ impl Bytecode {
         return &self.vopcodes[self.pc_to_index[&pc]];
     }
 
+    pub fn get_vopcodes(&self) -> &[Vopcode] {
+        return &self.vopcodes;
+    }
+
     pub fn get_last_pc(&self) -> usize {
         return self.vopcodes[self.vopcodes.len() - 1].pc;
     }
