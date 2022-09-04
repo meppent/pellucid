@@ -4,7 +4,6 @@ use primitive_types::U256;
 
 use crate::bytecode_reader::opcode::Opcode;
 
-
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum StackExpression {
     BYTES(U256),
