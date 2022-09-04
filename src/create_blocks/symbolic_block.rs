@@ -86,7 +86,7 @@ impl SymbolicBlock {
                     );
                 } else if opcode.stack_output() > 0 {
                     self.stack.push(
-                        SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions.clone(), effect)
+                        SymbolicExpression::new_compose(opcode, consumed_symbolic_expressions, effect)
                     )
                 }
             }
