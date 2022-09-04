@@ -86,7 +86,7 @@ mod tests {
 
     use std::fs;
     use itertools::Itertools;
-    use crate::{tools::utils::{read_file, write_file}, bytecode_reader::vopcode::Vopcode};
+    use crate::{tools::utils::read_file, bytecode_reader::vopcode::Vopcode};
     use super::*;
 
     #[test]

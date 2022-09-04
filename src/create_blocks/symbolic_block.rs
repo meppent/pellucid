@@ -211,7 +211,6 @@ mod tests {
             Effect::COMPOSE(opcode, _consumed_symbolic_expressions) => {
                 assert_eq!(*opcode, Opcode::REVERT);
             },
-            _ => panic!("Unexpected stack expression"),
         }
         assert_eq!(block.final_state().unwrap(), block.effects[0]);
     }
@@ -233,7 +232,6 @@ mod tests {
                 assert_eq!(*opcode, Opcode::MSTORE);
                 assert_eq!(*consumed_symbolic_expressions, vec![SymbolicExpression::new_arg(1, None), SymbolicExpression::new_arg(2, None)]);
             },
-            _ => panic!("Unexpected stack expression"),
         }
     }
 
