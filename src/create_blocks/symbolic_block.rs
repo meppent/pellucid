@@ -102,7 +102,6 @@ mod tests {
     use crate::create_blocks::symbolic_expression::StackExpression;
 
     use crate::bytecode_reader::bytecode::Bytecode;
-    use crate::create_blocks::symbolic_expression::{StackExpression};
     use super::*;
 
     #[test]
@@ -234,5 +233,6 @@ mod tests {
                 SymbolicExpression::new_arg(i, None)
             );
         }
+    }
 
 }
