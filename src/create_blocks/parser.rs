@@ -83,10 +83,10 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
 
 #[cfg(test)]
 mod tests {
-    
+
     use std::fs;
     use itertools::Itertools;
-    use crate::tools::utils::read_file;
+    use crate::{tools::utils::{read_file, write_file}, bytecode_reader::vopcode::Vopcode};
     use super::*;
 
     #[test]
@@ -107,4 +107,25 @@ mod tests {
         // to overwrite the dest json:
         //write_file("temp.json", &serde_json::to_string(&symbolic_blocks).unwrap());
     }
+
+    #[test]
+    pub fn test_block_bytecodes(){
+        let bytecode_string: String =
+                fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt")
+                    .expect("Unable to read file.");
+        let bytecode: Bytecode = Bytecode::from(&bytecode_string);
+        let mut blocks: HashMap<usize, Block> = find_blocks(&bytecode);
+        let mut block_bytecodes: HashMap<usize, Vec<Vopcode>> = HashMap::new();
+        let pc_starts: Vec<usize> = blocks.keys().into_iter().map(|pc|*pc).collect_vec();
+        for pc_start in &pc_starts{
+            block_bytecodes.insert(*pc_start, blocks.remove(pc_start).unwrap().code.to_vec());
+        }
+        let target_block_bytecodes: HashMap<usize, Vec<Vopcode>> = serde_json::from_str(&read_file("./assets/contracts/simple_contract/block_bytecodes.json")).unwrap();
+        assert!(target_block_bytecodes == block_bytecodes);
+
+        //to overwrite the dest json:
+        //write_file("./assets/contracts/simple_contract/block_bytecodes.json", &serde_json::to_string(&block_bytecodes).unwrap());
+    }
+
+    
 }

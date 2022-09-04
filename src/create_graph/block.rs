@@ -7,7 +7,7 @@ use std::{cell::RefCell, rc::Rc};
 
 #[derive(Debug)]
 pub struct Block<'a> {
-    code: &'a [Vopcode],
+    pub code: &'a [Vopcode],
     nodes: Vec<Rc<RefCell<Node<'a>>>>,
     pub symbolic_block: SymbolicBlock,
 }
