@@ -52,6 +52,7 @@ pub enum Effect {
 pub struct SymbolicBlock {
     symbolic_expressions: Stack<SymbolicExpression>,
     effects: Vec<Rc<Effect>>,
+    impact: SymbolicExpression,
     n_args: usize,
     n_outputs: usize,
 }
@@ -61,6 +62,7 @@ impl SymbolicBlock {
         let mut symbolic_block: SymbolicBlock = SymbolicBlock {
             symbolic_expressions: Stack::new(),
             effects: Vec::new(),
+            impact: SymbolicExpression::new(StackExpression::BYTES(U256::zero()), None),
             n_args: 0,
             n_outputs: 0,
         };
@@ -146,11 +148,14 @@ impl SymbolicBlock {
                 };
 
                 if opcode.stack_output() > 0 {
-                    self.push(SymbolicExpression::new_compose(opcode, symbolic_expressions, effect))
+                    self.push(SymbolicExpression::new_compose(opcode, symbolic_expressions.clone(), effect))
                 }
+                //not 100% sure it's an else
+                else if opcode.is_exiting() || opcode.is_jump() {
+                    self.impact = SymbolicExpression::new_compose(opcode, symbolic_expressions, effect);
                 }
             }
-            
+        }
     }
     
 
