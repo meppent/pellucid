@@ -64,8 +64,11 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
 
         // Invariant: When we are in this loop, we are not in a block
         'no_block: loop {
+            // We are not in a block, we search for a new block
             match vopcode_iterator.peek() {
+                // There is a new block after
                 Some(vopcode) if vopcode.opcode == Opcode::JUMPDEST=> break 'no_block,
+                // There is no new block after
                 None => break 'no_block,
                 _ => {
                     vopcode_iterator.next();
