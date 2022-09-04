@@ -97,10 +97,105 @@ impl SymbolicBlock {
 #[cfg(test)]
 mod tests {
 
+    use crate::bytecode_reader::bytecode::Bytecode;
+    use crate::create_blocks::symbolic_expression::{StackExpression};
     use super::*;
 
     #[test]
-    pub fn test1() {
+    pub fn test_apply_add() {
+        let bytecode = Bytecode::from("01");
+        let mut block = SymbolicBlock::new();
+        block.apply_vopcode(&bytecode.get_vopcode_at(0));
+        assert_eq!(block.n_outputs(), 1);
+        assert_eq!(block.delta(), -1);
+        assert_eq!(block.n_args, 2);
+        assert_eq!(block.effects, []);
+        assert_eq!(block.impact, None);
+        let symbolic_expression = block.stack.peek();
+        assert_eq!(symbolic_expression.origin_effect, None);
+        match &symbolic_expression.stack_expression {
+            StackExpression::COMPOSE(opcode, consumed_symbolic_expressions) => {
+                assert_eq!(*opcode, Opcode::ADD);
+                assert_eq!(consumed_symbolic_expressions.len(), 2);
+                assert_eq!(consumed_symbolic_expressions[0], SymbolicExpression::new_arg(1, None));
+                assert_eq!(consumed_symbolic_expressions[1], SymbolicExpression::new_arg(2, None));
+            },
 
+            _ => panic!("Unexpected stack expression"),
+        }
     }
+
+    #[test]
+    pub fn test_apply_swap4() {
+        let bytecode = Bytecode::from("93");
+        let mut block = SymbolicBlock::new();
+        block.apply_vopcode(&bytecode.get_vopcode_at(0));
+        assert_eq!(block.n_outputs(), 5);
+        assert_eq!(block.delta(), 0);
+        assert_eq!(block.n_args, 5);
+        assert_eq!(block.effects, []);
+        assert_eq!(block.impact, None);
+        for i in 0..5 {
+            let last_expr = block.stack.pop();
+            if i == 0 || i == 4 {
+                assert_eq!(last_expr, SymbolicExpression::new_arg(5 - i, None));
+            }
+            else {
+                assert_eq!(last_expr, SymbolicExpression::new_arg(i + 1, None));
+            }
+            
+        }  
+    }
+
+    #[test]
+    pub fn test_apply_dup4() {
+        let bytecode = Bytecode::from("83");
+        let mut block = SymbolicBlock::new();
+        block.apply_vopcode(&bytecode.get_vopcode_at(0));
+        assert_eq!(block.n_outputs(), 5);
+        assert_eq!(block.delta(), 1);
+        assert_eq!(block.n_args, 4);
+        assert_eq!(block.effects, []);
+        assert_eq!(block.impact, None);
+
+        for i in 0..5 {
+            let last_expr = block.stack.pop();
+            if i == 0 {
+                assert_eq!(last_expr, SymbolicExpression::new_arg(4, None));
+            }
+            else {
+                assert_eq!(last_expr, SymbolicExpression::new_arg(i, None));
+            }
+            
+        } 
+    }
+
+    #[test]
+    pub fn test_apply_call_reference() {
+        let bytecode = Bytecode::from("f1");
+        let mut block = SymbolicBlock::new();
+        block.apply_vopcode(&bytecode.get_vopcode_at(0));
+        assert_eq!(block.n_outputs(), 1);
+        assert_eq!(block.delta(), -6);
+        assert_eq!(block.n_args, 7);
+        assert_eq!(block.impact, None);
+        let symbolic_expr = block.stack.peek();
+        assert_eq!(*symbolic_expr.origin_effect.as_ref().unwrap(), block.effects[0]);
+    
+    }
+
+    #[test]
+    pub fn test_apply_revert() {
+        let bytecode = Bytecode::from("fd");
+        let mut block = SymbolicBlock::new();
+        block.apply_vopcode(&bytecode.get_vopcode_at(0));
+        assert_eq!(block.n_outputs(), 0);
+        assert_eq!(block.delta(), -2);
+        assert_eq!(block.n_args, 2);
+        assert_ne!(block.impact, None);
+        dbg!(block);
+    
+    }
+
 }
+
