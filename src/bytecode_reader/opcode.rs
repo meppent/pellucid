@@ -610,7 +610,7 @@ impl Opcode {
                 OpcodeInfo {
                     code: 0x8f + *depth as u8,
                     name,
-                    stack_input: *depth,
+                    stack_input: *depth + 1,
                     stack_output: *depth,
                     external_effect: false,
                 }
