@@ -1,5 +1,5 @@
 use core::fmt::Debug;
-use std::{hash::Hash, default};
+use std::hash::Hash;
 
 #[derive(Clone, Debug, Hash, Default)]
 pub struct Stack<E: Clone + Debug + Hash + PartialEq> {

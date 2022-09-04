@@ -53,7 +53,6 @@ fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, Block<'a>> {
                 }
                 None => break 'new_block,
             }
-
         }
 
         // We are not in a block, we search for a new block
