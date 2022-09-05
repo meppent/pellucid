@@ -26,6 +26,7 @@ impl<'a> Block<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct BlockRef<'a> {
     pub inner: Rc<RefCell<Block<'a>>>,
 }

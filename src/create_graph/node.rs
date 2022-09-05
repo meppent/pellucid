@@ -8,7 +8,7 @@ use std::{cell::RefCell, rc::Rc};
 pub struct Node<'a> {
     initial_context: SimpleContext,
     final_context: SimpleContext,
-    block: Rc<RefCell<Block<'a>>>,
+    block: BlockRef<'a>,
     parents: Vec<Rc<RefCell<Node<'a>>>>,
     children: Vec<Rc<RefCell<Node<'a>>>>,
 }
@@ -37,7 +37,7 @@ impl<'a> Eq for NodeRef<'a> {}
 
 impl<'a> NodeRef<'a> {
     pub fn new(
-        block: Rc<RefCell<Block<'a>>>,
+        block: BlockRef<'a>,
         initial_context: SimpleContext,
         final_context: SimpleContext,
     ) -> Self {
@@ -54,7 +54,7 @@ impl<'a> NodeRef<'a> {
 
     pub fn create_with_neighbors(
         &self,
-        block: Rc<RefCell<Block<'a>>>,
+        block: BlockRef<'a>,
         initial_context: SimpleContext,
         final_context: SimpleContext,
         parents: Vec<NodeRef<'a>>,
@@ -85,9 +85,7 @@ impl<'a> NodeRef<'a> {
     }
 
     pub fn get_block(&self) -> BlockRef<'a> {
-        return BlockRef {
-            inner: self.inner.borrow().block.clone(),
-        };
+        return self.inner.borrow().block.clone();
     }
 
     pub fn get_children(&self) -> Vec<NodeRef<'a>> {
