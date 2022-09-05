@@ -39,12 +39,11 @@ impl<'a> NodeRef<'a> {
     pub fn new(
         block: BlockRef<'a>,
         initial_context: SimpleContext,
-        final_context: SimpleContext,
     ) -> Self {
         return NodeRef {
             inner: Rc::new(RefCell::new(Node {
                 initial_context,
-                final_context,
+                final_context: SimpleContext::new(),
                 block,
                 parents: vec![],
                 children: vec![],
@@ -52,23 +51,6 @@ impl<'a> NodeRef<'a> {
         };
     }
 
-    pub fn create_with_neighbors(
-        &self,
-        block: BlockRef<'a>,
-        initial_context: SimpleContext,
-        final_context: SimpleContext,
-        parents: Vec<NodeRef<'a>>,
-        children: Vec<NodeRef<'a>>,
-    ) -> Self {
-        let created = NodeRef::new(block, initial_context, final_context);
-        for parent in parents {
-            created.add_parent(parent);
-        }
-        for child in children {
-            created.add_children(child);
-        }
-        return created;
-    }
 
     pub fn clone(&self) -> Self {
         return NodeRef {
@@ -86,6 +68,10 @@ impl<'a> NodeRef<'a> {
 
     pub fn get_block(&self) -> BlockRef<'a> {
         return self.inner.borrow().block.clone();
+    }
+
+    pub fn set_final_context(&self, final_context: SimpleContext){
+        self.inner.borrow_mut().final_context = final_context;
     }
 
     pub fn get_children(&self) -> Vec<NodeRef<'a>> {
@@ -117,7 +103,7 @@ impl<'a> NodeRef<'a> {
         parent.inner.borrow_mut().children.push(self.clone().inner);
     }
 
-    pub fn add_children(&self, child: NodeRef<'a>) {
+    pub fn add_chil(&self, child: NodeRef<'a>) {
         self.inner.borrow_mut().children.push(child.clone().inner);
         child.inner.borrow_mut().parents.push(self.clone().inner);
     }

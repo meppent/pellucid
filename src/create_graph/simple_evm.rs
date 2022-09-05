@@ -28,3 +28,8 @@ pub struct SimpleContext{
 
 }
 
+impl SimpleContext{
+    pub fn new()-> Self{
+        return SimpleContext{stack: SimpleStack::new(), state: State::RUNNING};
+    }
+}

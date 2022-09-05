@@ -1,10 +1,11 @@
+use std::borrow::BorrowMut;
 use std::collections::{HashMap, HashSet};
 
 use crate::bytecode_reader::bytecode::Bytecode;
 use crate::create_blocks::parser;
 use crate::create_graph::simple_evm::{State};
 use super::block::BlockRef;
-use super::node::NodeRef;
+use super::node::{NodeRef, Node};
 use super::simple_evm::{SimpleStack, SimpleContext};
 
 pub struct Graph<'a> {
@@ -22,25 +23,32 @@ impl<'a> Graph<'a> {
 
     pub fn from(bytecode: &'a Bytecode) -> Self {
         let blocks: HashMap<usize, BlockRef<'a>> = parser::find_blocks(&bytecode);
-
         let graph: Graph =  Graph { blocks };
+        let first_block = graph.get_block(0);
+        let initial_node = NodeRef::new(first_block, SimpleContext::new());
+        graph.explore_from(initial_node, SimpleContext::new());
         return graph;
     }
-
-    pub fn explore_from(&self, block_ref: BlockRef<'a>, initial_context: SimpleContext){
-        assert!(!block_ref.contains_initial_context(&initial_context));
-        let final_context: SimpleContext = block_ref.apply_on_simple_context(&initial_context);
+    //we may want to create RC for SimpleContext knowing they are owned by 2 nodes
+    pub fn explore_from(&self, node_origin: NodeRef<'a>, initial_context: SimpleContext){
+        let block_origin = node_origin.get_block();
+        assert!(!block_origin.contains_initial_context(&initial_context));
+        let final_context: SimpleContext = block_origin.apply_on_simple_context(&initial_context);
+        
         let next_dests: Vec<usize> = match &final_context.state {
-            State::RUNNING => vec![block_ref.get_next_pc_start()],
+            State::RUNNING => vec![block_origin.get_next_pc_start()],
             State::STOP => vec![],
             State::JUMP(next_dests) => next_dests.clone()
         };
+
+        node_origin.set_final_context(final_context.clone());
+
         for dest in next_dests {
             if let Some(block_dest) = self.blocks.get(&dest){
                 if !block_dest.contains_initial_context(&final_context){
-                    // block_ref -> block_dest
-                    let node_dest = NodeRef::new(block_dest.clone(), initial_context.clone(), final_context.clone());
-                    self.explore_from(BlockRef::clone(&self.blocks[&dest]), final_context.clone());
+                    let node_dest = NodeRef::new(block_dest.clone(), final_context.clone());
+                    node_origin.add_chil(node_dest.clone());
+                    self.explore_from(node_dest, final_context.clone());
                 }
             }
         }
