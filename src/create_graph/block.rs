@@ -119,8 +119,7 @@ impl<'a> BlockRef<'a> {
         // return the resulting stack + the list of the next pc destinations
         assert!(initial_context.state == State::RUNNING);
         let mut final_context: SimpleContext = initial_context.clone();
-        let next_dests: Vec<usize> = Vec::new();
-        
+
         if self.get_n_args() > initial_context.stack.len(){
             final_context.state = State::STOP;
         }
@@ -160,7 +159,13 @@ impl<'a> BlockRef<'a> {
                     }
                     
                 },
-                _ => {}
+                Effect::COMPOSE(opcode, _) => {
+                    if opcode.is_exiting(){
+                        final_context.state = State::STOP;
+                    }else{
+                        final_context.state = State::RUNNING;
+                    }
+                }
             }
         }
         return final_context;
