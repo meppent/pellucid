@@ -17,8 +17,9 @@ pub type SimpleStack = Stack<SimpleStackExpression>;
 pub enum State{
     RUNNING,
     STOP,
-    JUMP(Vec<U256>),
+    JUMP(Vec<usize>),
 }
+
 
 #[derive(Debug, PartialEq, Clone, Hash, Serialize)]
 pub struct SimpleContext{

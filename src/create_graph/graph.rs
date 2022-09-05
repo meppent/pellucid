@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::bytecode_reader::bytecode::Bytecode;
 use crate::create_blocks::parser;
-
+use crate::create_graph::simple_evm::{State};
 use super::block::BlockRef;
 use super::node::NodeRef;
 use super::simple_evm::{SimpleStack, SimpleContext};
@@ -17,18 +17,36 @@ impl<'a> Graph<'a> {
             blocks: HashMap::new(),
         };
     }
+
+
+
     pub fn from(bytecode: &'a Bytecode) -> Self {
         let blocks: HashMap<usize, BlockRef<'a>> = parser::find_blocks(&bytecode);
 
-        let mut extend = |block_ref: BlockRef<'a>, simple_context: SimpleContext| {
-            if block_ref.contains_initial_context(&simple_context) {
-                return;
-            }
-            let final_stack: SimpleContext = block_ref.apply_on_simple_context(&simple_context);
-        };
-
-        return Graph { blocks };
+        let graph: Graph =  Graph { blocks };
+        return graph;
     }
+
+    pub fn explore_from(&self, block_ref: BlockRef<'a>, initial_context: SimpleContext){
+        assert!(!block_ref.contains_initial_context(&initial_context));
+        let final_context: SimpleContext = block_ref.apply_on_simple_context(&initial_context);
+        let next_dests: Vec<usize> = match &final_context.state {
+            State::RUNNING => vec![block_ref.get_next_pc_start()],
+            State::STOP => vec![],
+            State::JUMP(next_dests) => next_dests.clone()
+        };
+        for dest in next_dests {
+            if let Some(block_dest) = self.blocks.get(&dest){
+                if !block_dest.contains_initial_context(&final_context){
+                    // block_ref -> block_dest
+                    let node_dest = NodeRef::new(block_dest.clone(), initial_context.clone(), final_context.clone());
+                    self.explore_from(BlockRef::clone(&self.blocks[&dest]), final_context.clone());
+                }
+            }
+        }
+    }
+
+
 
     pub fn add_block(&mut self, block: BlockRef<'a>) {
         self.blocks.insert(block.get_pc_start(), block);

@@ -107,7 +107,7 @@ impl<'a> BlockRef<'a> {
         return  RefCell::borrow(&self.inner).symbolic_block.n_args;
     }
 
-    pub fn get_pc_end(&self) -> usize {
+    pub fn get_next_pc_start(&self) -> usize {
         return self.get_code()[self.get_code().len() - 1].get_next_pc();
     }
 
@@ -143,7 +143,7 @@ impl<'a> BlockRef<'a> {
                     let dest = final_context.stack.peek();
                     match dest {
                         SimpleStackExpression::BYTES(value) => {
-                            final_context.state = State::JUMP(vec![U256::from(value)]);
+                            final_context.state = State::JUMP(vec![value.as_usize()]);
                         },
                         _ => { panic!("JUMP destination is not a constant") }
                     }
@@ -153,7 +153,7 @@ impl<'a> BlockRef<'a> {
                     let dest = final_context.stack.peek();
                     match dest {
                         SimpleStackExpression::BYTES(value) => {
-                            final_context.state = State::JUMP(vec![U256::from(value), U256::from(self.get_pc_end())]);
+                            final_context.state = State::JUMP(vec![value.as_usize(), self.get_next_pc_start()]);
                         },
                         _ => { panic!("JUMP destination is not a constant") }
                     }
