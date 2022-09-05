@@ -10,9 +10,9 @@ use super::symbolic_expression::{SymbolicExpression, Effect, StackExpression};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct SymbolicBlock {
-    stack: Stack<SymbolicExpression>,
-    effects: Vec<Rc<Effect>>,
-    n_args: usize,
+    pub stack: Stack<SymbolicExpression>,
+    pub effects: Vec<Rc<Effect>>,
+    pub n_args: usize,
 }
 
 impl Default for SymbolicBlock {
@@ -106,62 +106,8 @@ impl SymbolicBlock {
             }
         }
     }
-
-
-
-
-    pub fn apply_on_simple_context(&self, initial_context: &SimpleContext) -> SimpleContext {
-        // return the resulting stack + the list of the next pc destinations
-        assert!(initial_context.state == State::RUNNING);
-        let mut final_context: SimpleContext = initial_context.clone();
-        let next_dests: Vec<usize> = Vec::new();
-        
-        if self.n_args > initial_context.stack.len(){
-            final_context.state = State::STOP;
-        }
-
-        let mut args: Vec<SimpleStackExpression> = vec![];
-        for _ in 0..self.n_args{
-            args.push(final_context.stack.pop());
-        }
-        for symbolic_expr in self.stack.iter(){
-            match symbolic_expr.stack_expression {
-                StackExpression::BYTES(value) => final_context.stack.push(SimpleStackExpression::BYTES(value)),
-                StackExpression::COMPOSE(_,_) => final_context.stack.push(SimpleStackExpression::OTHER),
-                StackExpression::ARG(index) => final_context.stack.push(args[index - 1].clone())
-            }
-        }
-
-        if let Some(final_effect) = self.final_effect(){
-            match *final_effect{
-                Effect::COMPOSE(Opcode::JUMP, _) => {
-                    assert!(final_context.stack.len() > 0, "JUMP without enough arguments");
-                    let dest = final_context.stack.peek();
-                    match dest {
-                        SimpleStackExpression::BYTES(value) => {
-                            final_context.state = State::JUMP(vec![U256::from(value)]);
-                        },
-                        _ => { panic!("JUMP destination is not a constant") }
-                    }
-                    
-                },
-                Effect::COMPOSE(Opcode::JUMPI, _) => {
-                    assert!(final_context.stack.len() > 1, "JUMPI without enough arguments");
-                    let dest = final_context.stack.peek();
-                    match dest {
-                        SimpleStackExpression::BYTES(value) => {
-                            final_context.state = State::JUMP(vec![U256::from(value), ]);
-                        },
-                        _ => { panic!("JUMP destination is not a constant") }
-                    }
-                    
-                },
-                _ => {}
-            }
-        }
-        return final_context;
-    }
 }
+
 
 // #[cfg(test)]
 // mod tests {

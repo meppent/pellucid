@@ -1,6 +1,8 @@
+use primitive_types::U256;
+
 use super::{node::{Node, NodeRef}, simple_evm::{SimpleStack, SimpleContext}};
 use crate::{
-    bytecode_reader::vopcode::Vopcode, create_blocks::{symbolic_block::SymbolicBlock},
+    bytecode_reader::{vopcode::Vopcode, opcode::Opcode}, create_blocks::{symbolic_block::SymbolicBlock, symbolic_expression::{StackExpression, Effect, SymbolicExpression}}, create_graph::simple_evm::{State, SimpleStackExpression}, tools::stack::Stack,
 };
 use std::{cell::RefCell, rc::Rc};
 #[derive(Debug, Default)]
@@ -61,9 +63,6 @@ impl<'a> BlockRef<'a> {
         };
     }
 
-    pub fn apply_on_simple_context(&self, simple_context: &SimpleContext) -> SimpleContext {
-        return self.inner.borrow().symbolic_block.apply_on_simple_context(&simple_context).0;
-    }
 
     pub fn add_node(&self, node: NodeRef<'a>) {
         self.inner.borrow_mut().nodes.push(node.inner);
@@ -103,6 +102,71 @@ impl<'a> BlockRef<'a> {
             })
             .collect();
     }
+
+    pub fn get_n_args(&self)->usize{
+        return  RefCell::borrow(&self.inner).symbolic_block.n_args;
+    }
+
+    pub fn get_stack(&self)-> Stack<SymbolicExpression> {
+        return RefCell::borrow(&self.inner).symbolic_block.stack;
+    }
+
+    pub fn final_effect(&self)-> Option<Rc<Effect>> {
+        return RefCell::borrow(&self.inner).symbolic_block.final_effect();
+    }
+
+    pub fn apply_on_simple_context(&self, initial_context: &SimpleContext) -> SimpleContext {
+        // return the resulting stack + the list of the next pc destinations
+        assert!(initial_context.state == State::RUNNING);
+        let mut final_context: SimpleContext = initial_context.clone();
+        let next_dests: Vec<usize> = Vec::new();
+        
+        if self.get_n_args() > initial_context.stack.len(){
+            final_context.state = State::STOP;
+        }
+
+        let mut args: Vec<SimpleStackExpression> = vec![];
+        for _ in 0..self.get_n_args(){
+            args.push(final_context.stack.pop());
+        }
+        for symbolic_expr in self.get_stack().iter(){
+            match symbolic_expr.stack_expression {
+                StackExpression::BYTES(value) => final_context.stack.push(SimpleStackExpression::BYTES(value)),
+                StackExpression::COMPOSE(_,_) => final_context.stack.push(SimpleStackExpression::OTHER),
+                StackExpression::ARG(index) => final_context.stack.push(args[index - 1].clone())
+            }
+        }
+
+        if let Some(final_effect) = self.final_effect(){
+            match *final_effect{
+                Effect::COMPOSE(Opcode::JUMP, _) => {
+                    assert!(final_context.stack.len() > 0, "JUMP without enough arguments");
+                    let dest = final_context.stack.peek();
+                    match dest {
+                        SimpleStackExpression::BYTES(value) => {
+                            final_context.state = State::JUMP(vec![U256::from(value)]);
+                        },
+                        _ => { panic!("JUMP destination is not a constant") }
+                    }
+                },
+                Effect::COMPOSE(Opcode::JUMPI, _) => {
+                    assert!(final_context.stack.len() > 1, "JUMPI without enough arguments");
+                    let dest = final_context.stack.peek();
+                    match dest {
+                        SimpleStackExpression::BYTES(value) => {
+                            final_context.state = State::JUMP(vec![U256::from(value), ]);
+                        },
+                        _ => { panic!("JUMP destination is not a constant") }
+                    }
+                    
+                },
+                _ => {}
+            }
+        }
+        return final_context;
+    }
+
+
 
 
 }
