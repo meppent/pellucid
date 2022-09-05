@@ -3,4 +3,4 @@
 pub mod block;
 pub mod node;
 pub mod graph;
-pub mod simple_stack;
+pub mod simple_evm;

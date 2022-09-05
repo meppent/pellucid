@@ -1,14 +1,13 @@
-use super::block::{Block, BlockRef};
+use super::{block::{Block, BlockRef}, simple_evm::{SimpleContext}};
 use crate::{
-    evm_old::{context::Context, },
     tools::utils::calculate_hash,
 };
 use std::{cell::RefCell, rc::Rc};
 
 #[derive(Debug)]
 pub struct Node<'a> {
-    initial_context: Context,
-    final_context: Context,
+    initial_context: SimpleContext,
+    final_context: SimpleContext,
     block: Rc<RefCell<Block<'a>>>,
     parents: Vec<Rc<RefCell<Node<'a>>>>,
     children: Vec<Rc<RefCell<Node<'a>>>>,
@@ -39,8 +38,8 @@ impl<'a> Eq for NodeRef<'a> {}
 impl<'a> NodeRef<'a> {
     pub fn new(
         block: Rc<RefCell<Block<'a>>>,
-        initial_context: Context,
-        final_context: Context,
+        initial_context: SimpleContext,
+        final_context: SimpleContext,
     ) -> Self {
         return NodeRef {
             inner: Rc::new(RefCell::new(Node {
@@ -56,8 +55,8 @@ impl<'a> NodeRef<'a> {
     pub fn create_with_neighbors(
         &self,
         block: Rc<RefCell<Block<'a>>>,
-        initial_context: Context,
-        final_context: Context,
+        initial_context: SimpleContext,
+        final_context: SimpleContext,
         parents: Vec<NodeRef<'a>>,
         children: Vec<NodeRef<'a>>,
     ) -> Self {
@@ -77,11 +76,11 @@ impl<'a> NodeRef<'a> {
         };
     }
 
-    pub fn get_initial_context(&self) -> Context {
+    pub fn get_initial_context(&self) -> SimpleContext {
         return self.inner.borrow().initial_context.clone();
     }
 
-    pub fn get_final_context(&self) -> Context {
+    pub fn get_final_context(&self) -> SimpleContext {
         return self.inner.borrow().final_context.clone();
     }
 

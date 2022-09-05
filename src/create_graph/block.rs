@@ -1,7 +1,6 @@
-use super::node::{Node, NodeRef};
+use super::{node::{Node, NodeRef}, simple_evm::{SimpleStack, SimpleContext}};
 use crate::{
-    bytecode_reader::vopcode::Vopcode,
-    tools::stack::Stack, create_blocks::{symbolic_block::SymbolicBlock}, evm_old::simple_expression::SimpleExpression,
+    bytecode_reader::vopcode::Vopcode, create_blocks::{symbolic_block::SymbolicBlock},
 };
 use std::{cell::RefCell, rc::Rc};
 #[derive(Debug, Default)]
@@ -62,6 +61,10 @@ impl<'a> BlockRef<'a> {
         };
     }
 
+    pub fn apply_on_simple_context(&self, simple_context: &SimpleContext) -> SimpleContext {
+        return self.inner.borrow().symbolic_block.apply_on_simple_context(&simple_context).0;
+    }
+
     pub fn add_node(&self, node: NodeRef<'a>) {
         self.inner.borrow_mut().nodes.push(node.inner);
     }
@@ -74,9 +77,9 @@ impl<'a> BlockRef<'a> {
         return RefCell::borrow(&self.inner).nodes.len();
     }
 
-    pub fn contains_initial_stack(&self, initial_stack: &Stack<SimpleExpression>) -> bool {
+    pub fn contains_initial_context(&self, initial_context: &SimpleContext) -> bool {
         for node in self.get_nodes() {
-            if &node.get_initial_context().stack == initial_stack {
+            if &node.get_initial_context() == initial_context {
                 return true;
             }
         }
@@ -100,4 +103,6 @@ impl<'a> BlockRef<'a> {
             })
             .collect();
     }
+
+
 }

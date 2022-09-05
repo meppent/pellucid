@@ -1,25 +1,33 @@
 use std::collections::{HashMap, HashSet};
-use itertools::Itertools;
 
 use crate::bytecode_reader::bytecode::Bytecode;
 use crate::create_blocks::parser;
 
-use super::block::{BlockRef, Block, self};
+use super::block::BlockRef;
 use super::node::NodeRef;
+use super::simple_evm::{SimpleStack, SimpleContext};
 
 pub struct Graph<'a> {
     pub blocks: HashMap<usize, BlockRef<'a>>,
 }
 
 impl<'a> Graph<'a> {
-    pub fn new()->Self{
-        return Graph { blocks: HashMap::new() };
+    pub fn new() -> Self {
+        return Graph {
+            blocks: HashMap::new(),
+        };
     }
     pub fn from(bytecode: &'a Bytecode) -> Self {
         let blocks: HashMap<usize, BlockRef<'a>> = parser::find_blocks(&bytecode);
 
+        let mut extend = |block_ref: BlockRef<'a>, simple_context: SimpleContext| {
+            if block_ref.contains_initial_context(&simple_context) {
+                return;
+            }
+            let final_stack: SimpleContext = block_ref.apply_on_simple_context(&simple_context);
+        };
 
-        return Graph {blocks};
+        return Graph { blocks };
     }
 
     pub fn add_block(&mut self, block: BlockRef<'a>) {
