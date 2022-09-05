@@ -107,8 +107,8 @@ impl<'a> BlockRef<'a> {
         return  RefCell::borrow(&self.inner).symbolic_block.n_args;
     }
 
-    pub fn get_stack(&self)-> Stack<SymbolicExpression> {
-        return RefCell::borrow(&self.inner).symbolic_block.stack;
+    pub fn get_pc_end(&self) -> usize {
+        return self.get_code()[self.get_code().len() - 1].get_next_pc();
     }
 
     pub fn final_effect(&self)-> Option<Rc<Effect>> {
@@ -129,7 +129,7 @@ impl<'a> BlockRef<'a> {
         for _ in 0..self.get_n_args(){
             args.push(final_context.stack.pop());
         }
-        for symbolic_expr in self.get_stack().iter(){
+        for symbolic_expr in self.inner.borrow().symbolic_block.stack.iter(){ //TODO: refactor
             match symbolic_expr.stack_expression {
                 StackExpression::BYTES(value) => final_context.stack.push(SimpleStackExpression::BYTES(value)),
                 StackExpression::COMPOSE(_,_) => final_context.stack.push(SimpleStackExpression::OTHER),
@@ -154,7 +154,7 @@ impl<'a> BlockRef<'a> {
                     let dest = final_context.stack.peek();
                     match dest {
                         SimpleStackExpression::BYTES(value) => {
-                            final_context.state = State::JUMP(vec![U256::from(value), ]);
+                            final_context.state = State::JUMP(vec![U256::from(value), U256::from(self.get_pc_end())]);
                         },
                         _ => { panic!("JUMP destination is not a constant") }
                     }

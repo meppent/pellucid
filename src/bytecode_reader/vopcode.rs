@@ -22,6 +22,13 @@ impl Vopcode {
         };
     }
 
+    pub fn get_next_pc(&self) -> usize{
+        return self.pc + 1 + match self.opcode {
+            Opcode::PUSH { item_size } => item_size,
+            _ => 0,
+        };
+    }
+
     fn sanity_check(opcode: Opcode, value: Option<U256>) {
         if let Some(v) = value {
             if let Opcode::PUSH { item_size: n_bytes } = opcode {
