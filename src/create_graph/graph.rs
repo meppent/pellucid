@@ -29,7 +29,7 @@ impl<'a> Graph<'a> {
         return graph;
     }
 
-    //we may want to create RC for SimpleContext knowing they are owned by 2 nodes
+
     pub fn explore_from(&self, node_origin: NodeRef<'a>) {
         let block_origin: BlockRef = node_origin.get_block();
         let current_final_context: SimpleContext = node_origin.clone_final_context();
@@ -62,34 +62,6 @@ impl<'a> Graph<'a> {
         return self.blocks[&index].clone();
     }
 
-    pub fn DFS_search(&self, fun_before: &dyn Fn(NodeRef<'a>), fun_after: &dyn Fn(NodeRef<'a>)) {
-        let mut visited: HashSet<NodeRef> = HashSet::new();
-        //first node access every node
-        self.explore_DFS(
-            (&self.blocks)[&0].get_nodes()[0].clone(),
-            &mut visited,
-            fun_before,
-            fun_after,
-        );
-    }
-
-    pub fn explore_DFS(
-        &self,
-        node: NodeRef<'a>,
-        visited: &mut HashSet<NodeRef<'a>>,
-        fun_before: &dyn Fn(NodeRef<'a>),
-        fun_after: &dyn Fn(NodeRef<'a>),
-    ) {
-        if !visited.contains(&node.clone()) {
-            visited.insert(node.clone());
-            fun_before(node.clone());
-            for child in node.get_children() {
-                (&self).explore_DFS(child.clone(), visited, &fun_before, &fun_after);
-            }
-            fun_after(node.clone());
-        }
-    }
-
     pub fn get_all_pc_starts(&self) -> Vec<usize> {
         return self.blocks.keys().into_iter().cloned().collect_vec();
     }
@@ -106,13 +78,40 @@ impl<'a> Graph<'a> {
                 }
             }
         }
-
         return edges;
     }
 
     pub fn get_pc_end_of_block(&self, block_pc_start: usize) -> usize {
         return self.blocks[&block_pc_start].get_pc_end();
     }
+
+    // pub fn dfs_search(&self, fun_before: &dyn Fn(NodeRef<'a>), fun_after: &dyn Fn(NodeRef<'a>)) {
+    //     let mut visited: HashSet<NodeRef> = HashSet::new();
+        
+    //     self.explore_dfs(
+    //         (&self.blocks)[&0].get_nodes()[0].clone(),
+    //         &mut visited,
+    //         fun_before,
+    //         fun_after,
+    //     );
+    // }
+
+    // pub fn explore_dfs(
+    //     &self,
+    //     node: NodeRef<'a>,
+    //     visited: &mut HashSet<NodeRef<'a>>,
+    //     fun_before: &dyn Fn(NodeRef<'a>),
+    //     fun_after: &dyn Fn(NodeRef<'a>),
+    // ) {
+    //     if !visited.contains(&node.clone()) {
+    //         visited.insert(node.clone());
+    //         fun_before(node.clone());
+    //         for child in node.get_children() {
+    //             (&self).explore_dfs(child.clone(), visited, &fun_before, &fun_after);
+    //         }
+    //         fun_after(node.clone());
+    //     }
+    // }
 }
 
 #[cfg(test)]
@@ -124,6 +123,7 @@ mod tests {
 
     use super::*;
     use crate::bytecode_reader::bytecode::Bytecode;
+    use crate::create_graph::display::draw;
     use crate::tools::utils::{read_file, write_file};
     use itertools::Itertools;
     use std::fs;
@@ -137,8 +137,12 @@ mod tests {
         let bytecode_test: Bytecode = Bytecode::from(&bytecode_string);
 
         let graph = Graph::from(&bytecode_test);
+        
+
         // dbg!(&graph);
-        // println!("{}", draw(&graph, &bytecode_test));
+        let drawing = draw(&graph, &bytecode_test);
+        //println!("{}", drawing);
+        write_file("./assets/contracts/simple_contract/graph_drawing.txt", &drawing);
     }
 
     #[test]
@@ -189,7 +193,7 @@ mod tests {
         let target_serializable_graph: SerializableGraph =
             serde_json::from_str(&read_file("./assets/contracts/simple_contract/graph.json"))
                 .unwrap();
-        //assert!(target_serializable_graph == serializable_graph);
+        assert!(target_serializable_graph == serializable_graph);
 
         //to overwrite the dest json:
 
