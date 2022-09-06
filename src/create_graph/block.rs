@@ -86,13 +86,13 @@ impl<'a> BlockRef<'a> {
         return RefCell::borrow(&self.inner).nodes.len();
     }
 
-    pub fn contains_initial_context(&self, initial_context: &SimpleContext) -> bool {
+    pub fn get_node_starting_with(&self, initial_context: &SimpleContext) -> Option<NodeRef<'a>> {
         for node in self.get_nodes() {
             if &node.clone_initial_context() == initial_context {
-                return true;
+                return Some(node.clone());
             }
         }
-        return false;
+        return None;
     }
 
     pub fn get_code(&self) -> &'a [Vopcode] {
@@ -158,8 +158,6 @@ impl<'a> BlockRef<'a> {
     }
 
     pub fn compute_final_state(&self, final_effect: Option<Rc<Effect>>, args: Vec<SimpleStackExpression>) -> State {
-        dbg!(&final_effect);
-        dbg!(&args);
         match final_effect {
             None => { return State::RUNNING; },
             Some(final_effect) => {

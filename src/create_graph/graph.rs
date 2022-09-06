@@ -33,19 +33,20 @@ impl<'a> Graph<'a> {
     pub fn explore_from(&self, node_origin: NodeRef<'a>) {
         let block_origin: BlockRef = node_origin.get_block();
         let current_final_context: SimpleContext = node_origin.clone_final_context();
-        
         let next_dests: Vec<usize> = match &current_final_context.state {
             State::RUNNING => vec![block_origin.get_next_pc_start()],
             State::STOP => vec![],
             State::JUMP(next_dests) => next_dests.clone(),
         };
-
+        
         let mut next_initial_context: SimpleContext = current_final_context;
         next_initial_context.state = State::RUNNING;
         
         for dest in next_dests {
             if let Some(block_dest) = self.blocks.get(&dest) {
-                if !block_dest.contains_initial_context(&next_initial_context) {
+                if let Some(node_dest) = block_dest.get_node_starting_with(&next_initial_context) {
+                    node_origin.add_child(NodeRef::clone(&node_dest));
+                } else {
                     let node_dest: NodeRef = NodeRef::create_and_attach(BlockRef::clone(block_dest), next_initial_context.clone());
                     node_origin.add_child(NodeRef::clone(&node_dest));
                     self.explore_from(node_dest);
@@ -142,7 +143,7 @@ mod tests {
         // dbg!(&graph);
         let drawing = draw(&graph, &bytecode_test);
         //println!("{}", drawing);
-        write_file("./assets/contracts/simple_contract/graph_drawing.txt", &drawing);
+        //write_file("./assets/contracts/simple_contract/graph_drawing.txt", &drawing);
     }
 
     #[test]
