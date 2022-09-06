@@ -45,6 +45,10 @@ impl<E: Clone + Debug + Hash + PartialEq> Stack<E> {
     pub fn _down_push(&mut self, expr: E){
         self.data.insert(0, expr);
     }
+
+    pub fn iter(&self) -> std::slice::Iter<E>{
+        return self.data.iter();
+    }
 }
 
 impl<E: Clone + Debug + Hash + PartialEq> PartialEq for Stack<E> {
