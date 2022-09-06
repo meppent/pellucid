@@ -3,7 +3,7 @@ use std::hash::Hash;
 
 use serde::{Serialize, Deserialize};
 
-#[derive(Clone, Debug, Hash, Default, Serialize, Deserialize)]
+#[derive(Clone, Eq, Debug, Hash, Default, Serialize, Deserialize)]
 pub struct Stack<E: Clone + Debug + Hash + PartialEq> {
     data: Vec<E>,
 }

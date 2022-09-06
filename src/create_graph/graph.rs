@@ -47,8 +47,8 @@ impl<'a> Graph<'a> {
         node_origin.set_final_context(final_context.clone());
 
         for dest in next_dests {
-            if let Some(block_dest) = self.blocks.get(&dest){
-                if !block_dest.contains_initial_context(&final_context){
+            if let Some(block_dest) = self.blocks.get(&dest) {
+                if !block_dest.contains_initial_context(&final_context) {
                     let node_dest = NodeRef::new(block_dest.clone(), final_context.clone());
                     node_origin.add_child(node_dest.clone());
                     let mut next_initial_context = final_context.clone();
@@ -56,7 +56,6 @@ impl<'a> Graph<'a> {
                     self.explore_from(node_dest, next_initial_context);
                 }
             }
-            
         }
     }
 
@@ -104,8 +103,8 @@ impl<'a> Graph<'a> {
         // list of all edges: pc_start origin => pc_start dest
         let mut edges: Vec<(usize, usize)> = Vec::new();
         for (pc_start_origin, block_ref_origin) in &self.blocks {
-            for node_ref_origin in block_ref_origin.get_nodes(){
-                for node_ref_dest in node_ref_origin.get_children(){
+            for node_ref_origin in block_ref_origin.get_nodes() {
+                for node_ref_dest in node_ref_origin.get_children() {
                     let block_ref_dest: BlockRef = node_ref_dest.get_block();
                     let pc_start_dest: usize = block_ref_dest.get_pc_start();
                     edges.push((*pc_start_origin, pc_start_dest));
@@ -116,7 +115,7 @@ impl<'a> Graph<'a> {
         return edges;
     }
 
-    pub fn get_pc_end_of_block(&self, block_pc_start: usize)->usize{
+    pub fn get_pc_end_of_block(&self, block_pc_start: usize) -> usize {
         return self.blocks[&block_pc_start].get_pc_end();
     }
 }
@@ -125,14 +124,20 @@ impl<'a> Graph<'a> {
 mod tests {
 
     use primitive_types::U256;
+    use serde::{Deserialize, Serialize};
 
     use crate::bytecode_reader::vopcode::Vopcode;
+    use crate::create_blocks::symbolic_block::SymbolicBlock;
     use crate::create_blocks::symbolic_expression::StackExpression;
     use crate::create_graph::display::draw;
 
     use super::*;
     use crate::bytecode_reader::bytecode::Bytecode;
+    use crate::tools::utils::{read_file, write_file};
+    use itertools::Itertools;
     use std::fs;
+    use std::iter::FromIterator;
+    use std::rc::Rc;
 
     #[test]
     pub fn small_test() {
@@ -144,5 +149,64 @@ mod tests {
         let graph = Graph::from(&bytecode_test);
         // dbg!(&graph);
         // println!("{}", draw(&graph, &bytecode_test));
+    }
+
+    #[test]
+    pub fn test_graph_snapshot() {
+        #[derive(PartialEq, Deserialize, Serialize)]
+        struct SerializableGraph {
+            pc_starts: HashSet<usize>,
+            pc_ends: HashSet<usize>,
+            contexts: HashSet<Vec<(SimpleContext, SimpleContext)>>,
+            edges: HashSet<(usize, usize)>,
+        }
+        let bytecode_string: String =
+            fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt")
+                .expect("Unable to read file.");
+        let bytecode: Bytecode = Bytecode::from(&bytecode_string);
+        let graph: Graph = Graph::from(&bytecode);
+
+        let serializable_graph: SerializableGraph = SerializableGraph {
+            pc_starts: HashSet::from_iter(graph.blocks.keys().into_iter().cloned().collect_vec()),
+            pc_ends: HashSet::from_iter(
+                graph
+                    .blocks
+                    .iter()
+                    .map(|(_, block)| block.get_pc_end())
+                    .collect_vec(),
+            ),
+            contexts: HashSet::from_iter(
+                graph
+                    .blocks
+                    .iter()
+                    .map(|(_, block)| {
+                        block
+                            .get_nodes()
+                            .iter()
+                            .map(|node| {
+                                (
+                                    node.get_initial_context().clone(),
+                                    node.get_final_context().clone(),
+                                )
+                            })
+                            .collect_vec()
+                    })
+                    .collect_vec(),
+            ),
+            edges: HashSet::from_iter(graph.get_edges()),
+        };
+        
+        let target_serializable_graph: SerializableGraph =
+            serde_json::from_str(&read_file("./assets/contracts/simple_contract/graph.json"))
+                .unwrap();
+        assert!(target_serializable_graph == serializable_graph);
+
+        //to overwrite the dest json:
+
+        // write_file(
+        //     "./assets/contracts/simple_contract/graph.json",
+        //     &serde_json::to_string(&serializable_graph).unwrap(),
+        // );
+
     }
 }
