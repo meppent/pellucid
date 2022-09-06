@@ -7,10 +7,11 @@ use crate::create_graph::simple_evm::{State};
 use super::block::BlockRef;
 use super::node::{NodeRef, Node};
 use super::simple_evm::{SimpleStack, SimpleContext};
-
+#[derive(Debug)]
 pub struct Graph<'a> {
     pub blocks: HashMap<usize, BlockRef<'a>>,
 }
+
 
 impl<'a> Graph<'a> {
     pub fn new() -> Self {
@@ -31,8 +32,9 @@ impl<'a> Graph<'a> {
     }
     //we may want to create RC for SimpleContext knowing they are owned by 2 nodes
     pub fn explore_from(&self, node_origin: NodeRef<'a>, initial_context: SimpleContext){
+
         let block_origin = node_origin.get_block();
-        assert!(!block_origin.contains_initial_context(&initial_context));
+        //assert!(!block_origin.contains_initial_context(&initial_context)); MODIFICATION TO BE MADE
         let final_context: SimpleContext = block_origin.apply_on_simple_context(&initial_context);
         
         let next_dests: Vec<usize> = match &final_context.state {
@@ -42,12 +44,12 @@ impl<'a> Graph<'a> {
         };
 
         node_origin.set_final_context(final_context.clone());
-
+        
         for dest in next_dests {
             if let Some(block_dest) = self.blocks.get(&dest){
                 if !block_dest.contains_initial_context(&final_context){
                     let node_dest = NodeRef::new(block_dest.clone(), final_context.clone());
-                    node_origin.add_chil(node_dest.clone());
+                    node_origin.add_child(node_dest.clone());
                     self.explore_from(node_dest, final_context.clone());
                 }
             }
@@ -91,4 +93,30 @@ impl<'a> Graph<'a> {
             fun_after(node.clone());
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use primitive_types::U256;
+
+    use crate::bytecode_reader::vopcode::Vopcode;
+    use crate::create_blocks::symbolic_expression::StackExpression;
+
+    use crate::bytecode_reader::bytecode::Bytecode;
+    use super::*;
+    use std::fs;
+    
+
+    #[test]
+    pub fn small_test() {
+        let bytecode_string: String =
+            fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt")
+                .expect("Unable to read file.");
+        let bytecode_test: Bytecode = Bytecode::from(&bytecode_string);
+
+        let graph = Graph::from(&bytecode_test);
+        
+    }
+
 }

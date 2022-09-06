@@ -64,7 +64,7 @@ impl Bytecode {
         return bytecode;
     }
 
-    fn insert_vopcode(&mut self, vopcode: Vopcode) {
+    pub fn insert_vopcode(&mut self, vopcode: Vopcode) {
         self.pc_to_index.insert(vopcode.pc, self.vopcodes.len());
         self.vopcodes.push(vopcode);
     }

@@ -4,13 +4,22 @@ use super::{node::{Node, NodeRef}, simple_evm::{SimpleStack, SimpleContext}};
 use crate::{
     bytecode_reader::{vopcode::Vopcode, opcode::Opcode}, create_blocks::{symbolic_block::SymbolicBlock, symbolic_expression::{StackExpression, Effect, SymbolicExpression}}, create_graph::simple_evm::{State, SimpleStackExpression}, tools::stack::Stack,
 };
-use std::{cell::RefCell, rc::Rc};
-#[derive(Debug, Default)]
+use std::{cell::RefCell, rc::Rc, fmt};
+#[derive(Default, Debug)]
 pub struct Block<'a> {
     pub code: &'a [Vopcode],
     nodes: Vec<Rc<RefCell<Node<'a>>>>,
     pub symbolic_block: Rc<SymbolicBlock>,
 }
+
+// impl<'a> fmt::Debug for Block<'a> {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         f.debug_struct("Block")
+//          .field("code", &self.code)
+//          .field("node_n", &self.nodes.len())
+//          .finish()
+//     }
+// }
 
 impl<'a> Block<'a> {
     pub fn new(code: &'a [Vopcode]) -> Self {
@@ -130,16 +139,19 @@ impl<'a> BlockRef<'a> {
             args.push(final_context.stack.pop());
         }
         for symbolic_expr in self.inner.borrow().symbolic_block.stack.iter(){ //TODO: refactor
+            
             match symbolic_expr.stack_expression {
                 StackExpression::BYTES(value) => final_context.stack.push(SimpleStackExpression::BYTES(value)),
                 StackExpression::COMPOSE(_,_) => final_context.stack.push(SimpleStackExpression::OTHER),
                 StackExpression::ARG(index) => final_context.stack.push(args[index - 1].clone())
             }
         }
-
+      
         if let Some(final_effect) = self.final_effect(){
             match *final_effect{
+                
                 Effect::COMPOSE(Opcode::JUMP, _) => {
+                    
                     assert!(final_context.stack.len() > 0, "JUMP without enough arguments");
                     let dest = final_context.stack.peek();
                     match dest {
@@ -150,6 +162,7 @@ impl<'a> BlockRef<'a> {
                     }
                 },
                 Effect::COMPOSE(Opcode::JUMPI, _) => {
+                    dbg!(&final_context.stack);
                     assert!(final_context.stack.len() > 1, "JUMPI without enough arguments");
                     let dest = final_context.stack.peek();
                     match dest {

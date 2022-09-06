@@ -541,14 +541,14 @@ impl Opcode {
                 name: "JUMP".to_owned(),
                 stack_input: 1,
                 stack_output: 0,
-                external_effect: false,
+                external_effect: true,
             },
             Opcode::JUMPI => OpcodeInfo {
                 code: 0x57,
                 name: "JUMPI".to_owned(),
                 stack_input: 2,
                 stack_output: 0,
-                external_effect: false,
+                external_effect: true,
             },
             Opcode::PC => OpcodeInfo {
                 code: 0x58,

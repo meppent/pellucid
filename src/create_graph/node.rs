@@ -2,7 +2,7 @@ use super::{block::{Block, BlockRef}, simple_evm::{SimpleContext}};
 use crate::{
     tools::utils::calculate_hash,
 };
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, rc::Rc, fmt};
 
 #[derive(Debug)]
 pub struct Node<'a> {
@@ -16,6 +16,7 @@ pub struct Node<'a> {
 pub struct NodeRef<'a> {
     pub inner: Rc<RefCell<Node<'a>>>,
 }
+
 
 impl<'a> std::hash::Hash for NodeRef<'a> {
     fn hash<H>(&self, state: &mut H)
@@ -40,15 +41,20 @@ impl<'a> NodeRef<'a> {
         block: BlockRef<'a>,
         initial_context: SimpleContext,
     ) -> Self {
-        return NodeRef {
+        
+        let node =  NodeRef {
             inner: Rc::new(RefCell::new(Node {
                 initial_context,
                 final_context: SimpleContext::new(),
-                block,
+                block: block.clone(),
                 parents: vec![],
                 children: vec![],
             })),
         };
+
+        block.add_node(node.clone());
+
+        return node
     }
 
 
@@ -103,7 +109,7 @@ impl<'a> NodeRef<'a> {
         parent.inner.borrow_mut().children.push(self.clone().inner);
     }
 
-    pub fn add_chil(&self, child: NodeRef<'a>) {
+    pub fn add_child(&self, child: NodeRef<'a>) {
         self.inner.borrow_mut().children.push(child.clone().inner);
         child.inner.borrow_mut().parents.push(self.clone().inner);
     }

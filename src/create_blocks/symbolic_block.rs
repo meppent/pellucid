@@ -36,7 +36,9 @@ impl SymbolicBlock {
 
     //if this function is not used please delete it it's bad
     pub fn final_effect(&self) -> Option<Rc<Effect>> {
+        
         let length = self.effects.len();
+        
         if length > 0 {
             match self.effects[length - 1].borrow() {
 
@@ -109,39 +111,31 @@ impl SymbolicBlock {
 }
 
 
-// #[cfg(test)]
-// mod tests {
+#[cfg(test)]
+mod tests {
 
-//     use primitive_types::U256;
+    use primitive_types::U256;
 
-//     use crate::create_blocks::symbolic_expression::StackExpression;
+    use crate::create_blocks::symbolic_expression::StackExpression;
 
-//     use crate::bytecode_reader::bytecode::Bytecode;
-//     use super::*;
+    use crate::bytecode_reader::bytecode::Bytecode;
+    use super::*;
 
-//     #[test]
-//     pub fn test_apply_add() {
-//         let bytecode = Bytecode::from("01");
-//         let mut block = SymbolicBlock::new();
-//         block.apply_vopcode(&bytecode.get_vopcode_at(0));
-//         assert_eq!(block.n_outputs(), 1);
-//         assert_eq!(block.delta(), -1);
-//         assert_eq!(block.n_args, 2);
-//         assert_eq!(block.effects, []);
-//         assert_eq!(block.final_state(), None);
-//         let symbolic_expression = block.stack.peek();
-//         assert_eq!(symbolic_expression.origin_effect, None);
-//         match &symbolic_expression.stack_expression {
-//             StackExpression::COMPOSE(opcode, consumed_symbolic_expressions) => {
-//                 assert_eq!(*opcode, Opcode::ADD);
-//                 assert_eq!(consumed_symbolic_expressions.len(), 2);
-//                 assert_eq!(consumed_symbolic_expressions[0], SymbolicExpression::new_arg(1, None));
-//                 assert_eq!(consumed_symbolic_expressions[1], SymbolicExpression::new_arg(2, None));
-//             },
-
-//             _ => panic!("Unexpected stack expression"),
-//         }
-//     }
+    #[test]
+    pub fn test_apply_first_block() {
+        let bytecode = Bytecode::from("608060405234801561001057");
+        let mut block = SymbolicBlock::new();
+        block.apply_vopcode(&bytecode.get_vopcode_at(0));
+        block.apply_vopcode(&bytecode.get_vopcode_at(2));
+        block.apply_vopcode(&bytecode.get_vopcode_at(4));
+        block.apply_vopcode(&bytecode.get_vopcode_at(5));
+        block.apply_vopcode(&bytecode.get_vopcode_at(6));
+        block.apply_vopcode(&bytecode.get_vopcode_at(7));
+        block.apply_vopcode(&bytecode.get_vopcode_at(8));
+        block.apply_vopcode(&bytecode.get_vopcode_at(11));
+        dbg!(block);
+        }
+    }
 
     // #[test]
     // pub fn test_apply_swap4() {
