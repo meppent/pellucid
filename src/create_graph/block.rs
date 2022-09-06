@@ -78,7 +78,7 @@ impl<'a> BlockRef<'a> {
         self.inner.borrow_mut().nodes.push(node.inner);
     }
 
-    pub fn get_symbolic_block(&mut self)->Rc<SymbolicBlock>{
+    pub fn get_symbolic_block(&self) -> Rc<SymbolicBlock>{
         return self.inner.borrow().symbolic_block.clone();
     }
 
@@ -127,7 +127,7 @@ impl<'a> BlockRef<'a> {
 
     pub fn apply_on_simple_context(&self, initial_context: &SimpleContext) -> SimpleContext {
         // return the resulting stack + the list of the next pc destinations
-        assert!(initial_context.state == State::RUNNING);
+        assert!(initial_context.state == State::RUNNING); // I want to delete this
         let mut final_context: SimpleContext = initial_context.clone();
 
         if self.get_n_args() > initial_context.stack.len(){
@@ -138,16 +138,18 @@ impl<'a> BlockRef<'a> {
         for _ in 0..self.get_n_args(){
             args.push(final_context.stack.pop());
         }
-        for symbolic_expr in self.inner.borrow().symbolic_block.stack.iter(){ //TODO: refactor
+
+        for symbolic_expr in self.get_symbolic_block().stack.iter() {
             
             match symbolic_expr.stack_expression {
                 StackExpression::BYTES(value) => final_context.stack.push(SimpleStackExpression::BYTES(value)),
+                StackExpression::ARG(index) => final_context.stack.push(args[index - 1].clone()),
                 StackExpression::COMPOSE(_,_) => final_context.stack.push(SimpleStackExpression::OTHER),
-                StackExpression::ARG(index) => final_context.stack.push(args[index - 1].clone())
             }
         }
       
-        if let Some(final_effect) = self.final_effect(){
+        if let Some(final_effect) = self.final_effect() {
+
             match &*final_effect {
                 
                 Effect::COMPOSE(Opcode::JUMP, dest) => {
@@ -160,8 +162,12 @@ impl<'a> BlockRef<'a> {
                         },
                         StackExpression::ARG(value) => {
                             match args[value - 1]{
-                                SimpleStackExpression::BYTES(dest) => { final_context.state = State::JUMP(vec![dest.as_usize()]); },
-                                _ => { panic!("JUMP destination is not a constant") }
+                                SimpleStackExpression::BYTES(dest) => {
+                                    final_context.state = State::JUMP(vec![dest.as_usize()]);
+                                },
+                                _ => {
+                                    panic!("JUMP destination is not a constant")
+                                }
                             }
                         },
                         _ => { panic!("JUMP destination is not a constant") }
@@ -192,20 +198,26 @@ impl<'a> BlockRef<'a> {
                         },
                         StackExpression::ARG(value) => {
                             match args[value - 1]{
-                                SimpleStackExpression::BYTES(dest) => { dests_bytes.push(dest.as_usize()); },
-                                _ => { panic!("JUMP destination is not a constant") }
+                                SimpleStackExpression::BYTES(dest) => {
+                                    dests_bytes.push(dest.as_usize());
+                                },
+                                _ => {
+                                    panic!("JUMP destination is not a constant");
+                                }
                             }
                         },
-                        _ => { panic!("JUMP destination is not a constant") }
+                        _ => {
+                            panic!("JUMP destination is not a constant");
+                        }
                     }
 
                     final_context.state = State::JUMP(dests_bytes);
                 },
               
                 Effect::COMPOSE(opcode, _) => {
-                    if opcode.is_exiting(){
+                    if opcode.is_exiting() {
                         final_context.state = State::STOP;
-                    }else{
+                    } else {
                         final_context.state = State::RUNNING;
                     }
                 }
