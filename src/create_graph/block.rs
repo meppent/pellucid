@@ -15,7 +15,7 @@ pub struct Block<'a> {
 impl<'a> fmt::Debug for Block<'a> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.debug_struct("Block")
-         .field("code", &self.code)
+         .field("code", &"code")
          .field("node_n", &self.nodes.len())
          .finish()
     }
@@ -144,7 +144,7 @@ impl<'a> BlockRef<'a> {
         }
 
         for symbolic_expr in self.get_symbolic_block().stack.iter() {
-            
+
             match symbolic_expr.stack_expression {
                 StackExpression::BYTES(value) => final_context.stack.push(SimpleStackExpression::BYTES(value)),
                 StackExpression::ARG(index) => final_context.stack.push(args[index - 1].clone()),

@@ -35,22 +35,22 @@ impl<'a> Graph<'a> {
         let block_origin = node_origin.get_block();
         //assert!(!block_origin.contains_initial_context(&initial_context)); // MODIFICATION TO BE MADE
         let final_context: SimpleContext = block_origin.apply_on_simple_context(&initial_context);
-
+        // if block_origin.get_pc_start() == 176{
+        //     dbg!(initial_context);
+        // }
         let next_dests: Vec<usize> = match &final_context.state {
             State::RUNNING => vec![block_origin.get_next_pc_start()],
             State::STOP => vec![],
             State::JUMP(next_dests) => next_dests.clone(),
         };
-        dbg!(next_dests.clone());
+
         node_origin.set_final_context(final_context.clone());
 
         for dest in next_dests {
             if let Some(block_dest) = self.blocks.get(&dest){
                 if !block_dest.contains_initial_context(&final_context){
-                    dbg!(block_dest.get_pc_start());
                     let node_dest = NodeRef::new(block_dest.clone(), final_context.clone());
                     node_origin.add_child(node_dest.clone());
-                    
                     let mut next_initial_context = final_context.clone();
                     next_initial_context.state = State::RUNNING;
                     self.explore_from(node_dest, next_initial_context);
@@ -142,7 +142,7 @@ mod tests {
         let bytecode_test: Bytecode = Bytecode::from(&bytecode_string);
 
         let graph = Graph::from(&bytecode_test);
-        dbg!(&graph);
-        println!("{}", draw(&graph, &bytecode_test));
+        // dbg!(&graph);
+        // println!("{}", draw(&graph, &bytecode_test));
     }
 }
