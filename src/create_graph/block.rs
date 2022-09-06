@@ -148,31 +148,60 @@ impl<'a> BlockRef<'a> {
         }
       
         if let Some(final_effect) = self.final_effect(){
-            match *final_effect{
+            match &*final_effect {
                 
-                Effect::COMPOSE(Opcode::JUMP, _) => {
+                Effect::COMPOSE(Opcode::JUMP, dest) => {
                     
-                    assert!(final_context.stack.len() > 0, "JUMP without enough arguments");
-                    let dest = final_context.stack.peek();
-                    match dest {
-                        SimpleStackExpression::BYTES(value) => {
-                            final_context.state = State::JUMP(vec![value.as_usize()]);
+                    assert!(dest.len() == 1, "JUMP without good number of arguments");
+
+                    match dest[0].stack_expression {
+                        StackExpression::BYTES(dest) => {
+                            final_context.state = State::JUMP(vec![dest.as_usize()]);
+                        },
+                        StackExpression::ARG(value) => {
+                            match args[value - 1]{
+                                SimpleStackExpression::BYTES(dest) => { final_context.state = State::JUMP(vec![dest.as_usize()]); },
+                                _ => { panic!("JUMP destination is not a constant") }
+                            }
                         },
                         _ => { panic!("JUMP destination is not a constant") }
                     }
                 },
-                Effect::COMPOSE(Opcode::JUMPI, _) => {
-                    dbg!(&final_context.stack);
-                    assert!(final_context.stack.len() > 1, "JUMPI without enough arguments");
-                    let dest = final_context.stack.peek();
-                    match dest {
-                        SimpleStackExpression::BYTES(value) => {
-                            final_context.state = State::JUMP(vec![value.as_usize(), self.get_next_pc_start()]);
+
+                Effect::COMPOSE(Opcode::JUMPI, dest) => {
+                
+                    assert!(dest.len() == 2, "JUMP without good number of arguments");
+                    let mut dests_bytes: Vec<usize> = Vec::new();
+
+                    match &dest[0].stack_expression {
+                        StackExpression::BYTES(dest) => {
+                            dests_bytes.push(dest.as_usize());
+                        },
+                        StackExpression::ARG(value) => {
+                            match args[value - 1]{
+                                SimpleStackExpression::BYTES(dest) => { dests_bytes.push(dest.as_usize()); },
+                                _ => { panic!("JUMP destination is not a constant") }
+                            }
                         },
                         _ => { panic!("JUMP destination is not a constant") }
                     }
-                    
+
+                    match &dest[0].stack_expression {
+                        StackExpression::BYTES(dest) => {
+                            dests_bytes.push(dest.as_usize());
+                        },
+                        StackExpression::ARG(value) => {
+                            match args[value - 1]{
+                                SimpleStackExpression::BYTES(dest) => { dests_bytes.push(dest.as_usize()); },
+                                _ => { panic!("JUMP destination is not a constant") }
+                            }
+                        },
+                        _ => { panic!("JUMP destination is not a constant") }
+                    }
+
+                    final_context.state = State::JUMP(dests_bytes);
                 },
+              
                 Effect::COMPOSE(opcode, _) => {
                     if opcode.is_exiting(){
                         final_context.state = State::STOP;
