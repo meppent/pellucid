@@ -86,13 +86,13 @@ impl<'a> BlockRef<'a> {
         return RefCell::borrow(&self.inner).nodes.len();
     }
 
-    pub fn contains_initial_context(&self, initial_context: &SimpleContext) -> bool {
+    pub fn get_node_starting_with(&self, initial_context: &SimpleContext) -> Option<NodeRef<'a>> {
         for node in self.get_nodes() {
-            if &node.get_initial_context() == initial_context {
-                return true;
+            if &node.clone_initial_context() == initial_context {
+                return Some(node.clone());
             }
         }
-        return false;
+        return None;
     }
 
     pub fn get_code(&self) -> &'a [Vopcode] {
@@ -136,6 +136,7 @@ impl<'a> BlockRef<'a> {
 
         if self.get_n_args() > initial_context.stack.len(){
             final_context.state = State::STOP;
+            return final_context;
         }
 
         let mut args: Vec<SimpleStackExpression> = vec![];
@@ -144,76 +145,45 @@ impl<'a> BlockRef<'a> {
         }
 
         for symbolic_expr in self.get_symbolic_block().stack.iter() {
-
             match symbolic_expr.stack_expression {
                 StackExpression::BYTES(value) => final_context.stack.push(SimpleStackExpression::BYTES(value)),
                 StackExpression::ARG(index) => final_context.stack.push(args[index - 1].clone()),
                 StackExpression::COMPOSE(_,_) => final_context.stack.push(SimpleStackExpression::OTHER),
             }
         }
-      
-        if let Some(final_effect) = self.final_effect() {
 
-            match &*final_effect {
-                
-                Effect::COMPOSE(Opcode::JUMP, dest) => {
-                    
-                    assert!(dest.len() == 1, "JUMP without good number of arguments");
+        final_context.state = self.compute_final_state(self.final_effect(), args);
 
-                    match dest[0].stack_expression {
-                        StackExpression::BYTES(dest) => {
-                            final_context.state = State::JUMP(vec![dest.as_usize()]);
-                        },
-                        StackExpression::ARG(value) => {
-                            match args[value - 1]{
-                                SimpleStackExpression::BYTES(dest) => {
-                                    final_context.state = State::JUMP(vec![dest.as_usize()]);
-                                },
-                                _ => {
-                                    panic!("JUMP destination is not a constant")
-                                }
-                            }
-                        },
-                        _ => { panic!("JUMP destination is not a constant") }
-                    }
-                },
-
-                Effect::COMPOSE(Opcode::JUMPI, dest) => {
-                
-                    assert!(dest.len() == 2, "JUMP without good number of arguments");
-                    let mut dests_bytes: Vec<usize> = vec![self.get_next_pc_start()];
-
-                    match &dest[0].stack_expression {
-                        StackExpression::BYTES(dest) => {
-                            dests_bytes.push(dest.as_usize());
-                        },
-                        StackExpression::ARG(value) => {
-                            match args[value - 1]{
-                                SimpleStackExpression::BYTES(dest) => { dests_bytes.push(dest.as_usize()); },
-                                _ => { panic!("JUMP destination is not a constant") }
-                            }
-                        },
-                        _ => { panic!("JUMP destination is not a constant") }
-                    }
-
-                    
-
-                    final_context.state = State::JUMP(dests_bytes);
-                },
-              
-                Effect::COMPOSE(opcode, _) => {
-                    if opcode.is_exiting() {
-                        final_context.state = State::STOP;
-                    } else {
-                        final_context.state = State::RUNNING;
-                    }
-                }
-            }
-        }
         return final_context;
     }
 
+    pub fn compute_final_state(&self, final_effect: Option<Rc<Effect>>, args: Vec<SimpleStackExpression>) -> State {
+        match final_effect {
+            None => { return State::RUNNING; },
+            Some(final_effect) => {
+                if [Opcode::JUMPI, Opcode::JUMP].contains(&final_effect.opcode) {
+                    let mut destinations: Vec<usize> = Vec::new();
+                    if final_effect.opcode == Opcode::JUMPI { destinations.push(self.get_next_pc_start()) }
+
+                    match final_effect.symbolic_exprs[0].stack_expression {
+                        
+                        StackExpression::COMPOSE(_, _) => panic!("JUMP destination is not a constant"),
+                        StackExpression::BYTES(dest) => destinations.push(dest.as_usize()),
+                        StackExpression::ARG(value) => 
+                            match args[value - 1]{
+                                SimpleStackExpression::BYTES(dest) => destinations.push(dest.as_usize()),
+                                _ => panic!("JUMP destination is not a constant")
+                            },
+                    }
+                    return State::JUMP(destinations);
+                } 
+                else if final_effect.opcode.is_exiting() { return State::STOP; }
+                else { return State::RUNNING;}
+                }
+            }
+        }
+    }
+        
+    
 
 
-
-}

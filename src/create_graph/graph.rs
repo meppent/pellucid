@@ -1,4 +1,3 @@
-use std::borrow::BorrowMut;
 use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
@@ -24,39 +23,35 @@ impl<'a> Graph<'a> {
     pub fn from(bytecode: &'a Bytecode) -> Self {
         let blocks: HashMap<usize, BlockRef<'a>> = parser::find_blocks(&bytecode);
         let graph: Graph = Graph { blocks };
-        let first_block = graph.get_block(0);
-        let initial_node = NodeRef::new(first_block, SimpleContext::new());
-        graph.explore_from(initial_node, SimpleContext::new());
+        let first_block: BlockRef = graph.get_block(0);
+        let initial_node: NodeRef = NodeRef::create_and_attach(first_block, SimpleContext::new());
+        graph.explore_from(initial_node);
         return graph;
     }
 
-    //we may want to create RC for SimpleContext knowing they are owned by 2 nodes
-    pub fn explore_from(&self, node_origin: NodeRef<'a>, initial_context: SimpleContext) {
-        let block_origin = node_origin.get_block();
-        //assert!(!block_origin.contains_initial_context(&initial_context)); // MODIFICATION TO BE MADE
-        let final_context: SimpleContext = block_origin.apply_on_simple_context(&initial_context);
-        // if block_origin.get_pc_start() == 176{
-        //     dbg!(initial_context);
-        // }
-        let next_dests: Vec<usize> = match &final_context.state {
+
+    pub fn explore_from(&self, node_origin: NodeRef<'a>) {
+        let block_origin: BlockRef = node_origin.get_block();
+        let current_final_context: SimpleContext = node_origin.clone_final_context();
+        let next_dests: Vec<usize> = match &current_final_context.state {
             State::RUNNING => vec![block_origin.get_next_pc_start()],
             State::STOP => vec![],
             State::JUMP(next_dests) => next_dests.clone(),
         };
-
-        node_origin.set_final_context(final_context.clone());
-
+        
+        let mut next_initial_context: SimpleContext = current_final_context;
+        next_initial_context.state = State::RUNNING;
+        
         for dest in next_dests {
-            if let Some(block_dest) = self.blocks.get(&dest){
-                if !block_dest.contains_initial_context(&final_context){
-                    let node_dest = NodeRef::new(block_dest.clone(), final_context.clone());
-                    node_origin.add_child(node_dest.clone());
-                    let mut next_initial_context = final_context.clone();
-                    next_initial_context.state = State::RUNNING;
-                    self.explore_from(node_dest, next_initial_context);
+            if let Some(block_dest) = self.blocks.get(&dest) {
+                if let Some(node_dest) = block_dest.get_node_starting_with(&next_initial_context) {
+                    node_origin.add_child(NodeRef::clone(&node_dest));
+                } else {
+                    let node_dest: NodeRef = NodeRef::create_and_attach(BlockRef::clone(block_dest), next_initial_context.clone());
+                    node_origin.add_child(NodeRef::clone(&node_dest));
+                    self.explore_from(node_dest);
                 }
             }
-            
         }
     }
 
@@ -68,34 +63,6 @@ impl<'a> Graph<'a> {
         return self.blocks[&index].clone();
     }
 
-    pub fn DFS_search(&self, fun_before: &dyn Fn(NodeRef<'a>), fun_after: &dyn Fn(NodeRef<'a>)) {
-        let mut visited: HashSet<NodeRef> = HashSet::new();
-        //first node access every node
-        self.explore_DFS(
-            (&self.blocks)[&0].get_nodes()[0].clone(),
-            &mut visited,
-            fun_before,
-            fun_after,
-        );
-    }
-
-    pub fn explore_DFS(
-        &self,
-        node: NodeRef<'a>,
-        visited: &mut HashSet<NodeRef<'a>>,
-        fun_before: &dyn Fn(NodeRef<'a>),
-        fun_after: &dyn Fn(NodeRef<'a>),
-    ) {
-        if !visited.contains(&node.clone()) {
-            visited.insert(node.clone());
-            fun_before(node.clone());
-            for child in node.get_children() {
-                (&self).explore_DFS(child.clone(), visited, &fun_before, &fun_after);
-            }
-            fun_after(node.clone());
-        }
-    }
-
     pub fn get_all_pc_starts(&self) -> Vec<usize> {
         return self.blocks.keys().into_iter().cloned().collect_vec();
     }
@@ -104,35 +71,64 @@ impl<'a> Graph<'a> {
         // list of all edges: pc_start origin => pc_start dest
         let mut edges: Vec<(usize, usize)> = Vec::new();
         for (pc_start_origin, block_ref_origin) in &self.blocks {
-            for node_ref_origin in block_ref_origin.get_nodes(){
-                for node_ref_dest in node_ref_origin.get_children(){
+            for node_ref_origin in block_ref_origin.get_nodes() {
+                for node_ref_dest in node_ref_origin.get_children() {
                     let block_ref_dest: BlockRef = node_ref_dest.get_block();
                     let pc_start_dest: usize = block_ref_dest.get_pc_start();
                     edges.push((*pc_start_origin, pc_start_dest));
                 }
             }
         }
-
         return edges;
     }
 
-    pub fn get_pc_end_of_block(&self, block_pc_start: usize)->usize{
+    pub fn get_pc_end_of_block(&self, block_pc_start: usize) -> usize {
         return self.blocks[&block_pc_start].get_pc_end();
     }
+
+    // pub fn dfs_search(&self, fun_before: &dyn Fn(NodeRef<'a>), fun_after: &dyn Fn(NodeRef<'a>)) {
+    //     let mut visited: HashSet<NodeRef> = HashSet::new();
+        
+    //     self.explore_dfs(
+    //         (&self.blocks)[&0].get_nodes()[0].clone(),
+    //         &mut visited,
+    //         fun_before,
+    //         fun_after,
+    //     );
+    // }
+
+    // pub fn explore_dfs(
+    //     &self,
+    //     node: NodeRef<'a>,
+    //     visited: &mut HashSet<NodeRef<'a>>,
+    //     fun_before: &dyn Fn(NodeRef<'a>),
+    //     fun_after: &dyn Fn(NodeRef<'a>),
+    // ) {
+    //     if !visited.contains(&node.clone()) {
+    //         visited.insert(node.clone());
+    //         fun_before(node.clone());
+    //         for child in node.get_children() {
+    //             (&self).explore_dfs(child.clone(), visited, &fun_before, &fun_after);
+    //         }
+    //         fun_after(node.clone());
+    //     }
+    // }
 }
 
 #[cfg(test)]
 mod tests {
 
-    use primitive_types::U256;
+    use serde::{Deserialize, Serialize};
 
-    use crate::bytecode_reader::vopcode::Vopcode;
-    use crate::create_blocks::symbolic_expression::StackExpression;
-    use crate::create_graph::display::draw;
+    
 
     use super::*;
     use crate::bytecode_reader::bytecode::Bytecode;
+    use crate::create_graph::display::draw;
+    use crate::tools::utils::{read_file, write_file};
+    use itertools::Itertools;
     use std::fs;
+    use std::iter::FromIterator;
 
     #[test]
     pub fn small_test() {
@@ -142,7 +138,70 @@ mod tests {
         let bytecode_test: Bytecode = Bytecode::from(&bytecode_string);
 
         let graph = Graph::from(&bytecode_test);
+        
+
         // dbg!(&graph);
-        // println!("{}", draw(&graph, &bytecode_test));
+        let drawing = draw(&graph, &bytecode_test);
+        //println!("{}", drawing);
+        //write_file("./assets/contracts/simple_contract/graph_drawing.txt", &drawing);
+    }
+
+    #[test]
+    pub fn test_graph_snapshot() {
+        #[derive(PartialEq, Deserialize, Serialize)]
+        struct SerializableGraph {
+            pc_starts: HashSet<usize>,
+            pc_ends: HashSet<usize>,
+            contexts: HashSet<Vec<(SimpleContext, SimpleContext)>>,
+            edges: HashSet<(usize, usize)>,
+        }
+        let bytecode_string: String =
+            fs::read_to_string("./assets/contracts/simple_contract/bytecode.txt")
+                .expect("Unable to read file.");
+        let bytecode: Bytecode = Bytecode::from(&bytecode_string);
+        let graph: Graph = Graph::from(&bytecode);
+
+        let serializable_graph: SerializableGraph = SerializableGraph {
+            pc_starts: HashSet::from_iter(graph.blocks.keys().into_iter().cloned().collect_vec()),
+            pc_ends: HashSet::from_iter(
+                graph
+                    .blocks
+                    .iter()
+                    .map(|(_, block)| block.get_pc_end())
+                    .collect_vec(),
+            ),
+            contexts: HashSet::from_iter(
+                graph
+                    .blocks
+                    .iter()
+                    .map(|(_, block)| {
+                        block
+                            .get_nodes()
+                            .iter()
+                            .map(|node| {
+                                (
+                                    node.clone_initial_context().clone(),
+                                    node.clone_final_context().clone(),
+                                )
+                            })
+                            .collect_vec()
+                    })
+                    .collect_vec(),
+            ),
+            edges: HashSet::from_iter(graph.get_edges()),
+        };
+        
+        let target_serializable_graph: SerializableGraph =
+            serde_json::from_str(&read_file("./assets/contracts/simple_contract/graph.json"))
+                .unwrap();
+        assert!(target_serializable_graph == serializable_graph);
+
+        //to overwrite the dest json:
+
+        // write_file(
+        //     "./assets/contracts/simple_contract/graph.json",
+        //     &serde_json::to_string(&serializable_graph).unwrap(),
+        // );
+
     }
 }

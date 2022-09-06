@@ -24,7 +24,7 @@ impl<'a> std::hash::Hash for NodeRef<'a> {
         H: std::hash::Hasher,
     {
         state.write_usize(self.get_block().get_pc_start());
-        state.write_u64(calculate_hash(&self.get_initial_context()));
+        state.write_u64(calculate_hash(&self.clone_initial_context()));
         state.finish();
     }
 }
@@ -37,19 +37,20 @@ impl<'a> PartialEq for NodeRef<'a> {
 impl<'a> Eq for NodeRef<'a> {}
 
 impl<'a> NodeRef<'a> {
-    pub fn new(
+
+    pub fn create_and_attach(
         block: BlockRef<'a>,
         initial_context: SimpleContext,
     ) -> Self {
-        
+        let final_context: SimpleContext = block.apply_on_simple_context(&initial_context);
         let node =  NodeRef {
             inner: Rc::new(RefCell::new(Node {
-                initial_context,
-                final_context: SimpleContext::new(),
+                initial_context: initial_context,
+                final_context: final_context,
                 block: block.clone(),
                 parents: vec![],
                 children: vec![],
-            })),
+            }))
         };
 
         block.add_node(node.clone());
@@ -64,11 +65,11 @@ impl<'a> NodeRef<'a> {
         };
     }
 
-    pub fn get_initial_context(&self) -> SimpleContext {
+    pub fn clone_initial_context(&self) -> SimpleContext {
         return self.inner.borrow().initial_context.clone();
     }
 
-    pub fn get_final_context(&self) -> SimpleContext {
+    pub fn clone_final_context(&self) -> SimpleContext {
         return self.inner.borrow().final_context.clone();
     }
 

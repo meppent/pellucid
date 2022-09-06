@@ -1,29 +1,36 @@
 {
-  "203": {
+  "210": {
     "stack": {
       "data": [
-        { "stack_expression": { "ARG": 2 }, "origin_effect": null },
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-        { "stack_expression": { "ARG": 2 }, "origin_effect": null }
+        { "stack_expression": { "ARG": 3 }, "origin_effect": null },
+        { "stack_expression": { "ARG": 3 }, "origin_effect": null },
+        { "stack_expression": { "BYTES": "0xe4" }, "origin_effect": null },
+        { "stack_expression": { "ARG": 3 }, "origin_effect": null }
       ]
     },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
+    "effects": [
+      {
         "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "BYTES": "0xd2" }, "origin_effect": null }]
+          "SSTORE",
+          [
+            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
+            { "stack_expression": { "ARG": 1 }, "origin_effect": null }
+          ]
         ]
       },
-      "origin_effect": null
-    },
-    "n_args": 2
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0x1a4" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 3
   },
   "16": {
     "stack": { "data": [] },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
+    "effects": [
+      {
         "COMPOSE": [
           "JUMPI",
           [
@@ -48,112 +55,14 @@
             }
           ]
         ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 1
-  },
-  "474": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "BYTES": "0x1e1" }, "origin_effect": null }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "BYTES": "0x1ed" }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 0
-  },
-  "0": {
-    "stack": {
-      "data": [
-        {
-          "stack_expression": { "COMPOSE": ["CALLVALUE", []] },
-          "origin_effect": null
-        }
-      ]
-    },
-    "effects": [
-      {
-        "COMPOSE": [
-          "MSTORE",
-          [
-            { "stack_expression": { "BYTES": "0x40" }, "origin_effect": null },
-            { "stack_expression": { "BYTES": "0x80" }, "origin_effect": null }
-          ]
-        ]
       }
     ],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMPI",
-          [
-            { "stack_expression": { "BYTES": "0x10" }, "origin_effect": null },
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "ISZERO",
-                  [
-                    {
-                      "stack_expression": { "COMPOSE": ["CALLVALUE", []] },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": null
-            }
-          ]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 0
+    "n_args": 1
   },
-  "482": {
+  "108": {
     "stack": {
       "data": [
-        {
-          "stack_expression": {
-            "COMPOSE": [
-              "ADD",
-              [
-                { "stack_expression": { "ARG": 2 }, "origin_effect": null },
-                {
-                  "stack_expression": { "BYTES": "0x1" },
-                  "origin_effect": null
-                }
-              ]
-            ]
-          },
-          "origin_effect": null
-        }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "ARG": 3 }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 3
-  },
-  "78": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "BYTES": "0x5b" }, "origin_effect": null },
+        { "stack_expression": { "BYTES": "0x79" }, "origin_effect": null },
         { "stack_expression": { "ARG": 1 }, "origin_effect": null },
         {
           "stack_expression": {
@@ -187,455 +96,50 @@
           "MLOAD",
           [{ "stack_expression": { "BYTES": "0x40" }, "origin_effect": null }]
         ]
-      }
-    ],
-    "impact": {
-      "stack_expression": {
+      },
+      {
         "COMPOSE": [
           "JUMP",
           [{ "stack_expression": { "BYTES": "0x173" }, "origin_effect": null }]
         ]
-      },
-      "origin_effect": null
-    },
+      }
+    ],
     "n_args": 1
   },
-  "236": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "BYTES": "0x43" }, "origin_effect": null }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "ARG": 4 }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 4
-  },
-  "228": {
+  "410": {
     "stack": {
       "data": [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
     },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "BYTES": "0xb0" }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 3
-  },
-  "271": {
-    "stack": { "data": [] },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMPI",
-          [
-            { "stack_expression": { "BYTES": "0x11e" }, "origin_effect": null },
-            { "stack_expression": { "ARG": 1 }, "origin_effect": null }
-          ]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 1
-  },
-  "365": {
-    "stack": {
-      "data": [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "ARG": 4 }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 4
-  },
-  "493": {
-    "stack": { "data": [] },
     "effects": [
       {
-        "COMPOSE": [
-          "MSTORE",
-          [
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-            {
-              "stack_expression": {
-                "BYTES": "0x4e487b7100000000000000000000000000000000000000000000000000000000"
-              },
-              "origin_effect": null
-            }
-          ]
-        ]
-      },
-      {
-        "COMPOSE": [
-          "MSTORE",
-          [
-            { "stack_expression": { "BYTES": "0x4" }, "origin_effect": null },
-            { "stack_expression": { "BYTES": "0x11" }, "origin_effect": null }
-          ]
-        ]
-      },
-      {
-        "COMPOSE": [
-          "REVERT",
-          [
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-            { "stack_expression": { "BYTES": "0x24" }, "origin_effect": null }
-          ]
-        ]
-      }
-    ],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "REVERT",
-          [
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-            { "stack_expression": { "BYTES": "0x24" }, "origin_effect": null }
-          ]
-        ]
-      },
-      "origin_effect": {
-        "COMPOSE": [
-          "REVERT",
-          [
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-            { "stack_expression": { "BYTES": "0x24" }, "origin_effect": null }
-          ]
-        ]
-      }
-    },
-    "n_args": 0
-  },
-  "160": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-        {
-          "stack_expression": {
-            "COMPOSE": [
-              "SLOAD",
-              [
-                {
-                  "stack_expression": { "BYTES": "0x0" },
-                  "origin_effect": null
-                }
-              ]
-            ]
-          },
-          "origin_effect": {
-            "COMPOSE": [
-              "SLOAD",
-              [
-                {
-                  "stack_expression": { "BYTES": "0x0" },
-                  "origin_effect": null
-                }
-              ]
-            ]
-          }
-        }
-      ]
-    },
-    "effects": [
-      {
-        "COMPOSE": [
-          "SLOAD",
-          [{ "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }]
-        ]
-      }
-    ],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 1
-  },
-  "138": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "BYTES": "0x97" }, "origin_effect": null },
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-        {
-          "stack_expression": {
-            "COMPOSE": [
-              "MLOAD",
-              [
-                {
-                  "stack_expression": { "BYTES": "0x40" },
-                  "origin_effect": null
-                }
-              ]
-            ]
-          },
-          "origin_effect": {
-            "COMPOSE": [
-              "MLOAD",
-              [
-                {
-                  "stack_expression": { "BYTES": "0x40" },
-                  "origin_effect": null
-                }
-              ]
-            ]
-          }
-        }
-      ]
-    },
-    "effects": [
-      {
-        "COMPOSE": [
-          "MLOAD",
-          [{ "stack_expression": { "BYTES": "0x40" }, "origin_effect": null }]
-        ]
-      }
-    ],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "BYTES": "0x158" }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 1
-  },
-  "70": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "BYTES": "0x4e" }, "origin_effect": null }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "BYTES": "0xa0" }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 0
-  },
-  "398": {
-    "stack": {
-      "data": [
-        {
-          "stack_expression": {
-            "COMPOSE": [
-              "ISZERO",
-              [
-                {
-                  "stack_expression": {
-                    "COMPOSE": [
-                      "ISZERO",
-                      [
-                        {
-                          "stack_expression": { "ARG": 1 },
-                          "origin_effect": null
-                        }
-                      ]
-                    ]
-                  },
-                  "origin_effect": null
-                }
-              ]
-            ]
-          },
-          "origin_effect": null
-        }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
         "COMPOSE": [
           "JUMP",
           [{ "stack_expression": { "ARG": 2 }, "origin_effect": null }]
         ]
-      },
-      "origin_effect": null
-    },
+      }
+    ],
     "n_args": 2
   },
-  "392": {
+  "54": {
     "stack": {
       "data": [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
     },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "ARG": 4 }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 4
-  },
-  "195": {
-    "stack": {
-      "data": [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMPI",
-          [
-            { "stack_expression": { "BYTES": "0xd0" }, "origin_effect": null },
-            { "stack_expression": { "ARG": 1 }, "origin_effect": null }
-          ]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 2
-  },
-  "344": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "ARG": 2 }, "origin_effect": null },
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-        {
-          "stack_expression": {
-            "COMPOSE": [
-              "ADD",
-              [
-                { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-                {
-                  "stack_expression": { "BYTES": "0x20" },
-                  "origin_effect": null
-                }
-              ]
-            ]
-          },
-          "origin_effect": null
-        },
-        { "stack_expression": { "BYTES": "0x16d" }, "origin_effect": null },
-        {
-          "stack_expression": {
-            "COMPOSE": [
-              "ADD",
-              [
-                { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-                {
-                  "stack_expression": { "BYTES": "0x0" },
-                  "origin_effect": null
-                }
-              ]
-            ]
-          },
-          "origin_effect": null
-        },
-        { "stack_expression": { "ARG": 2 }, "origin_effect": null }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "BYTES": "0x13a" }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 2
-  },
-  "121": {
-    "stack": { "data": [] },
     "effects": [
       {
         "COMPOSE": [
-          "MLOAD",
-          [{ "stack_expression": { "BYTES": "0x40" }, "origin_effect": null }]
-        ]
-      },
-      {
-        "COMPOSE": [
-          "RETURN",
+          "JUMPI",
           [
+            { "stack_expression": { "BYTES": "0x82" }, "origin_effect": null },
             {
               "stack_expression": {
                 "COMPOSE": [
-                  "MLOAD",
+                  "EQ",
                   [
                     {
-                      "stack_expression": { "BYTES": "0x40" },
+                      "stack_expression": { "BYTES": "0xe2179b8e" },
                       "origin_effect": null
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              }
-            },
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "SUB",
-                  [
-                    { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-                    {
-                      "stack_expression": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      },
-                      "origin_effect": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      }
-                    }
+                    },
+                    { "stack_expression": { "ARG": 1 }, "origin_effect": null }
                   ]
                 ]
               },
@@ -645,140 +149,6 @@
         ]
       }
     ],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "RETURN",
-          [
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              }
-            },
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "SUB",
-                  [
-                    { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-                    {
-                      "stack_expression": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      },
-                      "origin_effect": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      }
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": null
-            }
-          ]
-        ]
-      },
-      "origin_effect": {
-        "COMPOSE": [
-          "RETURN",
-          [
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              }
-            },
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "SUB",
-                  [
-                    { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-                    {
-                      "stack_expression": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      },
-                      "origin_effect": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      }
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": null
-            }
-          ]
-        ]
-      }
-    },
     "n_args": 1
   },
   "286": {
@@ -789,88 +159,81 @@
         { "stack_expression": { "ARG": 1 }, "origin_effect": null }
       ]
     },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
+    "effects": [
+      {
         "COMPOSE": [
           "JUMP",
           [{ "stack_expression": { "BYTES": "0x12d" }, "origin_effect": null }]
         ]
-      },
-      "origin_effect": null
-    },
+      }
+    ],
     "n_args": 1
   },
-  "26": {
+  "338": {
+    "stack": { "data": [] },
+    "effects": [
+      {
+        "COMPOSE": [
+          "MSTORE",
+          [
+            { "stack_expression": { "ARG": 3 }, "origin_effect": null },
+            { "stack_expression": { "ARG": 1 }, "origin_effect": null }
+          ]
+        ]
+      },
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "ARG": 4 }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 4
+  },
+  "12": {
+    "stack": { "data": [] },
+    "effects": [
+      {
+        "COMPOSE": [
+          "REVERT",
+          [
+            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
+            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }
+          ]
+        ]
+      }
+    ],
+    "n_args": 0
+  },
+  "176": {
     "stack": {
       "data": [
-        {
-          "stack_expression": {
-            "COMPOSE": [
-              "SHR",
-              [
-                {
-                  "stack_expression": { "BYTES": "0xe0" },
-                  "origin_effect": null
-                },
-                {
-                  "stack_expression": {
-                    "COMPOSE": [
-                      "CALLDATALOAD",
-                      [
-                        {
-                          "stack_expression": { "BYTES": "0x0" },
-                          "origin_effect": null
-                        }
-                      ]
-                    ]
-                  },
-                  "origin_effect": null
-                }
-              ]
-            ]
-          },
-          "origin_effect": null
-        }
+        { "stack_expression": { "ARG": 2 }, "origin_effect": null },
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null }
       ]
     },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
+    "effects": [
+      {
         "COMPOSE": [
           "JUMPI",
           [
-            { "stack_expression": { "BYTES": "0x46" }, "origin_effect": null },
+            { "stack_expression": { "BYTES": "0xec" }, "origin_effect": null },
             {
               "stack_expression": {
                 "COMPOSE": [
-                  "EQ",
+                  "ISZERO",
                   [
-                    {
-                      "stack_expression": { "BYTES": "0xdbe671f" },
-                      "origin_effect": null
-                    },
                     {
                       "stack_expression": {
                         "COMPOSE": [
-                          "SHR",
+                          "LT",
                           [
                             {
-                              "stack_expression": { "BYTES": "0xe0" },
+                              "stack_expression": { "ARG": 1 },
                               "origin_effect": null
                             },
                             {
-                              "stack_expression": {
-                                "COMPOSE": [
-                                  "CALLDATALOAD",
-                                  [
-                                    {
-                                      "stack_expression": { "BYTES": "0x0" },
-                                      "origin_effect": null
-                                    }
-                                  ]
-                                ]
-                              },
+                              "stack_expression": { "ARG": 2 },
                               "origin_effect": null
                             }
                           ]
@@ -885,48 +248,23 @@
             }
           ]
         ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 0
+      }
+    ],
+    "n_args": 2
   },
-  "262": {
+  "228": {
     "stack": {
-      "data": [
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-        { "stack_expression": { "BYTES": "0x10f" }, "origin_effect": null },
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null }
-      ]
+      "data": [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
     },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
+    "effects": [
+      {
         "COMPOSE": [
           "JUMP",
-          [{ "stack_expression": { "BYTES": "0x12d" }, "origin_effect": null }]
+          [{ "stack_expression": { "BYTES": "0xb0" }, "origin_effect": null }]
         ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 1
-  },
-  "130": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "BYTES": "0x8a" }, "origin_effect": null }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "BYTES": "0xf5" }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 0
+      }
+    ],
+    "n_args": 3
   },
   "91": {
     "stack": { "data": [] },
@@ -1004,296 +342,35 @@
         ]
       }
     ],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "RETURN",
-          [
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              }
-            },
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "SUB",
-                  [
-                    { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-                    {
-                      "stack_expression": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      },
-                      "origin_effect": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      }
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": null
-            }
-          ]
-        ]
-      },
-      "origin_effect": {
-        "COMPOSE": [
-          "RETURN",
-          [
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              }
-            },
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "SUB",
-                  [
-                    { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-                    {
-                      "stack_expression": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      },
-                      "origin_effect": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      }
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": null
-            }
-          ]
-        ]
-      }
-    },
     "n_args": 1
   },
-  "166": {
+  "245": {
     "stack": {
       "data": [
         { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-        { "stack_expression": { "BYTES": "0xc" }, "origin_effect": null },
         { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }
       ]
     },
-    "effects": [],
-    "impact": null,
-    "n_args": 0
-  },
-  "338": {
-    "stack": { "data": [] },
     "effects": [
       {
         "COMPOSE": [
-          "MSTORE",
+          "SSTORE",
           [
-            { "stack_expression": { "ARG": 3 }, "origin_effect": null },
-            { "stack_expression": { "ARG": 1 }, "origin_effect": null }
-          ]
-        ]
-      }
-    ],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "ARG": 4 }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 4
-  },
-  "176": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "ARG": 2 }, "origin_effect": null },
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMPI",
-          [
-            { "stack_expression": { "BYTES": "0xec" }, "origin_effect": null },
+            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
             {
-              "stack_expression": {
-                "COMPOSE": [
-                  "ISZERO",
-                  [
-                    {
-                      "stack_expression": {
-                        "COMPOSE": [
-                          "LT",
-                          [
-                            {
-                              "stack_expression": { "ARG": 1 },
-                              "origin_effect": null
-                            },
-                            {
-                              "stack_expression": { "ARG": 2 },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              },
+              "stack_expression": { "BYTES": "0xf85a49aaa" },
               "origin_effect": null
             }
           ]
         ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 2
-  },
-  "329": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-        { "stack_expression": { "BYTES": "0x152" }, "origin_effect": null },
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "BYTES": "0x19a" }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 1
-  },
-  "420": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-        { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-        { "stack_expression": { "BYTES": "0x1af" }, "origin_effect": null },
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "BYTES": "0x19a" }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 1
-  },
-  "323": {
-    "stack": { "data": [] },
-    "effects": [
-      {
-        "COMPOSE": [
-          "MSTORE",
-          [
-            { "stack_expression": { "ARG": 3 }, "origin_effect": null },
-            { "stack_expression": { "ARG": 1 }, "origin_effect": null }
-          ]
-        ]
       }
     ],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "ARG": 4 }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 4
+    "n_args": 0
   },
-  "108": {
+  "138": {
     "stack": {
       "data": [
-        { "stack_expression": { "BYTES": "0x79" }, "origin_effect": null },
+        { "stack_expression": { "BYTES": "0x97" }, "origin_effect": null },
         { "stack_expression": { "ARG": 1 }, "origin_effect": null },
         {
           "stack_expression": {
@@ -1327,40 +404,216 @@
           "MLOAD",
           [{ "stack_expression": { "BYTES": "0x40" }, "origin_effect": null }]
         ]
-      }
-    ],
-    "impact": {
-      "stack_expression": {
+      },
+      {
         "COMPOSE": [
           "JUMP",
-          [{ "stack_expression": { "BYTES": "0x173" }, "origin_effect": null }]
+          [{ "stack_expression": { "BYTES": "0x158" }, "origin_effect": null }]
         ]
-      },
-      "origin_effect": null
-    },
+      }
+    ],
     "n_args": 1
   },
-  "43": {
+  "474": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "BYTES": "0x1e1" }, "origin_effect": null }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0x1ed" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 0
+  },
+  "160": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+        {
+          "stack_expression": {
+            "COMPOSE": [
+              "SLOAD",
+              [
+                {
+                  "stack_expression": { "BYTES": "0x0" },
+                  "origin_effect": null
+                }
+              ]
+            ]
+          },
+          "origin_effect": {
+            "COMPOSE": [
+              "SLOAD",
+              [
+                {
+                  "stack_expression": { "BYTES": "0x0" },
+                  "origin_effect": null
+                }
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "SLOAD",
+          [{ "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }]
+        ]
+      },
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 1
+  },
+  "195": {
     "stack": {
       "data": [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
     },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
+    "effects": [
+      {
         "COMPOSE": [
           "JUMPI",
           [
-            { "stack_expression": { "BYTES": "0x64" }, "origin_effect": null },
+            { "stack_expression": { "BYTES": "0xd0" }, "origin_effect": null },
+            { "stack_expression": { "ARG": 1 }, "origin_effect": null }
+          ]
+        ]
+      }
+    ],
+    "n_args": 2
+  },
+  "323": {
+    "stack": { "data": [] },
+    "effects": [
+      {
+        "COMPOSE": [
+          "MSTORE",
+          [
+            { "stack_expression": { "ARG": 3 }, "origin_effect": null },
+            { "stack_expression": { "ARG": 1 }, "origin_effect": null }
+          ]
+        ]
+      },
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "ARG": 4 }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 4
+  },
+  "100": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "BYTES": "0x6c" }, "origin_effect": null }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0xa6" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 0
+  },
+  "392": {
+    "stack": {
+      "data": [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "ARG": 4 }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 4
+  },
+  "329": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+        { "stack_expression": { "BYTES": "0x152" }, "origin_effect": null },
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0x19a" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 1
+  },
+  "262": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+        { "stack_expression": { "BYTES": "0x10f" }, "origin_effect": null },
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0x12d" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 1
+  },
+  "481": { "stack": { "data": [] }, "effects": [], "n_args": 0 },
+  "0": {
+    "stack": {
+      "data": [
+        {
+          "stack_expression": { "COMPOSE": ["CALLVALUE", []] },
+          "origin_effect": null
+        }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "MSTORE",
+          [
+            { "stack_expression": { "BYTES": "0x40" }, "origin_effect": null },
+            { "stack_expression": { "BYTES": "0x80" }, "origin_effect": null }
+          ]
+        ]
+      },
+      {
+        "COMPOSE": [
+          "JUMPI",
+          [
+            { "stack_expression": { "BYTES": "0x10" }, "origin_effect": null },
             {
               "stack_expression": {
                 "COMPOSE": [
-                  "EQ",
+                  "ISZERO",
                   [
                     {
-                      "stack_expression": { "BYTES": "0x26121ff0" },
+                      "stack_expression": { "COMPOSE": ["CALLVALUE", []] },
                       "origin_effect": null
-                    },
-                    { "stack_expression": { "ARG": 1 }, "origin_effect": null }
+                    }
                   ]
                 ]
               },
@@ -1368,10 +621,9 @@
             }
           ]
         ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 1
+      }
+    ],
+    "n_args": 0
   },
   "314": {
     "stack": {
@@ -1381,17 +633,188 @@
         { "stack_expression": { "ARG": 1 }, "origin_effect": null }
       ]
     },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
+    "effects": [
+      {
         "COMPOSE": [
           "JUMP",
           [{ "stack_expression": { "BYTES": "0x18e" }, "origin_effect": null }]
         ]
-      },
-      "origin_effect": null
-    },
+      }
+    ],
     "n_args": 1
+  },
+  "420": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+        { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
+        { "stack_expression": { "BYTES": "0x1af" }, "origin_effect": null },
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0x19a" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 1
+  },
+  "271": {
+    "stack": { "data": [] },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMPI",
+          [
+            { "stack_expression": { "BYTES": "0x11e" }, "origin_effect": null },
+            { "stack_expression": { "ARG": 1 }, "origin_effect": null }
+          ]
+        ]
+      }
+    ],
+    "n_args": 1
+  },
+  "236": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "BYTES": "0x43" }, "origin_effect": null }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "ARG": 4 }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 4
+  },
+  "121": {
+    "stack": { "data": [] },
+    "effects": [
+      {
+        "COMPOSE": [
+          "MLOAD",
+          [{ "stack_expression": { "BYTES": "0x40" }, "origin_effect": null }]
+        ]
+      },
+      {
+        "COMPOSE": [
+          "RETURN",
+          [
+            {
+              "stack_expression": {
+                "COMPOSE": [
+                  "MLOAD",
+                  [
+                    {
+                      "stack_expression": { "BYTES": "0x40" },
+                      "origin_effect": null
+                    }
+                  ]
+                ]
+              },
+              "origin_effect": {
+                "COMPOSE": [
+                  "MLOAD",
+                  [
+                    {
+                      "stack_expression": { "BYTES": "0x40" },
+                      "origin_effect": null
+                    }
+                  ]
+                ]
+              }
+            },
+            {
+              "stack_expression": {
+                "COMPOSE": [
+                  "SUB",
+                  [
+                    { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+                    {
+                      "stack_expression": {
+                        "COMPOSE": [
+                          "MLOAD",
+                          [
+                            {
+                              "stack_expression": { "BYTES": "0x40" },
+                              "origin_effect": null
+                            }
+                          ]
+                        ]
+                      },
+                      "origin_effect": {
+                        "COMPOSE": [
+                          "MLOAD",
+                          [
+                            {
+                              "stack_expression": { "BYTES": "0x40" },
+                              "origin_effect": null
+                            }
+                          ]
+                        ]
+                      }
+                    }
+                  ]
+                ]
+              },
+              "origin_effect": null
+            }
+          ]
+        ]
+      }
+    ],
+    "n_args": 1
+  },
+  "301": {
+    "stack": {
+      "data": [
+        {
+          "stack_expression": {
+            "COMPOSE": [
+              "GT",
+              [
+                { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+                {
+                  "stack_expression": { "BYTES": "0x6" },
+                  "origin_effect": null
+                }
+              ]
+            ]
+          },
+          "origin_effect": null
+        }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "ARG": 2 }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 2
+  },
+  "65": {
+    "stack": { "data": [] },
+    "effects": [
+      {
+        "COMPOSE": [
+          "REVERT",
+          [
+            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
+            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }
+          ]
+        ]
+      }
+    ],
+    "n_args": 0
   },
   "431": {
     "stack": {
@@ -1400,9 +823,8 @@
         { "stack_expression": { "ARG": 2 }, "origin_effect": null }
       ]
     },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
+    "effects": [
+      {
         "COMPOSE": [
           "JUMPI",
           [
@@ -1439,41 +861,373 @@
             }
           ]
         ]
-      },
-      "origin_effect": null
-    },
+      }
+    ],
     "n_args": 3
   },
-  "210": {
+  "344": {
     "stack": {
       "data": [
-        { "stack_expression": { "ARG": 3 }, "origin_effect": null },
-        { "stack_expression": { "ARG": 3 }, "origin_effect": null },
-        { "stack_expression": { "BYTES": "0xe4" }, "origin_effect": null },
-        { "stack_expression": { "ARG": 3 }, "origin_effect": null }
+        { "stack_expression": { "ARG": 2 }, "origin_effect": null },
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+        {
+          "stack_expression": {
+            "COMPOSE": [
+              "ADD",
+              [
+                { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+                {
+                  "stack_expression": { "BYTES": "0x20" },
+                  "origin_effect": null
+                }
+              ]
+            ]
+          },
+          "origin_effect": null
+        },
+        { "stack_expression": { "BYTES": "0x16d" }, "origin_effect": null },
+        {
+          "stack_expression": {
+            "COMPOSE": [
+              "ADD",
+              [
+                { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+                {
+                  "stack_expression": { "BYTES": "0x0" },
+                  "origin_effect": null
+                }
+              ]
+            ]
+          },
+          "origin_effect": null
+        },
+        { "stack_expression": { "ARG": 2 }, "origin_effect": null }
       ]
     },
     "effects": [
       {
         "COMPOSE": [
-          "SSTORE",
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0x13a" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 2
+  },
+  "398": {
+    "stack": {
+      "data": [
+        {
+          "stack_expression": {
+            "COMPOSE": [
+              "ISZERO",
+              [
+                {
+                  "stack_expression": {
+                    "COMPOSE": [
+                      "ISZERO",
+                      [
+                        {
+                          "stack_expression": { "ARG": 1 },
+                          "origin_effect": null
+                        }
+                      ]
+                    ]
+                  },
+                  "origin_effect": null
+                }
+              ]
+            ]
+          },
+          "origin_effect": null
+        }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "ARG": 2 }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 2
+  },
+  "203": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "ARG": 2 }, "origin_effect": null },
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+        { "stack_expression": { "ARG": 2 }, "origin_effect": null }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0xd2" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 2
+  },
+  "130": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "BYTES": "0x8a" }, "origin_effect": null }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0xf5" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 0
+  },
+  "70": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "BYTES": "0x4e" }, "origin_effect": null }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0xa0" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 0
+  },
+  "166": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
+        { "stack_expression": { "BYTES": "0xc" }, "origin_effect": null },
+        { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }
+      ]
+    },
+    "effects": [],
+    "n_args": 0
+  },
+  "276": {
+    "stack": {
+      "data": [
+        {
+          "stack_expression": {
+            "COMPOSE": [
+              "ADD",
+              [
+                {
+                  "stack_expression": { "BYTES": "0x1" },
+                  "origin_effect": null
+                },
+                { "stack_expression": { "ARG": 1 }, "origin_effect": null }
+              ]
+            ]
+          },
+          "origin_effect": null
+        }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0x106" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 1
+  },
+  "208": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "ARG": 2 }, "origin_effect": null },
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+        { "stack_expression": { "ARG": 2 }, "origin_effect": null }
+      ]
+    },
+    "effects": [],
+    "n_args": 2
+  },
+  "185": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+        { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
+        { "stack_expression": { "BYTES": "0xc3" }, "origin_effect": null },
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0x12d" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 1
+  },
+  "26": {
+    "stack": {
+      "data": [
+        {
+          "stack_expression": {
+            "COMPOSE": [
+              "SHR",
+              [
+                {
+                  "stack_expression": { "BYTES": "0xe0" },
+                  "origin_effect": null
+                },
+                {
+                  "stack_expression": {
+                    "COMPOSE": [
+                      "CALLDATALOAD",
+                      [
+                        {
+                          "stack_expression": { "BYTES": "0x0" },
+                          "origin_effect": null
+                        }
+                      ]
+                    ]
+                  },
+                  "origin_effect": null
+                }
+              ]
+            ]
+          },
+          "origin_effect": null
+        }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMPI",
           [
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-            { "stack_expression": { "ARG": 1 }, "origin_effect": null }
+            { "stack_expression": { "BYTES": "0x46" }, "origin_effect": null },
+            {
+              "stack_expression": {
+                "COMPOSE": [
+                  "EQ",
+                  [
+                    {
+                      "stack_expression": { "BYTES": "0xdbe671f" },
+                      "origin_effect": null
+                    },
+                    {
+                      "stack_expression": {
+                        "COMPOSE": [
+                          "SHR",
+                          [
+                            {
+                              "stack_expression": { "BYTES": "0xe0" },
+                              "origin_effect": null
+                            },
+                            {
+                              "stack_expression": {
+                                "COMPOSE": [
+                                  "CALLDATALOAD",
+                                  [
+                                    {
+                                      "stack_expression": { "BYTES": "0x0" },
+                                      "origin_effect": null
+                                    }
+                                  ]
+                                ]
+                              },
+                              "origin_effect": null
+                            }
+                          ]
+                        ]
+                      },
+                      "origin_effect": null
+                    }
+                  ]
+                ]
+              },
+              "origin_effect": null
+            }
           ]
         ]
       }
     ],
-    "impact": {
-      "stack_expression": {
+    "n_args": 0
+  },
+  "482": {
+    "stack": {
+      "data": [
+        {
+          "stack_expression": {
+            "COMPOSE": [
+              "ADD",
+              [
+                { "stack_expression": { "ARG": 2 }, "origin_effect": null },
+                {
+                  "stack_expression": { "BYTES": "0x1" },
+                  "origin_effect": null
+                }
+              ]
+            ]
+          },
+          "origin_effect": null
+        }
+      ]
+    },
+    "effects": [
+      {
         "COMPOSE": [
           "JUMP",
-          [{ "stack_expression": { "BYTES": "0x1a4" }, "origin_effect": null }]
+          [{ "stack_expression": { "ARG": 3 }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 3
+  },
+  "493": {
+    "stack": { "data": [] },
+    "effects": [
+      {
+        "COMPOSE": [
+          "MSTORE",
+          [
+            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
+            {
+              "stack_expression": {
+                "BYTES": "0x4e487b7100000000000000000000000000000000000000000000000000000000"
+              },
+              "origin_effect": null
+            }
+          ]
         ]
       },
-      "origin_effect": null
-    },
-    "n_args": 3
+      {
+        "COMPOSE": [
+          "MSTORE",
+          [
+            { "stack_expression": { "BYTES": "0x4" }, "origin_effect": null },
+            { "stack_expression": { "BYTES": "0x11" }, "origin_effect": null }
+          ]
+        ]
+      },
+      {
+        "COMPOSE": [
+          "REVERT",
+          [
+            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
+            { "stack_expression": { "BYTES": "0x24" }, "origin_effect": null }
+          ]
+        ]
+      }
+    ],
+    "n_args": 0
   },
   "151": {
     "stack": { "data": [] },
@@ -1551,186 +1305,7 @@
         ]
       }
     ],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "RETURN",
-          [
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              }
-            },
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "SUB",
-                  [
-                    { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-                    {
-                      "stack_expression": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      },
-                      "origin_effect": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      }
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": null
-            }
-          ]
-        ]
-      },
-      "origin_effect": {
-        "COMPOSE": [
-          "RETURN",
-          [
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": {
-                "COMPOSE": [
-                  "MLOAD",
-                  [
-                    {
-                      "stack_expression": { "BYTES": "0x40" },
-                      "origin_effect": null
-                    }
-                  ]
-                ]
-              }
-            },
-            {
-              "stack_expression": {
-                "COMPOSE": [
-                  "SUB",
-                  [
-                    { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-                    {
-                      "stack_expression": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      },
-                      "origin_effect": {
-                        "COMPOSE": [
-                          "MLOAD",
-                          [
-                            {
-                              "stack_expression": { "BYTES": "0x40" },
-                              "origin_effect": null
-                            }
-                          ]
-                        ]
-                      }
-                    }
-                  ]
-                ]
-              },
-              "origin_effect": null
-            }
-          ]
-        ]
-      }
-    },
     "n_args": 1
-  },
-  "185": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-        { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-        { "stack_expression": { "BYTES": "0xc3" }, "origin_effect": null },
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "BYTES": "0x12d" }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 1
-  },
-  "245": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-        { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }
-      ]
-    },
-    "effects": [
-      {
-        "COMPOSE": [
-          "SSTORE",
-          [
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-            {
-              "stack_expression": { "BYTES": "0xf85a49aaa" },
-              "origin_effect": null
-            }
-          ]
-        ]
-      }
-    ],
-    "impact": null,
-    "n_args": 0
   },
   "371": {
     "stack": {
@@ -1771,139 +1346,94 @@
         { "stack_expression": { "ARG": 2 }, "origin_effect": null }
       ]
     },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
+    "effects": [
+      {
         "COMPOSE": [
           "JUMP",
           [{ "stack_expression": { "BYTES": "0x149" }, "origin_effect": null }]
         ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 2
-  },
-  "208": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "ARG": 2 }, "origin_effect": null },
-        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-        { "stack_expression": { "ARG": 2 }, "origin_effect": null }
-      ]
-    },
-    "effects": [],
-    "impact": null,
-    "n_args": 2
-  },
-  "100": {
-    "stack": {
-      "data": [
-        { "stack_expression": { "BYTES": "0x6c" }, "origin_effect": null }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "BYTES": "0xa6" }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 0
-  },
-  "276": {
-    "stack": {
-      "data": [
-        {
-          "stack_expression": {
-            "COMPOSE": [
-              "ADD",
-              [
-                {
-                  "stack_expression": { "BYTES": "0x1" },
-                  "origin_effect": null
-                },
-                { "stack_expression": { "ARG": 1 }, "origin_effect": null }
-              ]
-            ]
-          },
-          "origin_effect": null
-        }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "BYTES": "0x106" }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 1
-  },
-  "481": {
-    "stack": { "data": [] },
-    "effects": [],
-    "impact": null,
-    "n_args": 0
-  },
-  "65": {
-    "stack": { "data": [] },
-    "effects": [
-      {
-        "COMPOSE": [
-          "REVERT",
-          [
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }
-          ]
-        ]
       }
     ],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "REVERT",
-          [
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }
-          ]
-        ]
-      },
-      "origin_effect": {
-        "COMPOSE": [
-          "REVERT",
-          [
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }
-          ]
-        ]
-      }
-    },
-    "n_args": 0
+    "n_args": 2
   },
-  "54": {
+  "295": {
     "stack": {
       "data": [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
     },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
+    "effects": [
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "ARG": 4 }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 4
+  },
+  "78": {
+    "stack": {
+      "data": [
+        { "stack_expression": { "BYTES": "0x5b" }, "origin_effect": null },
+        { "stack_expression": { "ARG": 1 }, "origin_effect": null },
+        {
+          "stack_expression": {
+            "COMPOSE": [
+              "MLOAD",
+              [
+                {
+                  "stack_expression": { "BYTES": "0x40" },
+                  "origin_effect": null
+                }
+              ]
+            ]
+          },
+          "origin_effect": {
+            "COMPOSE": [
+              "MLOAD",
+              [
+                {
+                  "stack_expression": { "BYTES": "0x40" },
+                  "origin_effect": null
+                }
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    "effects": [
+      {
+        "COMPOSE": [
+          "MLOAD",
+          [{ "stack_expression": { "BYTES": "0x40" }, "origin_effect": null }]
+        ]
+      },
+      {
+        "COMPOSE": [
+          "JUMP",
+          [{ "stack_expression": { "BYTES": "0x173" }, "origin_effect": null }]
+        ]
+      }
+    ],
+    "n_args": 1
+  },
+  "43": {
+    "stack": {
+      "data": [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
+    },
+    "effects": [
+      {
         "COMPOSE": [
           "JUMPI",
           [
-            { "stack_expression": { "BYTES": "0x82" }, "origin_effect": null },
+            { "stack_expression": { "BYTES": "0x64" }, "origin_effect": null },
             {
               "stack_expression": {
                 "COMPOSE": [
                   "EQ",
                   [
                     {
-                      "stack_expression": { "BYTES": "0xe2179b8e" },
+                      "stack_expression": { "BYTES": "0x26121ff0" },
                       "origin_effect": null
                     },
                     { "stack_expression": { "ARG": 1 }, "origin_effect": null }
@@ -1914,108 +1444,22 @@
             }
           ]
         ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 1
-  },
-  "301": {
-    "stack": {
-      "data": [
-        {
-          "stack_expression": {
-            "COMPOSE": [
-              "GT",
-              [
-                { "stack_expression": { "ARG": 1 }, "origin_effect": null },
-                {
-                  "stack_expression": { "BYTES": "0x6" },
-                  "origin_effect": null
-                }
-              ]
-            ]
-          },
-          "origin_effect": null
-        }
-      ]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "ARG": 2 }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 2
-  },
-  "410": {
-    "stack": {
-      "data": [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
-    },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "JUMP",
-          [{ "stack_expression": { "ARG": 2 }, "origin_effect": null }]
-        ]
-      },
-      "origin_effect": null
-    },
-    "n_args": 2
-  },
-  "12": {
-    "stack": { "data": [] },
-    "effects": [
-      {
-        "COMPOSE": [
-          "REVERT",
-          [
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }
-          ]
-        ]
       }
     ],
-    "impact": {
-      "stack_expression": {
-        "COMPOSE": [
-          "REVERT",
-          [
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }
-          ]
-        ]
-      },
-      "origin_effect": {
-        "COMPOSE": [
-          "REVERT",
-          [
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null },
-            { "stack_expression": { "BYTES": "0x0" }, "origin_effect": null }
-          ]
-        ]
-      }
-    },
-    "n_args": 0
+    "n_args": 1
   },
-  "295": {
+  "365": {
     "stack": {
       "data": [{ "stack_expression": { "ARG": 1 }, "origin_effect": null }]
     },
-    "effects": [],
-    "impact": {
-      "stack_expression": {
+    "effects": [
+      {
         "COMPOSE": [
           "JUMP",
           [{ "stack_expression": { "ARG": 4 }, "origin_effect": null }]
         ]
-      },
-      "origin_effect": null
-    },
+      }
+    ],
     "n_args": 4
   }
 }
