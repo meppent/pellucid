@@ -5,21 +5,21 @@ use crate::{
     bytecode_reader::{vopcode::Vopcode, opcode::Opcode}, create_blocks::{symbolic_block::SymbolicBlock, symbolic_expression::{StackExpression, Effect, SymbolicExpression}}, create_graph::simple_evm::{State, SimpleStackExpression}, tools::stack::Stack,
 };
 use std::{cell::RefCell, rc::Rc, fmt};
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct Block<'a> {
     pub code: &'a [Vopcode],
     nodes: Vec<Rc<RefCell<Node<'a>>>>,
     pub symbolic_block: Rc<SymbolicBlock>,
 }
 
-// impl<'a> fmt::Debug for Block<'a> {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         f.debug_struct("Block")
-//          .field("code", &self.code)
-//          .field("node_n", &self.nodes.len())
-//          .finish()
-//     }
-// }
+impl<'a> fmt::Debug for Block<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Block")
+         .field("code", &self.code)
+         .field("node_n", &self.nodes.len())
+         .finish()
+    }
+}
 
 impl<'a> Block<'a> {
     pub fn new(code: &'a [Vopcode]) -> Self {
@@ -177,7 +177,7 @@ impl<'a> BlockRef<'a> {
                 Effect::COMPOSE(Opcode::JUMPI, dest) => {
                 
                     assert!(dest.len() == 2, "JUMP without good number of arguments");
-                    let mut dests_bytes: Vec<usize> = Vec::new();
+                    let mut dests_bytes: Vec<usize> = vec![self.get_next_pc_start()];
 
                     match &dest[0].stack_expression {
                         StackExpression::BYTES(dest) => {
@@ -192,24 +192,7 @@ impl<'a> BlockRef<'a> {
                         _ => { panic!("JUMP destination is not a constant") }
                     }
 
-                    match &dest[0].stack_expression {
-                        StackExpression::BYTES(dest) => {
-                            dests_bytes.push(dest.as_usize());
-                        },
-                        StackExpression::ARG(value) => {
-                            match args[value - 1]{
-                                SimpleStackExpression::BYTES(dest) => {
-                                    dests_bytes.push(dest.as_usize());
-                                },
-                                _ => {
-                                    panic!("JUMP destination is not a constant");
-                                }
-                            }
-                        },
-                        _ => {
-                            panic!("JUMP destination is not a constant");
-                        }
-                    }
+                    
 
                     final_context.state = State::JUMP(dests_bytes);
                 },

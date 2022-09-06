@@ -104,13 +104,19 @@ impl<'a> NodeRef<'a> {
             .collect();
     }
 
+    //use only if nodes are already connected to blocks
     pub fn add_parent(&self, parent: NodeRef<'a>) {
         self.inner.borrow_mut().parents.push(parent.clone().inner);
         parent.inner.borrow_mut().children.push(self.clone().inner);
     }
 
+    //use only if nodes are already connected to blocks
     pub fn add_child(&self, child: NodeRef<'a>) {
         self.inner.borrow_mut().children.push(child.clone().inner);
         child.inner.borrow_mut().parents.push(self.clone().inner);
     }
+
+
+
+    
 }
