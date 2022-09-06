@@ -12,9 +12,11 @@ pub enum StackExpression {
     ARG(usize),
 }
 
+
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Effect {
-    COMPOSE(Opcode, Vec<SymbolicExpression>),
+pub struct Effect {
+    pub opcode: Opcode,
+    pub symbolic_exprs: Vec<SymbolicExpression>,
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]

@@ -1,4 +1,3 @@
-use std::borrow::BorrowMut;
 use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
@@ -123,13 +122,9 @@ impl<'a> Graph<'a> {
 #[cfg(test)]
 mod tests {
 
-    use primitive_types::U256;
     use serde::{Deserialize, Serialize};
 
-    use crate::bytecode_reader::vopcode::Vopcode;
-    use crate::create_blocks::symbolic_block::SymbolicBlock;
-    use crate::create_blocks::symbolic_expression::StackExpression;
-    use crate::create_graph::display::draw;
+    
 
     use super::*;
     use crate::bytecode_reader::bytecode::Bytecode;
@@ -137,7 +132,6 @@ mod tests {
     use itertools::Itertools;
     use std::fs;
     use std::iter::FromIterator;
-    use std::rc::Rc;
 
     #[test]
     pub fn small_test() {
