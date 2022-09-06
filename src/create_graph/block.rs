@@ -102,6 +102,10 @@ impl<'a> BlockRef<'a> {
     pub fn get_pc_start(&self) -> usize {
         return self.get_code()[0].pc;
     }
+    
+    pub fn get_pc_end(&self) -> usize {
+        return self.get_code()[self.get_code().len() - 1].pc;
+    }
 
     pub fn get_nodes(&self) -> Vec<NodeRef<'a>> {
         return RefCell::borrow(&self.inner)

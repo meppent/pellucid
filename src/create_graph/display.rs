@@ -1,12 +1,12 @@
-use super::block_set::BlockSet;
 use crate::{
-    bytecode_reader::bytecode::Bytecode,
-    utils::{get_max_key, get_sorted_keys, iter_int, map_values_to_index, max_mapped_value},
+    bytecode_reader::bytecode::Bytecode, tools::utils::{iter_int, map_values_to_index, get_sorted_keys, get_max_key, max_mapped_value},
 };
 use std::{
     collections::{HashMap, HashSet},
     usize,
 };
+
+use super::graph::Graph;
 pub const EMPTY_CHAR: char = ' ';
 pub const VERTICAL_CHAR: char = '│';
 pub const HORYZONTAL_CHAR: char = '─';
@@ -328,14 +328,14 @@ impl Links {
 }
 
 struct RectangleSet<'a> {
-    pub block_set: &'a BlockSet<'a>,
+    pub graph: &'a Graph<'a>,
     pub sorted_pc_starts: Vec<usize>,
     pub links: HashMap<Direction, Links>,
 }
 
 impl<'a> RectangleSet<'a> {
-    fn new(block_set: &'a BlockSet) -> Self {
-        let mut sorted_pc_starts: Vec<usize> = block_set.get_all_pc_starts().into_iter().collect();
+    fn new(graph: &'a Graph<'a>) -> Self {
+        let mut sorted_pc_starts: Vec<usize> = graph.get_all_pc_starts();
         sorted_pc_starts.sort();
 
         let links: HashMap<Direction, Links> = HashMap::from([
@@ -350,7 +350,7 @@ impl<'a> RectangleSet<'a> {
         ]);
 
         let mut rectangle_set: RectangleSet = RectangleSet {
-            block_set,
+            graph,
             sorted_pc_starts,
             links,
         };
@@ -397,7 +397,7 @@ impl<'a> RectangleSet<'a> {
     }
 
     fn get_sorted_edges_by_index(&self, direction: Direction) -> Vec<(usize, usize)> {
-        let edges_by_pc_start: Vec<(usize, usize)> = self.block_set.get_edges();
+        let edges_by_pc_start: Vec<(usize, usize)> = self.graph.get_edges();
 
         let direction_filer = |(pc_start_from, pc_start_to): &&(usize, usize)| match direction {
             Direction::DESCENDING => pc_start_from < pc_start_to,
@@ -440,7 +440,7 @@ impl<'a> RectangleSet<'a> {
         for (index, pc_start) in self.sorted_pc_starts.iter().enumerate() {
             let rectangle_grid: Grid = rectangle_to_grid(
                 *pc_start,
-                self.block_set.get_pc_end_of_block(*pc_start),
+                self.graph.get_pc_end_of_block(*pc_start),
                 bytecode,
                 &(String::from("label ") + &index.to_string()),
             );
@@ -624,8 +624,8 @@ impl<'a> RectangleSet<'a> {
     }
 }
 
-pub fn draw(block_set: &BlockSet, bytecode: &Bytecode) -> String {
-    let rectangle_set: RectangleSet = RectangleSet::new(block_set);
+pub fn draw<'a>(graph: &'a Graph<'a>, bytecode: &'a Bytecode) -> String {
+    let rectangle_set: RectangleSet = RectangleSet::new(graph);
     let final_grid: Grid = rectangle_set.to_grid(bytecode);
     return final_grid.to_string();
 }
