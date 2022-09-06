@@ -105,7 +105,7 @@ mod tests {
         assert!(target_symbolic_blocks == symbolic_blocks);
 
         // to overwrite the dest json:
-        //write_file("temp.json", &serde_json::to_string(&symbolic_blocks).unwrap());
+        //write_file("./assets/contracts/simple_contract/symbolic_blocks.json", &serde_json::to_string(&symbolic_blocks).unwrap());
     }
 
     #[test]
