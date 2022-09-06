@@ -88,7 +88,7 @@ impl<'a> BlockRef<'a> {
 
     pub fn contains_initial_context(&self, initial_context: &SimpleContext) -> bool {
         for node in self.get_nodes() {
-            if &node.get_initial_context() == initial_context {
+            if &node.clone_initial_context() == initial_context {
                 return true;
             }
         }
@@ -158,6 +158,8 @@ impl<'a> BlockRef<'a> {
     }
 
     pub fn compute_final_state(&self, final_effect: Option<Rc<Effect>>, args: Vec<SimpleStackExpression>) -> State {
+        dbg!(&final_effect);
+        dbg!(&args);
         match final_effect {
             None => { return State::RUNNING; },
             Some(final_effect) => {
@@ -166,6 +168,7 @@ impl<'a> BlockRef<'a> {
                     if final_effect.opcode == Opcode::JUMPI { destinations.push(self.get_next_pc_start()) }
 
                     match final_effect.symbolic_exprs[0].stack_expression {
+                        
                         StackExpression::COMPOSE(_, _) => panic!("JUMP destination is not a constant"),
                         StackExpression::BYTES(dest) => destinations.push(dest.as_usize()),
                         StackExpression::ARG(value) => 

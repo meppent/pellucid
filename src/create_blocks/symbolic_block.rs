@@ -72,12 +72,11 @@ impl SymbolicBlock {
 
             opcode => {
                 let mut consumed_symbolic_expressions: Vec<SymbolicExpression> = Vec::new();
+                let effect: Option<Rc<Effect>>;
 
                 for _ in 0..opcode.stack_input() {
                     consumed_symbolic_expressions.push(self.stack.pop());
                 }
-
-                let effect: Option<Rc<Effect>>;
 
                 if opcode.has_effect() {
                     let effect_ref: Rc<Effect> = Rc::new(Effect{
@@ -86,8 +85,7 @@ impl SymbolicBlock {
                     });
                     effect = Some(Rc::clone(&effect_ref));
                     self.effects.push(Rc::clone(&effect_ref));
-                } 
-                else { effect = None; };
+                } else { effect = None };
 
                 if opcode.stack_output() > 0 {
                     self.stack.push(SymbolicExpression::new_compose(

@@ -31,5 +31,5 @@ impl SimpleContext {
             state: State::RUNNING,
         };
     }
-
 }
+
