@@ -1,9 +1,7 @@
-use std::rc::Rc;
-
 use primitive_types::U256;
 use serde::Serialize;
 
-use crate::{tools::stack::Stack, create_blocks::symbolic_expression::Effect};
+use crate::tools::stack::Stack;
 
 #[derive(Debug, PartialEq, Clone, Hash, Serialize)]
 pub enum SimpleStackExpression {
@@ -14,22 +12,23 @@ pub enum SimpleStackExpression {
 pub type SimpleStack = Stack<SimpleStackExpression>;
 
 #[derive(Debug, PartialEq, Clone, Hash, Serialize)]
-pub enum State{
+pub enum State {
     RUNNING,
     STOP,
     JUMP(Vec<usize>),
 }
 
-
 #[derive(Debug, PartialEq, Clone, Hash, Serialize)]
-pub struct SimpleContext{
+pub struct SimpleContext {
     pub stack: SimpleStack,
-    pub state: State
-
+    pub state: State,
 }
 
-impl SimpleContext{
-    pub fn new()-> Self{
-        return SimpleContext{stack: SimpleStack::new(), state: State::RUNNING};
+impl SimpleContext {
+    pub fn new() -> Self {
+        return SimpleContext {
+            stack: SimpleStack::new(),
+            state: State::RUNNING,
+        };
     }
 }
