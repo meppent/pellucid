@@ -20,8 +20,6 @@ impl<'a> Graph<'a> {
         };
     }
 
-
-
     pub fn from(bytecode: &'a Bytecode) -> Self {
         let blocks: HashMap<usize, BlockRef<'a>> = parser::find_blocks(&bytecode);
         let graph: Graph =  Graph { blocks };
@@ -30,6 +28,7 @@ impl<'a> Graph<'a> {
         graph.explore_from(initial_node, SimpleContext::new());
         return graph;
     }
+
     //we may want to create RC for SimpleContext knowing they are owned by 2 nodes
     pub fn explore_from(&self, node_origin: NodeRef<'a>, initial_context: SimpleContext){
 
@@ -50,13 +49,13 @@ impl<'a> Graph<'a> {
                 if !block_dest.contains_initial_context(&final_context){
                     let node_dest = NodeRef::new(block_dest.clone(), final_context.clone());
                     node_origin.add_child(node_dest.clone());
-                    self.explore_from(node_dest, final_context.clone());
+                    let mut next_initial_context = final_context.clone();
+                    next_initial_context.state = State::RUNNING;
+                    self.explore_from(node_dest, next_initial_context);
                 }
             }
         }
     }
-
-
 
     pub fn add_block(&mut self, block: BlockRef<'a>) {
         self.blocks.insert(block.get_pc_start(), block);
