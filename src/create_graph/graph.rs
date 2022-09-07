@@ -142,7 +142,7 @@ mod tests {
 
         // dbg!(&graph);
         let drawing = draw(&graph, &bytecode_test);
-        //println!("{}", drawing);
+        println!("{}", drawing);
         //write_file("./assets/contracts/simple_contract/graph_drawing.txt", &drawing);
     }
 

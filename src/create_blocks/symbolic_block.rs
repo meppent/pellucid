@@ -7,7 +7,7 @@ use crate::tools::stack::Stack;
 
 use super::symbolic_expression::{Effect, SymbolicExpression};
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct SymbolicBlock {
     pub stack: Stack<SymbolicExpression>,
     pub effects: Vec<Rc<Effect>>,

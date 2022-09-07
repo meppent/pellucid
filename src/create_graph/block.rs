@@ -9,7 +9,7 @@ use std::{cell::RefCell, rc::Rc, fmt};
 pub struct Block<'a> {
     pub code: &'a [Vopcode],
     nodes: Vec<Rc<RefCell<Node<'a>>>>,
-    pub symbolic_block: Rc<SymbolicBlock>,
+    pub symbolic_block: SymbolicBlock,
 }
 
 impl<'a> fmt::Debug for Block<'a> {
@@ -22,7 +22,7 @@ impl<'a> fmt::Debug for Block<'a> {
 }
 
 impl<'a> Block<'a> {
-    pub fn new(code: &'a [Vopcode], symbolic_block: Rc<SymbolicBlock>) -> Self {
+    pub fn new(code: &'a [Vopcode], symbolic_block: SymbolicBlock) -> Self {
         return Block {
             code,
             nodes: vec![],
@@ -53,7 +53,7 @@ impl<'a> PartialEq for BlockRef<'a> {
 impl<'a> Eq for BlockRef<'a> {}
 
 impl<'a> BlockRef<'a> {
-    pub fn new(code: &'a [Vopcode], symbolic_block: Rc<SymbolicBlock>) -> Self {
+    pub fn new(code: &'a [Vopcode], symbolic_block: SymbolicBlock) -> Self {
         return BlockRef {
             inner: Rc::new(RefCell::new(Block::new(code, symbolic_block))),
         };
@@ -74,7 +74,7 @@ impl<'a> BlockRef<'a> {
         self.inner.borrow_mut().nodes.push(node.inner);
     }
 
-    pub fn get_symbolic_block(&self) -> Rc<SymbolicBlock>{
+    pub fn clone_symbolic_block(&self) -> SymbolicBlock{
         return self.inner.borrow().symbolic_block.clone();
     }
 
@@ -140,7 +140,7 @@ impl<'a> BlockRef<'a> {
             args.push(final_context.stack.pop());
         }
 
-        for symbolic_expr in self.get_symbolic_block().stack.iter() {
+        for symbolic_expr in self.clone_symbolic_block().stack.iter() {
             match symbolic_expr.stack_expression {
                 StackExpression::BYTES(value) => final_context.stack.push(SimpleStackExpression::BYTES(value)),
                 StackExpression::ARG(index) => final_context.stack.push(args[index - 1].clone()),

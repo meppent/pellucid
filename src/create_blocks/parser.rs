@@ -1,7 +1,11 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
-    bytecode_reader::{bytecode::Bytecode, opcode::Opcode, vopcode::{Vopcode, self}},
+    bytecode_reader::{
+        bytecode::Bytecode,
+        opcode::Opcode,
+        vopcode::{self, Vopcode},
+    },
     create_graph::block::{Block, BlockRef},
 };
 
@@ -42,18 +46,21 @@ fn find_block_locations(bytecode: &Bytecode) -> Vec<(usize, usize)> {
 }
 
 // TODO put directly in BlockRef implem
-pub fn new_block_ref<'a>(code: &'a [Vopcode])->BlockRef<'a>{
+pub fn new_block_ref<'a>(code: &'a [Vopcode]) -> BlockRef<'a> {
     let mut symbolic_block: SymbolicBlock = SymbolicBlock::new();
-    for vopcode in code{
+    for vopcode in code {
         symbolic_block.apply_vopcode(vopcode);
-    } 
-    return BlockRef::new(code, Rc::new(symbolic_block));
+    }
+    return BlockRef::new(code, symbolic_block);
 }
 
 pub fn find_blocks<'a>(bytecode: &'a Bytecode) -> HashMap<usize, BlockRef<'a>> {
     let mut blocks: HashMap<usize, BlockRef<'a>> = HashMap::new();
-    for (pc_start, pc_end) in find_block_locations(bytecode){
-        blocks.insert(pc_start, new_block_ref(bytecode.slice_code(pc_start, pc_end)));
+    for (pc_start, pc_end) in find_block_locations(bytecode) {
+        blocks.insert(
+            pc_start,
+            new_block_ref(bytecode.slice_code(pc_start, pc_end)),
+        );
     }
     return blocks;
 }
@@ -64,7 +71,7 @@ mod tests {
     use super::*;
     use crate::{bytecode_reader::vopcode::Vopcode, tools::utils::read_file};
     use itertools::Itertools;
-    use std::{fs, rc::Rc};
+    use std::fs;
 
     #[test]
     pub fn test_symbolic_blocks() {
@@ -73,15 +80,19 @@ mod tests {
                 .expect("Unable to read file.");
         let bytecode: Bytecode = Bytecode::from(&bytecode_string);
         let mut blocks: HashMap<usize, BlockRef> = find_blocks(&bytecode);
-        let mut symbolic_blocks: HashMap<usize, Rc<SymbolicBlock>> = HashMap::new();
+        let mut symbolic_blocks: HashMap<usize, SymbolicBlock> = HashMap::new();
         let pc_starts: Vec<usize> = blocks.keys().into_iter().map(|pc| *pc).collect_vec();
         for pc_start in &pc_starts {
             symbolic_blocks.insert(
                 *pc_start,
-                blocks.remove(pc_start).unwrap().get_symbolic_block(),
+                blocks
+                    .remove(pc_start)
+                    .unwrap()
+                    .clone_symbolic_block()
+                    .clone(),
             );
         }
-        let target_symbolic_blocks: HashMap<usize, Rc<SymbolicBlock>> = serde_json::from_str(
+        let target_symbolic_blocks: HashMap<usize, SymbolicBlock> = serde_json::from_str(
             &read_file("./assets/contracts/simple_contract/symbolic_blocks.json"),
         )
         .unwrap();
