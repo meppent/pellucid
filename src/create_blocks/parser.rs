@@ -1,12 +1,8 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::collections::HashMap;
 
 use crate::{
-    bytecode_reader::{
-        bytecode::Bytecode,
-        opcode::Opcode,
-        vopcode::{self, Vopcode},
-    },
-    create_graph::block::{Block, BlockRef},
+    bytecode_reader::{bytecode::Bytecode, opcode::Opcode, vopcode::Vopcode},
+    create_graph::block::BlockRef,
 };
 
 use super::symbolic_block::SymbolicBlock;
@@ -30,7 +26,14 @@ fn find_block_locations(bytecode: &Bytecode) -> Vec<(usize, usize)> {
                     block_locations.push((pc_start_, pc));
                     pc_start = Some(pc + 1);
                 } else if opcode == Opcode::JUMPDEST {
-                    block_locations.push((pc_start_, pc)); // TODO if bytecode start by jumpdest
+                    block_locations.push((
+                        pc_start_,
+                        if let Some(prev_pc) = bytecode.get_previous_pc(pc) {
+                            prev_pc
+                        } else {
+                            pc_start_ // rare case of a JUMPDEST at pc 0
+                        },
+                    ));
                     pc_start = Some(pc);
                 }
             }

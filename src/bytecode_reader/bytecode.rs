@@ -54,11 +54,7 @@ impl Bytecode {
                 pc = item_end;
             }
 
-            bytecode.insert_vopcode(Vopcode::new(
-                opcode,
-                item,
-                origin_line
-            ));
+            bytecode.insert_vopcode(Vopcode::new(opcode, item, origin_line));
         }
 
         return bytecode;
@@ -87,6 +83,13 @@ impl Bytecode {
 
     pub fn iter<'a>(&'a self, pc_start: usize, pc_end: usize) -> std::slice::Iter<Vopcode> {
         return self.vopcodes[self.pc_to_index[&pc_start]..self.pc_to_index[&pc_end] + 1].iter();
+    }
+
+    pub fn get_previous_pc(&self, pc: usize) -> Option<usize> {
+        match self.vopcodes.get(self.pc_to_index[&pc] - 1){
+            None => return None,
+            Some(vopcode)=> return Some(vopcode.pc)
+        }
     }
 }
 
