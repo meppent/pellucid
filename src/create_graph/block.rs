@@ -22,16 +22,12 @@ impl<'a> fmt::Debug for Block<'a> {
 }
 
 impl<'a> Block<'a> {
-    pub fn new(code: &'a [Vopcode]) -> Self {
+    pub fn new(code: &'a [Vopcode], symbolic_block: Rc<SymbolicBlock>) -> Self {
         return Block {
             code,
             nodes: vec![],
-            symbolic_block: Rc::new(SymbolicBlock::new()),
+            symbolic_block,
         };
-    }
-
-    pub fn attach_symbolic_block(&mut self, symbolic_block: Rc<SymbolicBlock>) {
-        self.symbolic_block = symbolic_block;
     }
 }
 
@@ -57,9 +53,9 @@ impl<'a> PartialEq for BlockRef<'a> {
 impl<'a> Eq for BlockRef<'a> {}
 
 impl<'a> BlockRef<'a> {
-    pub fn new(code: &'a [Vopcode]) -> Self {
+    pub fn new(code: &'a [Vopcode], symbolic_block: Rc<SymbolicBlock>) -> Self {
         return BlockRef {
-            inner: Rc::new(RefCell::new(Block::new(code))),
+            inner: Rc::new(RefCell::new(Block::new(code, symbolic_block))),
         };
     }
 
