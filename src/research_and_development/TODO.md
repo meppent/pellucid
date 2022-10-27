@@ -1,0 +1,6 @@
+- Improve the algorithm complexity in internal function detection
+- Stop duplicating after reaching the end of pathological internal functions, and reconnect to the existing healthy parts
+- Generalize the concept of function to each block with 2 or more parent blocks, to avoid the distinction between function and junction in skeleton.rs
+- Better handling of infinite looping block
+- Fix stack underflow: rare cases where we need to use '6666' variables to avoid crash (temporary fix) (warning: this bug may be hidden by variable renaming)
+- Avoid return scope with wrong label in internal function content (probably due to a return inside a junction that have been transformed into an internal function)

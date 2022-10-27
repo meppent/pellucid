@@ -1,0 +1,6 @@
+/target
+Cargo.lock
+.vscode
+decompiled.txt
+opcodes.txt
+graph.txt
