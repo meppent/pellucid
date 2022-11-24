@@ -72,7 +72,7 @@ impl GetFunctionLabel for FunctionCallWithVars {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FunctionReturnWithVars {
     pub label: FunctionLabel,
     pub returned_values: Vec<Value>,
